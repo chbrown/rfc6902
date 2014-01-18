@@ -1,8 +1,13 @@
 {
   "name": "rfc6902",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Complete implementation of RFC6902 (patch and diff)",
-  "keywords": ["json", "patch", "diff", "rfc6902"],
+  "keywords": [
+    "json",
+    "patch",
+    "diff",
+    "rfc6902"
+  ],
   "homepage": "https://github.com/chbrown/rfc6902",
   "repository": {
     "type": "git",
@@ -24,6 +29,5 @@
   "scripts": {
     "test": "tap test"
   },
-  "bin": {
-  }
+  "bin": {}
 }
