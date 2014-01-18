@@ -1,0 +1,147 @@
+- name: A.1. Adding an Object Member
+  input:
+    {"foo": "bar"}
+  patch:
+    [{"op": "add", "path": "/baz", "value": "qux"}]
+  output:
+    {"baz": "qux", "foo": "bar"}
+
+- name: A.2. Adding an Array Element
+  input:
+    {"foo": [ "bar", "baz" ]}
+  patch:
+    [{"op": "add", "path": "/foo/1", "value": "qux"}]
+  output:
+    {"foo": [ "bar", "qux", "baz" ]}
+
+- name: A.3. Removing an Object Member
+  input:
+    {"baz": "qux", "foo": "bar"}
+  patch:
+    [{"op": "remove", "path": "/baz"}]
+  output:
+    {"foo": "bar"}
+
+- name: A.4. Removing an Array Element
+  input:
+    {"foo": [ "bar", "qux", "baz" ]}
+  patch:
+    [{"op": "remove", "path": "/foo/1"}]
+  output:
+    {"foo": [ "bar", "baz" ]}
+
+- name: A.5. Replacing a Value
+  input:
+    {"baz": "qux", "foo": "bar"}
+  patch:
+   [{"op": "replace", "path": "/baz", "value": "boo"}]
+  output:
+    {"baz": "boo", "foo": "bar"}
+
+- name: A.6. Moving a Value
+  input:
+    {
+      "foo": {
+        "bar": "baz",
+        "waldo": "fred"
+      },
+      "qux": {
+        "corge": "grault"
+      }
+    }
+  patch:
+    [{"op": "move", "from": "/foo/waldo", "path": "/qux/thud"}]
+  output:
+    {
+      "foo": {
+        "bar": "baz"
+      },
+      "qux": {
+        "corge": "grault",
+        "thud": "fred"
+      }
+    }
+
+- name: A.7. Moving an Array Element
+  input:
+    {"foo": [ "all", "grass", "cows", "eat" ]}
+  patch:
+    [{"op": "move", "from": "/foo/1", "path": "/foo/3"}]
+  output:
+    {"foo": [ "all", "cows", "eat", "grass" ]}
+
+- name: "A.8. Testing a Value: Success"
+  input:
+    {"baz": "qux", "foo": [ "a", 2, "c" ]}
+  patch:
+    [
+      {"op": "test", "path": "/baz", "value": "qux"},
+      {"op": "test", "path": "/foo/1", "value": 2}
+    ]
+  output: true
+
+- name: "A.9. Testing a Value: Error"
+  input:
+    {"baz": "qux"}
+  patch:
+    [{"op": "test", "path": "/baz", "value": "bar"}]
+  error: true
+
+- name: A.10. Adding a Nested Member Object
+  input:
+    {"foo": "bar"}
+  patch:
+    [{"op": "add", "path": "/child", "value": {"grandchild": {}}}]
+  output:
+    {
+      "foo": "bar",
+      "child": {
+        "grandchild": {}
+      }
+    }
+
+- name: A.11. Ignoring Unrecognized Elements
+  input:
+    {"foo": "bar"}
+  patch:
+    [{"op": "add", "path": "/baz", "value": "qux", "xyz": 123}]
+  output:
+    {
+      "foo": "bar",
+      "baz": "qux"
+    }
+
+- name: A.12. Adding to a Nonexistent Target
+  input:
+    {"foo": "bar"}
+  patch:
+    [{"op": "add", "path": "/baz/bat", "value": "qux"}]
+  error: true
+
+- name: A.13. Invalid JSON Patch Document
+  patch:
+    [{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]
+  error: true
+
+- name: A.14. ~ Escape Ordering
+  input:
+    {"/": 9, "~1": 10}
+  patch:
+    [{"op": "test", "path": "/~01", "value": 10}]
+  output:
+    {"/": 9, "~1": 10}
+
+- name: A.15. Comparing Strings and Numbers
+  input:
+    {"/": 9, "~1": 10}
+  patch:
+    [{"op": "test", "path": "/~01", "value": "10"}]
+  error: true
+
+- name: A.16. Adding an Array Value
+  input:
+    {"foo": ["bar"]}
+  patch:
+    [{"op": "add", "path": "/foo/-", "value": ["abc", "def"]}]
+  output:
+    {"foo": ["bar", ["abc", "def"]]}
