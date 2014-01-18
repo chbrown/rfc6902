@@ -5,6 +5,7 @@
     [{"op": "add", "path": "/baz", "value": "qux"}]
   output:
     {"baz": "qux", "foo": "bar"}
+  errors: []
 
 - name: A.2. Adding an Array Element
   input:
@@ -13,6 +14,7 @@
     [{"op": "add", "path": "/foo/1", "value": "qux"}]
   output:
     {"foo": [ "bar", "qux", "baz" ]}
+  errors: []
 
 - name: A.3. Removing an Object Member
   input:
@@ -21,6 +23,7 @@
     [{"op": "remove", "path": "/baz"}]
   output:
     {"foo": "bar"}
+  errors: []
 
 - name: A.4. Removing an Array Element
   input:
@@ -29,6 +32,7 @@
     [{"op": "remove", "path": "/foo/1"}]
   output:
     {"foo": [ "bar", "baz" ]}
+  errors: []
 
 - name: A.5. Replacing a Value
   input:
@@ -37,6 +41,7 @@
    [{"op": "replace", "path": "/baz", "value": "boo"}]
   output:
     {"baz": "boo", "foo": "bar"}
+  errors: []
 
 - name: A.6. Moving a Value
   input:
@@ -61,6 +66,7 @@
         "thud": "fred"
       }
     }
+  errors: []
 
 - name: A.7. Moving an Array Element
   input:
@@ -69,6 +75,7 @@
     [{"op": "move", "from": "/foo/1", "path": "/foo/3"}]
   output:
     {"foo": [ "all", "cows", "eat", "grass" ]}
+  errors: []
 
 - name: "A.8. Testing a Value: Success"
   input:
@@ -78,14 +85,18 @@
       {"op": "test", "path": "/baz", "value": "qux"},
       {"op": "test", "path": "/foo/1", "value": 2}
     ]
-  output: true
+  output:
+    {"baz": "qux", "foo": [ "a", 2, "c" ]}
+  errors: []
 
 - name: "A.9. Testing a Value: Error"
   input:
     {"baz": "qux"}
   patch:
     [{"op": "test", "path": "/baz", "value": "bar"}]
-  error: true
+  output:
+    {"baz": "qux"}
+  errors: [TestError]
 
 - name: A.10. Adding a Nested Member Object
   input:
@@ -99,6 +110,7 @@
         "grandchild": {}
       }
     }
+  errors: []
 
 - name: A.11. Ignoring Unrecognized Elements
   input:
@@ -106,22 +118,27 @@
   patch:
     [{"op": "add", "path": "/baz", "value": "qux", "xyz": 123}]
   output:
-    {
-      "foo": "bar",
-      "baz": "qux"
-    }
+    {"foo": "bar", "baz": "qux"}
+  errors: []
 
 - name: A.12. Adding to a Nonexistent Target
   input:
     {"foo": "bar"}
   patch:
     [{"op": "add", "path": "/baz/bat", "value": "qux"}]
-  error: true
+  output:
+    {"foo": "bar"}
+  errors: [MissingError]
 
 - name: A.13. Invalid JSON Patch Document
+  input:
+    {"foo": "bar"}
   patch:
     [{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]
-  error: true
+  output:
+    {"foo": "bar"}
+  # Due to JSON.parse's laxity, this type of error is not supported yet
+  errors: [InvalidOperationError]
 
 - name: A.14. ~ Escape Ordering
   input:
@@ -130,13 +147,16 @@
     [{"op": "test", "path": "/~01", "value": 10}]
   output:
     {"/": 9, "~1": 10}
+  errors: []
 
 - name: A.15. Comparing Strings and Numbers
   input:
     {"/": 9, "~1": 10}
   patch:
     [{"op": "test", "path": "/~01", "value": "10"}]
-  error: true
+  output:
+    {"/": 9, "~1": 10}
+  errors: [TestError]
 
 - name: A.16. Adding an Array Value
   input:
@@ -145,3 +165,4 @@
     [{"op": "add", "path": "/foo/-", "value": ["abc", "def"]}]
   output:
     {"foo": ["bar", ["abc", "def"]]}
+  errors: []

@@ -1,16 +1,14 @@
 'use strict'; /*jslint node: true, es5: true, indent: 2 */
-// var os = require('os');
 var fs = require('fs');
 var path = require('path');
 
 var tap = require('tap');
 var yaml = require('js-yaml');
 
-var rfc6902 = require('..');
+var pointer = require('../pointer');
 
 tap.test('import', function(t) {
-  t.ok(rfc6902, 'rfc6902 should load from parent directory');
-  t.ok(rfc6902.pointer, 'pointer should load from rfc6902');
+  t.ok(pointer, 'pointer should load from pointer.js in parent directory');
 
   t.end();
 });
@@ -47,7 +45,7 @@ tap.test('rfc-examples', function(t) {
   ];
 
   expectations.forEach(function(expectation) {
-    var endpoint = rfc6902.pointer.at(obj, expectation.path);
+    var endpoint = pointer.at(obj, expectation.path);
     t.deepEqual(endpoint.value, expectation.value, 'resolved JSON Pointer should equal expected value');
   });
 
@@ -91,7 +89,7 @@ tap.test('deep', function(t) {
   ];
 
   expectations.forEach(function(expectation) {
-    var endpoint = rfc6902.pointer.at(obj, expectation.path);
+    var endpoint = pointer.at(obj, expectation.path);
     t.deepEqual(endpoint.value, expectation.value, 'resolved JSON Pointer should equal expected value');
   });
 

@@ -47,7 +47,8 @@ var at = exports.at = function(obj, pointer) {
   for (var i = 1, l = tokens.length; i < l; i++) {
     parent = obj;
     token = tokens[i];
-    obj = parent[token];
+    // not sure if this the best way to handle non-existant paths...
+    obj = (parent || {})[token];
   }
   return {
     parent: parent,
