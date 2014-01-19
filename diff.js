@@ -90,9 +90,13 @@ var _diff = function(input, output, ptr) {
 var diff = module.exports = function(input, output) {
   /** Produce a 'application/json-patch+json'-type patch to get from one object to another
 
+  This does not alter `input` or `output` unless they have a property getter with side-effects
+  (which is not a good idea anyway).
+
   Returns list of operations to perform on `input` to produce `output`.
   */
   var ptr = new pointer.Pointer();
+  // a default Pointer gets a path of ['']
   return _diff(input, output, ptr);
 };
 
