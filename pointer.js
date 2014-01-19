@@ -30,29 +30,54 @@ var escape = function(token) {
   return token.replace(/~/g, '~0').replace(/\//g, '~1');
 };
 
-var at = exports.at = function(obj, pointer) {
+var Pointer = exports.Pointer = function(tokens) {
   /** JSON Pointer (http://tools.ietf.org/html/rfc6901) resolver.
-
-  `pointer` *must* be a string.
+  */
+  this.tokens = tokens || [''];
+};
+Pointer.parse = function(path) {
+  /**
+  `path` *must* be a properly escaped string.
+  */
+  var tokens = path.split('/').map(unescape);
+  if (tokens[0] !== '') throw new Error('Invalid JSON Pointer: ' + path);
+  return new Pointer(tokens);
+};
+Pointer.prototype.toString = Pointer.prototype.toJSON = function() {
+  return this.tokens.map(escape).join('/');
+};
+Pointer.prototype.evaluate = function(object) {
+  /**
 
   Returns an object with 'parent', 'key', and 'value' properties.
   In the special case that pointer = "", parent and key will be null, and `value = obj`
   Otherwise, parent will be the such that `parent[key] == value`
   */
-  var tokens = pointer.split('/').map(unescape);
-  if (tokens[0] !== '') throw new Error('Invalid JSON Pointer: ' + pointer);
-
   var parent = null;
   var token = null;
-  for (var i = 1, l = tokens.length; i < l; i++) {
-    parent = obj;
-    token = tokens[i];
+  for (var i = 1, l = this.tokens.length; i < l; i++) {
+    parent = object;
+    token = this.tokens[i];
     // not sure if this the best way to handle non-existant paths...
-    obj = (parent || {})[token];
+    object = (parent || {})[token];
   }
   return {
     parent: parent,
     key: token,
-    value: obj,
+    value: object,
   };
+};
+Pointer.prototype.push = function(token) {
+  // mutable
+  this.tokens.push(token);
+};
+Pointer.prototype.add = function(token) {
+  // immutable (shallowly)
+  var tokens = Array.prototype.concat.call([], this.tokens, [token]);
+  return new Pointer(tokens);
+};
+
+var at = exports.at = function(object, path) {
+  var pointer = Pointer.parse(path);
+  return pointer.evaluate(object);
 };
