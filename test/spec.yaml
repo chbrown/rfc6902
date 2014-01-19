@@ -1,3 +1,4 @@
+# Many of these (those labeled A.*) are pulled almost directly from the appendix of the RFC
 - name: A.1. Adding an Object Member
   input:
     {"foo": "bar"}
