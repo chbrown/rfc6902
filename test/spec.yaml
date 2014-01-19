@@ -3,7 +3,7 @@
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "add", "path": "/baz", "value": "qux"}]
+    [{op: "add", path: "/baz", value: "qux"}]
   output:
     {"baz": "qux", "foo": "bar"}
   errors: []
@@ -12,7 +12,7 @@
   input:
     {"foo": [ "bar", "baz" ]}
   patch:
-    [{"op": "add", "path": "/foo/1", "value": "qux"}]
+    [{op: "add", path: "/foo/1", value: "qux"}]
   output:
     {"foo": [ "bar", "qux", "baz" ]}
   errors: []
@@ -21,7 +21,7 @@
   input:
     {"baz": "qux", "foo": "bar"}
   patch:
-    [{"op": "remove", "path": "/baz"}]
+    [{op: "remove", path: "/baz"}]
   output:
     {"foo": "bar"}
   errors: []
@@ -30,7 +30,7 @@
   input:
     {"foo": [ "bar", "qux", "baz" ]}
   patch:
-    [{"op": "remove", "path": "/foo/1"}]
+    [{op: "remove", path: "/foo/1"}]
   output:
     {"foo": [ "bar", "baz" ]}
   errors: []
@@ -39,7 +39,7 @@
   input:
     {"baz": "qux", "foo": "bar"}
   patch:
-   [{"op": "replace", "path": "/baz", "value": "boo"}]
+   [{op: "replace", path: "/baz", value: "boo"}]
   output:
     {"baz": "boo", "foo": "bar"}
   errors: []
@@ -56,7 +56,7 @@
       }
     }
   patch:
-    [{"op": "move", "from": "/foo/waldo", "path": "/qux/thud"}]
+    [{op: "move", "from": "/foo/waldo", path: "/qux/thud"}]
   output:
     {
       "foo": {
@@ -73,7 +73,7 @@
   input:
     {"foo": [ "all", "grass", "cows", "eat" ]}
   patch:
-    [{"op": "move", "from": "/foo/1", "path": "/foo/3"}]
+    [{op: "move", "from": "/foo/1", path: "/foo/3"}]
   output:
     {"foo": [ "all", "cows", "eat", "grass" ]}
   errors: []
@@ -83,8 +83,8 @@
     {"baz": "qux", "foo": [ "a", 2, "c" ]}
   patch:
     [
-      {"op": "test", "path": "/baz", "value": "qux"},
-      {"op": "test", "path": "/foo/1", "value": 2}
+      {op: "test", path: "/baz", value: "qux"},
+      {op: "test", path: "/foo/1", value: 2}
     ]
   output:
     {"baz": "qux", "foo": [ "a", 2, "c" ]}
@@ -94,7 +94,7 @@
   input:
     {"baz": "qux"}
   patch:
-    [{"op": "test", "path": "/baz", "value": "bar"}]
+    [{op: "test", path: "/baz", value: "bar"}]
   output:
     {"baz": "qux"}
   errors: [TestError]
@@ -103,7 +103,7 @@
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "add", "path": "/child", "value": {"grandchild": {}}}]
+    [{op: "add", path: "/child", value: {"grandchild": {}}}]
   output:
     {
       "foo": "bar",
@@ -117,7 +117,7 @@
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "add", "path": "/baz", "value": "qux", "xyz": 123}]
+    [{op: "add", path: "/baz", value: "qux", "xyz": 123}]
   output:
     {"foo": "bar", "baz": "qux"}
   errors: []
@@ -126,7 +126,7 @@
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "add", "path": "/baz/bat", "value": "qux"}]
+    [{op: "add", path: "/baz/bat", value: "qux"}]
   output:
     {"foo": "bar"}
   errors: [MissingError]
@@ -138,13 +138,13 @@
 # http://www.ietf.org/rfc/rfc2119.txt section 3.
 # It's up to your JSON implementation how to handle duplicate keys.
 # In V8's JSON.parse, for example, the last key wins:
-#     JSON.parse('[{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]')
+#     JSON.parse('[{op: "add", path: "/baz", value: "qux", op: "remove"}]')
 #     >>> [ { op: 'remove', path: '/baz', value: 'qux' } ]
 # - name: A.13. Invalid JSON Patch Document
 #   input:
 #     {"foo": "bar"}
 #   patch:
-#     [{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]
+#     [{op: "add", path: "/baz", value: "qux", op: "remove"}]
 #   output:
 #     {"foo": "bar"}
 #   errors: [InvalidOperationError]
@@ -152,16 +152,19 @@
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "transcend", "path": "/baz", "value": "qux"}]
+    [{op: "transcend", path: "/baz", value: "qux"}]
   output:
     {"foo": "bar"}
   errors: [InvalidOperationError]
 
+# JSON Pointer encodes ~ as ~0 and / as ~1
+# thus /~01 is unescaped to ['', '~1']
+# and  /~10 is unescaped to ['', '/0']
 - name: A.14. ~ Escape Ordering
   input:
     {"/": 9, "~1": 10}
   patch:
-    [{"op": "test", "path": "/~01", "value": 10}]
+    [{op: "test", path: "/~01", value: 10}]
   output:
     {"/": 9, "~1": 10}
   errors: []
@@ -170,7 +173,7 @@
   input:
     {"/": 9, "~1": 10}
   patch:
-    [{"op": "test", "path": "/~01", "value": "10"}]
+    [{op: "test", path: "/~01", value: "10"}]
   output:
     {"/": 9, "~1": 10}
   errors: [TestError]
@@ -179,7 +182,46 @@
   input:
     {"foo": ["bar"]}
   patch:
-    [{"op": "add", "path": "/foo/-", "value": ["abc", "def"]}]
+    [{op: "add", path: "/foo/-", value: ["abc", "def"]}]
   output:
     {"foo": ["bar", ["abc", "def"]]}
+  errors: []
+
+# tests
+
+- name: Test types (failure)
+  input: &test-types-input
+    whole: 3
+    ish: "3.14"
+    parts: [3, 141, 592, 654]
+    exact: false
+    natural: null
+    approximation: "true"
+    float:
+      significand: 314
+      exponent: -2
+  # careful, js-yaml passes anchors by reference!
+  output: *test-types-input
+  patch:
+    - {op: "test", path: "/whole", value: "3"}
+    - {op: "test", path: "/ish", value: 3.14}
+    - {op: "test", path: "/parts", value: "3,141,592,654"}
+    - {op: "test", path: "/parts/3", value: 654.001}
+    - {op: "test", path: "/natural", value: undefined}
+    - {op: "test", path: "/approximation", value: true}
+    - {op: "test", path: "/float", value: [['significand', 314], ['exponent', -2]]}
+  errors: [TestError, TestError, TestError, TestError, TestError, TestError, TestError]
+
+- name: Test types (success)
+  # careful, js-yaml passes anchors by reference!
+  input: *test-types-input
+  output: *test-types-input
+  patch:
+    - {op: "test", path: "/whole", value: 3}
+    - {op: "test", path: "/ish", value: "3.14"}
+    - {op: "test", path: "/parts", value: [3, 141, 592, 654]}
+    - {op: "test", path: "/parts/3", value: 654}
+    - {op: "test", path: "/natural", value: null}
+    - {op: "test", path: "/approximation", value: "true"}
+    - {op: "test", path: "/float", value: {significand: 314, exponent: -2}}
   errors: []

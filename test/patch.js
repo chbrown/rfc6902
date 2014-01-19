@@ -4,10 +4,7 @@ var path = require('path');
 var tap = require('tap');
 var yaml = require('js-yaml');
 
-var patch = require('../patch');
 var errors = require('../errors');
-
-// a few helpers:
 
 function keyOf(object, value) {
   /** Kind of convoluted way to get the name of a class from an object. */
@@ -17,30 +14,10 @@ function keyOf(object, value) {
   return keys[index];
 }
 
-// test logistics:
+var patch = require('../patch');
 
-var spec_filepath = path.join(__dirname, 'spec.yaml');
-
-tap.test('rfc spec', function(t) {
-  fs.readFile(spec_filepath, {encoding: 'utf8'}, function(err, data) {
-    t.notOk(err, 'yaml read should not throw an error');
-
-    var spec = yaml.load(data);
-
-    // sanity-check spec
-    var props = ['name', 'input', 'patch', 'output', 'errors'];
-    var props_csv = props.join(', ');
-    spec.forEach(function(item) {
-      t.deepEqual(Object.keys(item), props, 'each spec item should have properties: ' + props_csv);
-    });
-    t.end();
-  });
-});
-
-// patch
-
-tap.test('rfc patch', function(t) {
-  fs.readFile(spec_filepath, {encoding: 'utf8'}, function(err, data) {
+tap.test('spec patch', function(t) {
+  fs.readFile('spec.yaml', {encoding: 'utf8'}, function(err, data) {
     yaml.load(data).forEach(function(item) {
       t.test(item.name, function(t) {
         // perform patch and check result

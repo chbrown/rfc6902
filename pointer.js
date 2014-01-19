@@ -13,6 +13,12 @@ var unescape = function(token) {
   > turning '~01' first into '~1' and then into '/', which would be
   > incorrect (the string '~01' correctly becomes '~1' after
   > transformation).
+
+  Here's my take:
+
+  ~1 is unescaped with higher priority than ~0 because it is a lower-order escape character.
+  I say "lower order" because '/' needs escaping due to the JSON Pointer serialization technique.
+  Whereas, '~' is escaped because escaping '/' uses the '~' character.
   */
   return token.replace(/~1/g, '/').replace(/~0/g, '~');
 };
@@ -72,8 +78,12 @@ Pointer.prototype.push = function(token) {
   this.tokens.push(token);
 };
 Pointer.prototype.add = function(token) {
-  // immutable (shallowly)
-  var tokens = Array.prototype.concat.call([], this.tokens, [token]);
+  /**
+  `token` should be a String. It'll be coerced to one anyway.
+
+  immutable (shallowly)
+  */
+  var tokens = this.tokens.concat(String(token));
   return new Pointer(tokens);
 };
 
