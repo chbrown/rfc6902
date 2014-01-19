@@ -130,14 +130,30 @@
     {"foo": "bar"}
   errors: [MissingError]
 
-- name: A.13. Invalid JSON Patch Document
+# # Due to JSON.parse's laxity, this type of error is not supported yet.
+# You know what, I'm gonnna go out on a limb here and say that this is not
+# an invalid patch, but has an undefined operation, which itself may be invalid.
+# See http://www.ietf.org/rfc/rfc4627.txt section 2.2, and then
+# http://www.ietf.org/rfc/rfc2119.txt section 3.
+# It's up to your JSON implementation how to handle duplicate keys.
+# In V8's JSON.parse, for example, the last key wins:
+#     JSON.parse('[{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]')
+#     >>> [ { op: 'remove', path: '/baz', value: 'qux' } ]
+# - name: A.13. Invalid JSON Patch Document
+#   input:
+#     {"foo": "bar"}
+#   patch:
+#     [{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]
+#   output:
+#     {"foo": "bar"}
+#   errors: [InvalidOperationError]
+- name: A.13.2 Invalid JSON Patch Document
   input:
     {"foo": "bar"}
   patch:
-    [{"op": "add", "path": "/baz", "value": "qux", "op": "remove"}]
+    [{"op": "transcend", "path": "/baz", "value": "qux"}]
   output:
     {"foo": "bar"}
-  # Due to JSON.parse's laxity, this type of error is not supported yet
   errors: [InvalidOperationError]
 
 - name: A.14. ~ Escape Ordering

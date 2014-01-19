@@ -3,6 +3,33 @@ var pointer = require('./pointer');
 var errors = require('./errors');
 // var optimist = require('optimist');
 
+var _zip = function(a, b) {
+  var zipped = [];
+  for (var i = 0, l = Math.min(a.length, b.length); i < l; i++) {
+    zipped.push([a[i], b[i]]);
+  }
+  return zipped;
+};
+
+var _arrays_equal = function(left, right) {
+  /** Assuming that left and right are both Arrays... */
+  if (left.length !== right.length) return false;
+
+  return _zip(left, right).every(function(pair) {
+    return _equal(pair[0], pair[1]);
+  });
+};
+
+var _objects_equal = function(left, right) {
+  /** Assuming that left and right are both Objects... */
+  var left_keys = Object.keys(left);
+  var right_keys = Object.keys(right);
+  if (!_arrays_equal(left_keys, right_keys)) return false;
+
+  return left_keys.every(function(key) {
+    return _equal(left[key], right[key]);
+  });
+};
 
 var _equal = function(left, right) {
   /**
@@ -24,8 +51,18 @@ var _equal = function(left, right) {
   > o  literals (false, true, and null): are considered equal if they are
   >    the same.
   */
-  // TODO: be type-aware
-  return left == right;
+  // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
+  if (left === right) return true;
+  // check arrays
+  if (Array.isArray(left) && Array.isArray(right)) {
+    return _arrays_equal(left, right);
+  }
+  // check objects
+  if (Object(left) === left && Object(right) === right) {
+    return _objects_equal(left, right);
+  }
+  // mismatched arrays & objects, etc., are are all inequal
+  return false;
 };
 
 var _add = function(object, key, value) {
