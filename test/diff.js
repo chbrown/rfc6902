@@ -9,9 +9,9 @@ var diff = require('../diff');
 tap.test('spec diff', function(t) {
   // we read this separately because patch is destructive and it's easier just to start with a blank slate
   fs.readFile('spec.yaml', {encoding: 'utf8'}, function(err, data) {
+    // ignore spec items that are marked as not diffable
     yaml.load(data).filter(function(item) {
-      // ignore spec tests that produce errors
-      return item.errors.length === 0;
+      return item.diffable;
     }).forEach(function(item) {
       t.test(item.name, function(t) {
         // perform diff (create patch = list of operations) and check result against non-test patches in spec

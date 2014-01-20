@@ -7,6 +7,7 @@
   output:
     {"baz": "qux", "foo": "bar"}
   errors: []
+  diffable: true
 
 - name: A.2. Adding an Array Element
   input:
@@ -16,6 +17,7 @@
   output:
     {"foo": [ "bar", "qux", "baz" ]}
   errors: []
+  diffable: true
 
 - name: A.3. Removing an Object Member
   input:
@@ -25,6 +27,7 @@
   output:
     {"foo": "bar"}
   errors: []
+  diffable: true
 
 - name: A.4. Removing an Array Element
   input:
@@ -34,6 +37,7 @@
   output:
     {"foo": [ "bar", "baz" ]}
   errors: []
+  diffable: true
 
 - name: A.5. Replacing a Value
   input:
@@ -43,6 +47,7 @@
   output:
     {"baz": "boo", "foo": "bar"}
   errors: []
+  diffable: true
 
 - name: A.6. Moving a Value
   input:
@@ -68,6 +73,7 @@
       }
     }
   errors: []
+  diffable: true
 
 - name: A.7. Moving an Array Element
   input:
@@ -77,6 +83,7 @@
   output:
     {"foo": [ "all", "cows", "eat", "grass" ]}
   errors: []
+  diffable: true
 
 - name: "A.8. Testing a Value: Success"
   input:
@@ -89,6 +96,7 @@
   output:
     {"baz": "qux", "foo": [ "a", 2, "c" ]}
   errors: []
+  diffable: true
 
 - name: "A.9. Testing a Value: Error"
   input:
@@ -98,6 +106,7 @@
   output:
     {"baz": "qux"}
   errors: [TestError]
+  diffable: false
 
 - name: A.10. Adding a Nested Member Object
   input:
@@ -112,6 +121,7 @@
       }
     }
   errors: []
+  diffable: true
 
 - name: A.11. Ignoring Unrecognized Elements
   input:
@@ -121,6 +131,7 @@
   output:
     {"foo": "bar", "baz": "qux"}
   errors: []
+  diffable: false
 
 - name: A.12. Adding to a Nonexistent Target
   input:
@@ -130,6 +141,7 @@
   output:
     {"foo": "bar"}
   errors: [MissingError]
+  diffable: false
 
 # # Due to JSON.parse's laxity, this type of error is not supported yet.
 # You know what, I'm gonnna go out on a limb here and say that this is not
@@ -168,6 +180,7 @@
   output:
     {"/": 9, "~1": 10}
   errors: []
+  diffable: true
 
 - name: A.15. Comparing Strings and Numbers
   input:
@@ -177,6 +190,7 @@
   output:
     {"/": 9, "~1": 10}
   errors: [TestError]
+  diffable: false
 
 - name: A.16. Adding an Array Value
   input:
@@ -186,6 +200,7 @@
   output:
     {"foo": ["bar", ["abc", "def"]]}
   errors: []
+  diffable: true
 
 # tests
 
@@ -225,3 +240,4 @@
     - {op: "test", path: "/approximation", value: "true"}
     - {op: "test", path: "/float", value: {significand: 314, exponent: -2}}
   errors: []
+  diffable: true

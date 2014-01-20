@@ -75,8 +75,8 @@ var _diffArraysSearch = function(input, output, ptr) {
     // returns object of cost and list of operations needed to get to this place in the matrix
     var memoized = memo[[i, j]];
     if (memoized === undefined) {
-      if (equal(input[i-1], output[j-1])) {
-        memoized = dist(i-1, j-1); // equal (no cost = no operations)
+      if (equal(input[i - 1], output[j - 1])) {
+        memoized = dist(i - 1 , j - 1); // equal (no cost = no operations)
       }
       else {
         var directions = [];
@@ -103,14 +103,15 @@ var _diffArraysSearch = function(input, output, ptr) {
 
         var operations = [];
         if (best.type === 'deletion') {
-          operations.push({op: 'remove', path: ptr.add(i)});
+          operations.push({op: 'remove', path: ptr.add(i - 1)});
         }
         else if (best.type === 'insertion') {
-          var path = ptr.add((j + 1) >= output.length ? '-' : j);
-          operations.push({op: 'add', path: path, value: output[j-1]});
+          var col = j - 1;
+          var path = ptr.add(col < input.length ? col : '-'); // '-' is Array-only syntax (like input.length)
+          operations.push({op: 'add', path: path, value: output[j - 1]});
         }
         else {
-          operations.push({op: 'replace', path: ptr.add(j), value: output[j-1]});
+          operations.push({op: 'replace', path: ptr.add(j - 1), value: output[j - 1]});
         }
         memoized = {
           // the new operation(s) must be pushed on the end
@@ -201,6 +202,3 @@ var print_diff = function(input, output) {
     console.log(JSON.stringify(op, null, '  '));
   });
 };
-
-// print_diff({level: 5, difficulty: 'hard'}, {level: 6, player: {name: 'chris'}});
-// print_diff({els: [3, {}], nums: 'yes'}, {els: [3, 6, 5], nums: 'yes'});
