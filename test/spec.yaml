@@ -168,6 +168,7 @@
   output:
     {"foo": "bar"}
   errors: [InvalidOperationError]
+  diffable: false
 
 # JSON Pointer encodes ~ as ~0 and / as ~1
 # thus /~01 is unescaped to ['', '~1']
@@ -226,6 +227,7 @@
     - {op: "test", path: "/approximation", value: true}
     - {op: "test", path: "/float", value: [['significand', 314], ['exponent', -2]]}
   errors: [TestError, TestError, TestError, TestError, TestError, TestError, TestError]
+  diffable: false
 
 - name: Test types (success)
   # careful, js-yaml passes anchors by reference!
