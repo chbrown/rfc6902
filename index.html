@@ -1,7 +1,35 @@
 ---
 layout: default
 ---
-<section ng-app="app" ng-controller="ctrl">
+<nav ng-controller="nav">
+  <section>
+    This demo powered by <a href="https://github.com/chbrown/rfc6902/tree/gh-pages">github pages</a>;
+    source code available at <a href="https://github.com/chbrown/rfc6902">github.com/chbrown/rfc6902</a>,
+    via <a href="#" class="js" ng-click="toggle('birdy', $event)">birdy</a>,
+    or <a href="#" class="js" ng-click="toggle('raw', $event)">raw</a>.
+  </section>
+  <section ng-if="$storage.birdy">
+    <h4>In your package.json:</h4>
+    <pre>
+  {
+    "staticDependencies": {
+      "rfc6902": {
+        "url": "git://github.com/chbrown/rfc6902.git",
+        "filter": ["rfc6902.js", "rfc6902.min.js"]
+      }
+    }
+  }</pre>
+    <h4>At the command line:</h4>
+    <pre>birdy install</pre>
+  </section>
+  <section ng-if="$storage.raw">
+    <h4>In your &lt;head&gt;:</h4>
+    <pre>  &lt;script src="https://rawgithub.com/chbrown/rfc6902/master/rfc6902.js"&gt;&lt;/script&gt;</pre>
+    or
+    <pre>  &lt;script src="https://rawgithub.com/chbrown/rfc6902/master/rfc6902.min.js"&gt;&lt;/script&gt;</pre>
+</nav>
+
+<section ng-controller="demo">
   <table>
     <tr>
       <td style="width: 50%">
@@ -14,11 +42,14 @@ layout: default
       </td>
     </tr>
   </table>
-  <h3>Diff (patches)</h3>
-  <table>
-    <tr ng-repeat="patch in patches track by $index" class="patch">
-      <td style="width: 2em"><code><% $index %></code></td>
-      <td><code><% patch %></code></td>
-    </tr>
-  </table>
+  <h3>Diff</h3>
+  <pre>var patches = diff.diff(input, output); // produces:</pre>
+  <div class="patches">
+    <table>
+      <tr ng-repeat="patch in patches track by $index">
+        <td><% patch %></td>
+        <td>Patch <% $index %></td>
+      </tr>
+    </table>
+  </div>
 </section>

@@ -1,9 +1,15 @@
 body{margin:0;padding:0}
+nav{color:#555;font-size:90%;border-bottom:1px solid #DDD;padding:5px 0;margin-bottom:10px}
 section{margin:0 auto;max-width:800px}
-h2,h3{margin:1ex 0 .5ex;font-family:sans-serif}
+h2,h3,h4{margin:1ex 0 .5ex;font-family:sans-serif}
+a.js{cursor:help}
+pre{margin:5px 0}
 table{width:100%;border-collapse:collapse}
 table td{padding:1px 4px 2px 2px;vertical-align:top}
-table tr.patch td{border:1px solid #FAFAFA;border-width:1px 0}
+.patches{margin:2ex 1em}
+.patches tr td{border-bottom:1px solid #EEE;font-family:monospace}
+.patches tr td:last-child{text-align:right;width:5em;color:#AAA}
+.patches tr:last-child td{border-bottom:0}
 textarea{box-sizing:border-box;display:block;margin:5px 0;width:100%;min-height:200px;font-family:monospace}
 .invalid,.valid{font-size:90%}
 .valid{color:#272}

@@ -6,6 +6,17 @@ var app = angular.module('app', ['ngStorage'], function($interpolateProvider) {
   $interpolateProvider.endSymbol('%>');
 });
 
+app.controller('nav', function($scope, $localStorage) {
+  $scope.$storage = $localStorage.$default({
+    birdy: false
+  });
+
+  $scope.toggle = function(key, ev) {
+    $scope.$storage[key] = !$scope.$storage[key];
+    ev.preventDefault();
+  };
+});
+
 app.directive('json', function() {
   return {
     restrict: 'E',
@@ -46,8 +57,7 @@ app.directive('json', function() {
   };
 });
 
-
-app.controller('ctrl', function($scope, $localStorage) {
+app.controller('demo', function($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({
     input: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
     output: {"name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"]},

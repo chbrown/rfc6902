@@ -3,14 +3,30 @@ body {
   padding: 0;
 }
 
+nav {
+  color: #555;
+  font-size: 90%;
+  border-bottom: 1px solid #DDD;
+  padding: 5px 0;
+  margin-bottom: 10px;
+}
+
 section {
   margin: 0 auto;
   max-width: 800px;
 }
 
-h2, h3 {
+h2, h3, h4 {
   margin: 1ex 0 .5ex 0;
   font-family: sans-serif;
+}
+
+a.js {
+  cursor: help;
+}
+
+pre {
+  margin: 5px 0;
 }
 
 table {
@@ -21,10 +37,27 @@ table {
     padding: 1px 4px 2px 2px;
     vertical-align: top;
   }
-
-  tr.patch td {
-    border: 1px solid #FAFAFA;
-    border-width: 1px 0;
+}
+.patches {
+  margin: 2ex 1em;
+  tr {
+    td {
+      border-bottom: 1px solid #EEE;
+      font-family: monospace;
+    }
+    td:first-child {
+      // padding-left: 1em;
+    }
+    td:last-child {
+      text-align: right;
+      width: 5em;
+      color: #AAA;
+    }
+  }
+  tr:last-child {
+    td {
+      border-bottom: 0;
+    }
   }
 }
 
