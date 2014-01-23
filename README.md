@@ -1,6 +1,7 @@
 # rfc6902
 
-(Soon to be) complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902),
+Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902)
+(including [RFC6901](http://tools.ietf.org/html/rfc6901)),
 for creating and consuming "application/json-patch+json" documents.
 
 No fancy Object.observe, no TypeScript, no missing "diff" function.
