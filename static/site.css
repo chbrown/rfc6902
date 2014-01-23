@@ -1,0 +1,10 @@
+body{margin:0;padding:0}
+section{margin:0 auto;max-width:800px}
+h2,h3{margin:1ex 0 .5ex;font-family:sans-serif}
+table{width:100%;border-collapse:collapse}
+table td{padding:1px 4px 2px 2px;vertical-align:top}
+table tr.patch td{border:1px solid #FAFAFA;border-width:1px 0}
+textarea{box-sizing:border-box;display:block;margin:5px 0;width:100%;min-height:200px;font-family:monospace}
+.invalid,.valid{font-size:90%}
+.valid{color:#272}
+.invalid{color:#A33}

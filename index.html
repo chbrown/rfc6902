@@ -1,0 +1,24 @@
+---
+layout: default
+---
+<section ng-app="app" ng-controller="ctrl">
+  <table>
+    <tr>
+      <td style="width: 50%">
+        <h2>Input</h2>
+        <json ng-model="$storage.input" ng-change="diff()"></json>
+      </td>
+      <td style="width: 50%">
+        <h2>Output</h2>
+        <json ng-model="$storage.output" ng-change="diff()"></json>
+      </td>
+    </tr>
+  </table>
+  <h3>Diff (patches)</h3>
+  <table>
+    <tr ng-repeat="patch in patches track by $index" class="patch">
+      <td style="width: 2em"><code><% $index %></code></td>
+      <td><code><% patch %></code></td>
+    </tr>
+  </table>
+</section>
