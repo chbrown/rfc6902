@@ -5,6 +5,10 @@
     "ngStorage": {
       "url": "git://github.com/gsklee/ngStorage.git",
       "filter": ["ngStorage.js", "ngStorage.min.js"]
+    },
+    "rfc6902": {
+      "url": "git://github.com/chbrown/rfc6902.git",
+      "filter": ["rfc6902.js", "rfc6902.min.js"]
     }
   }
 }
