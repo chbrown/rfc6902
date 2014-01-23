@@ -1,5 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
-
+/*globals exports */
 var _zip = function(a, b) {
   var zipped = [];
   for (var i = 0, l = Math.min(a.length, b.length); i < l; i++) {
@@ -28,7 +27,7 @@ var _equalObjects = function(left, right) {
   });
 };
 
-var equal = module.exports = function(left, right) {
+var equal = exports.equal = function(left, right) {
   /**
   > Here, "equal" means that the value at the target location and the
   > value conveyed by "value" are of the same JSON type, and that they

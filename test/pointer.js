@@ -1,4 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
+/*jslint node: true */
 var fs = require('fs');
 var path = require('path');
 
@@ -45,7 +45,7 @@ tap.test('rfc-examples', function(t) {
   ];
 
   expectations.forEach(function(expectation) {
-    var endpoint = pointer.at(obj, expectation.path);
+    var endpoint = pointer.Pointer.parse(expectation.path).evaluate(obj);
     t.deepEqual(endpoint.value, expectation.value, 'resolved JSON Pointer should equal expected value');
   });
 
@@ -89,7 +89,7 @@ tap.test('deep', function(t) {
   ];
 
   expectations.forEach(function(expectation) {
-    var endpoint = pointer.at(obj, expectation.path);
+    var endpoint = pointer.Pointer.parse(expectation.path).evaluate(obj);
     t.deepEqual(endpoint.value, expectation.value, 'resolved JSON Pointer should equal expected value');
   });
 

@@ -24,6 +24,8 @@
     "optimist": "*"
   },
   "devDependencies": {
+    "async": "*",
+    "uglify-js": "*",
     "tap": "*"
   },
   "scripts": {

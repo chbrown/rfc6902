@@ -1,5 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
-
+/*globals exports, require */
 var MissingError = exports.MissingError = function(path) {
   this.path = path;
 };

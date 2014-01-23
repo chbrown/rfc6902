@@ -1,7 +1,7 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
+/*globals exports, require */
 var pointer = require('./pointer');
 var errors = require('./errors');
-var equal = require('./equal');
+var equal = require('./equal').equal;
 
 var pushAll = function(array, xs) { return Array.prototype.push.apply(array, xs); };
 
@@ -172,7 +172,7 @@ var _diff = function(input, output, ptr) {
   return _diffValues(input, output, ptr);
 };
 
-var diff = module.exports = function(input, output) {
+var diff = exports.diff = function(input, output) {
   /** Produce a 'application/json-patch+json'-type patch to get from one object to another
 
   This does not alter `input` or `output` unless they have a property getter with side-effects

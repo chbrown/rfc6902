@@ -1,4 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
+/*jslint node: true */
 var fs = require('fs');
 var tap = require('tap');
 var yaml = require('js-yaml');

@@ -1,5 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
-
+/*globals exports */
 var unescape = function(token) {
   /** Unescape token part of a JSON Pointer string
 
@@ -85,9 +84,4 @@ Pointer.prototype.add = function(token) {
   */
   var tokens = this.tokens.concat(String(token));
   return new Pointer(tokens);
-};
-
-var at = exports.at = function(object, path) {
-  var pointer = Pointer.parse(path);
-  return pointer.evaluate(object);
 };

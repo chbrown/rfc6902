@@ -1,8 +1,7 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
+/*globals exports, require */
 var pointer = require('./pointer');
 var errors = require('./errors');
-var equal = require('./equal');
-// var optimist = require('optimist');
+var equal = require('./equal').equal;
 
 var _add = function(object, key, value) {
   if (Array.isArray(object)) {
@@ -40,7 +39,7 @@ var ops = {
     >  o  If the target location specifies an object member that does exist,
     >     that member's value is replaced.
     */
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
     if (endpoint.parent === undefined) return new errors.MissingError(operation.path);
 
@@ -52,7 +51,7 @@ var ops = {
     > The target location MUST exist for the operation to be successful.
     */
     // endpoint has parent, key, and value properties
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     if (endpoint.value === undefined) return new errors.MissingError(operation.path);
 
     // not sure what the proper behavior is when path = ''
@@ -71,7 +70,7 @@ var ops = {
 
     Even more simply, it's like the add operation with an existence check.
     */
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     if (endpoint.value === undefined) return new errors.MissingError(operation.path);
 
     endpoint.parent[endpoint.key] = operation.value;
@@ -92,10 +91,10 @@ var ops = {
 
     TODO: throw if the check described in the previous paragraph fails.
     */
-    var from_endpoint = pointer.at(object, operation.from);
+    var from_endpoint = pointer.Pointer.parse(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) return new errors.MissingError(operation.from);
 
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     if (endpoint.parent === undefined) return new errors.MissingError(operation.path);
 
     _remove(from_endpoint.parent, from_endpoint.key);
@@ -115,9 +114,9 @@ var ops = {
 
     Alternatively, it's like 'move' without the 'remove'.
     */
-    var from_endpoint = pointer.at(object, operation.from);
+    var from_endpoint = pointer.Pointer.parse(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) return new errors.MissingError(operation.from);
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     if (endpoint.parent === undefined) return new errors.MissingError(operation.path);
 
     _remove(from_endpoint.parent, from_endpoint.key);
@@ -133,14 +132,14 @@ var ops = {
     > operation to be considered successful.
 
     */
-    var endpoint = pointer.at(object, operation.path);
+    var endpoint = pointer.Pointer.parse(operation.path).evaluate(object);
     // endpoint.value
     var result = equal(endpoint.value, operation.value);
     if (!result) return new errors.TestError(endpoint.value, operation.value);
   }
 };
 
-var patch = module.exports = function(object, operations) {
+var patch = exports.patch = function(object, operations) {
   /** Apply a 'application/json-patch+json'-type patch to an object
 
   operations *must* be an Array. And:

@@ -1,4 +1,4 @@
-'use strict'; /*jslint node: true, es5: true, indent: 2 */
+/*jslint node: true */
 var fs = require('fs');
 var path = require('path');
 var tap = require('tap');
@@ -14,7 +14,7 @@ function keyOf(object, value) {
   return keys[index];
 }
 
-var patch = require('../patch');
+var patch = require('../patch').patch;
 
 tap.test('spec patch', function(t) {
   fs.readFile('spec.yaml', {encoding: 'utf8'}, function(err, data) {
