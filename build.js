@@ -10,6 +10,9 @@ var modules = [
   'diff', // depends on pointer, errors, equal
   'patch', // depends on pointer, errors, equal
 ];
+
+// browserify diff.js -o bundle.js
+
 async.map(modules, function(name, callback) {
   fs.readFile(name + '.js', {encoding: 'utf8'}, function(err, contents) {
     if (err) return callback(err);
