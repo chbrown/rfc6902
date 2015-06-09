@@ -18,6 +18,7 @@
     "babel": "*",
     "babelify": "*",
     "browserify": "*",
+    "derequire": "*",
     "js-yaml": "*",
     "mocha": "*"
   },

@@ -1,0 +1,10 @@
+test/
+tmp/
+.travis.yml
+Makefile
+diff.js
+equal.js
+errors.js
+index.js
+patch.js
+pointer.js

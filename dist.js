@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rfc6902 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rfc6902 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 'use strict';
 
@@ -7,7 +7,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.diff = diff;
 
-var _equal = require('./equal');
+var _equal = _dereq_('./equal');
 
 function pushAll(array, xs) {
   return Array.prototype.push.apply(array, xs);
@@ -168,7 +168,7 @@ function diff(input, output, ptr) {
   return diffValues(input, output, ptr);
 }
 
-},{"./equal":2}],2:[function(require,module,exports){
+},{"./equal":2}],2:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 "use strict";
 
@@ -246,7 +246,7 @@ function compare(left, right) {
   return false;
 }
 
-},{}],3:[function(require,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 "use strict";
 
@@ -309,7 +309,7 @@ var TestError = (function (_Error3) {
 
 exports.TestError = TestError;
 
-},{}],4:[function(require,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 'use strict';
 
@@ -321,15 +321,15 @@ exports.createPatch = createPatch;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _errors = require('./errors');
+var _errors = _dereq_('./errors');
 
-var _pointer = require('./pointer');
+var _pointer = _dereq_('./pointer');
 
-var _patch = require('./patch');
+var _patch = _dereq_('./patch');
 
-var _diff = require('./diff');
+var _diff = _dereq_('./diff');
 
-var _package = require('./package');
+var _package = _dereq_('./package');
 
 var _package2 = _interopRequireDefault(_package);
 
@@ -385,10 +385,10 @@ function createPatch(input, output) {
   return operations;
 }
 
-},{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(require,module,exports){
+},{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "0.0.6",
+  "version": "1.0.1",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
@@ -406,6 +406,7 @@ module.exports={
     "babel": "*",
     "babelify": "*",
     "browserify": "*",
+    "derequire": "*",
     "js-yaml": "*",
     "mocha": "*"
   },
@@ -414,7 +415,7 @@ module.exports={
   }
 }
 
-},{}],6:[function(require,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 'use strict';
 
@@ -422,11 +423,11 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _pointer = require('./pointer');
+var _pointer = _dereq_('./pointer');
 
-var _equal = require('./equal');
+var _equal = _dereq_('./equal');
 
-var _errors = require('./errors');
+var _errors = _dereq_('./errors');
 
 function _add(object, key, value) {
   if (Array.isArray(object)) {
@@ -580,7 +581,7 @@ var operationFunctions = {
 };
 exports.operationFunctions = operationFunctions;
 
-},{"./equal":2,"./errors":3,"./pointer":7}],7:[function(require,module,exports){
+},{"./equal":2,"./errors":3,"./pointer":7}],7:[function(_dereq_,module,exports){
 /*jslint esnext: true */
 /**
 Unescape token part of a JSON Pointer string
