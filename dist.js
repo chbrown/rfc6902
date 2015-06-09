@@ -5,7 +5,7 @@
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-exports.diff = diff;
+exports.diffAny = diffAny;
 
 var _equal = _dereq_('./equal');
 
@@ -140,7 +140,7 @@ function diffObjects(input, output, ptr) {
   });
   // if a key is in both, diff it
   _intersection([input, output]).forEach(function (key) {
-    pushAll(operations, diff(input[key], output[key], ptr.add(key)));
+    pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
   });
   return operations;
 }
@@ -153,7 +153,7 @@ function diffValues(input, output, ptr) {
   return operations;
 }
 
-function diff(input, output, ptr) {
+function diffAny(input, output, ptr) {
   // Arrays first, since Arrays are subsets of Objects
   if (Array.isArray(input) && Array.isArray(output)) {
     return diffArrays(input, output, ptr);
@@ -317,7 +317,9 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.applyPatch = applyPatch;
+exports.patch = patch;
 exports.createPatch = createPatch;
+exports.diff = diff;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -365,6 +367,11 @@ function applyPatch(object, patch) {
   });
 }
 
+function patch(object, patch) {
+  console.error('rfc6902.patch(object, patch) has been deprecated. Use rfc6902.applyPatch(object, patch) instead.');
+  return applyPatch(object, patch);
+}
+
 /**
 Produce a 'application/json-patch+json'-type patch to get from one object to
 another.
@@ -378,17 +385,22 @@ Returns list of operations to perform on `input` to produce `output`.
 function createPatch(input, output) {
   var ptr = new _pointer.Pointer();
   // a new Pointer gets a default path of [''] if not specified
-  var operations = (0, _diff.diff)(input, output, ptr);
+  var operations = (0, _diff.diffAny)(input, output, ptr);
   operations.forEach(function (operation) {
     operation.path = operation.path.toString();
   });
   return operations;
 }
 
+function diff(input, output) {
+  console.error('rfc6902.diff(input, output) has been deprecated. Use rfc6902.createPatch(input, output) instead.');
+  return createPatch(input, output);
+}
+
 },{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",

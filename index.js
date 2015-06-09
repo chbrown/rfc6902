@@ -3,7 +3,7 @@ import {InvalidOperationError} from './errors';
 import {Pointer} from './pointer';
 
 import {operationFunctions} from './patch';
-import {diff} from './diff';
+import {diffAny} from './diff';
 
 import package_json from './package';
 export var version = package_json.version;
@@ -35,6 +35,10 @@ export function applyPatch(object, patch) {
     return operationFunction(object, operation);
   });
 }
+export function patch(object, patch) {
+  console.error('rfc6902.patch(object, patch) has been deprecated. Use rfc6902.applyPatch(object, patch) instead.');
+  return applyPatch(object, patch);
+}
 
 /**
 Produce a 'application/json-patch+json'-type patch to get from one object to
@@ -48,9 +52,13 @@ Returns list of operations to perform on `input` to produce `output`.
 export function createPatch(input, output) {
   var ptr = new Pointer();
   // a new Pointer gets a default path of [''] if not specified
-  var operations = diff(input, output, ptr);
+  var operations = diffAny(input, output, ptr);
   operations.forEach(function(operation) {
     operation.path = operation.path.toString();
   });
   return operations;
+}
+export function diff(input, output) {
+  console.error('rfc6902.diff(input, output) has been deprecated. Use rfc6902.createPatch(input, output) instead.');
+  return createPatch(input, output);
 }

@@ -133,7 +133,7 @@ function diffObjects(input, output, ptr) {
   });
   // if a key is in both, diff it
   _intersection([input, output]).forEach(key => {
-    pushAll(operations, diff(input[key], output[key], ptr.add(key)));
+    pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
   });
   return operations;
 }
@@ -146,7 +146,7 @@ function diffValues(input, output, ptr) {
   return operations;
 }
 
-export function diff(input, output, ptr) {
+export function diffAny(input, output, ptr) {
   // Arrays first, since Arrays are subsets of Objects
   if (Array.isArray(input) && Array.isArray(output)) {
     return diffArrays(input, output, ptr);
