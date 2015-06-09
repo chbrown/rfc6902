@@ -9,27 +9,19 @@
     "rfc6902"
   ],
   "homepage": "https://github.com/chbrown/rfc6902",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/chbrown/rfc6902.git"
-  },
-  "bugs": {
-    "email": "Christopher Brown <io@henrian.com>",
-    "url": "http://github.com/chbrown/rfc6902/issues"
-  },
-  "license": "MIT",
+  "repository": "git://github.com/chbrown/rfc6902.git",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
-  "dependencies": {
-    "js-yaml": "*",
-    "optimist": "*"
-  },
+  "license": "MIT",
+  "main": "./dist.js",
+  "dependencies": {},
   "devDependencies": {
-    "async": "*",
-    "uglify-js": "*",
-    "tap": "*"
+    "babel": "*",
+    "babelify": "*",
+    "browserify": "*",
+    "js-yaml": "*",
+    "mocha": "*"
   },
   "scripts": {
-    "test": "tap test"
-  },
-  "bin": {}
+    "test": "make test"
+  }
 }
