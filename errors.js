@@ -1,22 +1,25 @@
-/*globals exports, require */
-var MissingError = exports.MissingError = function(path) {
-  this.path = path;
-};
-MissingError.prototype.toString = function() {
-  return 'Value required at path: ' + this.path;
-};
+/*jslint esnext: true */
+export class MissingError extends Error {
+  constructor(path) {
+    super(`Value required at path: ${path}`);
+    this.name = this.constructor.name;
+    this.path = path;
+  }
+}
 
-var InvalidOperationError = exports.InvalidOperationError = function(op) {
-  this.op = op;
-};
-InvalidOperationError.prototype.toString = function() {
-  return 'Invalid operation: ' + this.op;
-};
+export class InvalidOperationError extends Error {
+  constructor(op) {
+    super(`Invalid operation: ${op}`);
+    this.name = this.constructor.name;
+    this.op = op;
+  }
+}
 
-var TestError = exports.TestError = function(found, wanted) {
-  this.found = found;
-  this.wanted = wanted;
-};
-TestError.prototype.toString = function() {
-  return 'Test failed: ' + this.found + ' != ' + this.wanted;
-};
+export class TestError extends Error {
+  constructor(actual, expected) {
+    super(`Test failed: ${actual} != ${expected}`);
+    this.name = this.constructor.name;
+    this.actual = actual;
+    this.expected = expected;
+  }
+}
