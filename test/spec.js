@@ -3,7 +3,7 @@ import assert from 'assert';
 import path from 'path';
 import {readFileSync} from 'fs';
 import yaml from 'js-yaml';
-import {applyPatch, createPatch} from '..';
+import {applyPatch, createPatch} from '../index';
 import {Pointer} from '../pointer';
 
 var spec_data = readFileSync(path.join(__dirname, 'spec.yaml'), {encoding: 'utf8'});
@@ -100,7 +100,7 @@ describe('JSON Pointer - package example:', () => {
 });
 
 describe('Specification format:', () => {
-  it('should have 18 items', () => assert.equal(spec_patch_results.length, 18));
+  it('should have 19 items', () => assert.equal(spec_patch_results.length, 19));
   // use sorted values and sort() to emulate set equality
   var props = ['diffable', 'input', 'name', 'output', 'patch', 'results'];
   spec_patch_results.forEach(spec_patch_result => {

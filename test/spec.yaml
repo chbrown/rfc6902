@@ -241,3 +241,15 @@
     - {op: "test", path: "/float", value: {significand: 314, exponent: -2}}
   results: [null, null, null, null, null, null, null]
   diffable: true
+
+- name: Array vs. Object
+  input:
+    repositories:
+      - amulet
+      - flickr-with-uploads
+  output:
+    repositories: {}
+  patch:
+    - {op: "replace", path: "/repositories", value: {}}
+  results: [null]
+  diffable: true
