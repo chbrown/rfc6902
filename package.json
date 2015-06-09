@@ -1,14 +1,21 @@
 {
-  "staticPattern": "static/lib/{file}",
-  "staticDependencies": {
+  "name": "rfc6902-gh-pages",
+  "version": "1.0.1",
+  "description": "Demo of RFC6902 (https://github.com/chbrown/rfc6902)",
+  "homepage": "https://github.com/chbrown/rfc6902/tree/gh-pages",
+  "repository": "git://github.com/chbrown/rfc6902.git#gh-pages",
+  "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
+  "license": "MIT",
+  "dependencies": {
     "angular": "*",
-    "ngStorage": {
-      "url": "git://github.com/gsklee/ngStorage.git",
-      "filter": ["ngStorage.js", "ngStorage.min.js"]
-    },
-    "rfc6902": {
-      "url": "git://github.com/chbrown/rfc6902.git",
-      "filter": ["rfc6902.js", "rfc6902.min.js"]
-    }
+    "ngstorage": "gsklee/ngStorage",
+    "rfc6902": "*"
+  },
+  "devDependencies": {
+    "babel": "*",
+    "babelify": "*",
+    "browserify": "*",
+    "clean-css": "*",
+    "less": "*"
   }
 }

@@ -1,10 +1,9 @@
-/*jslint devel: true, browser: true */ /*globals angular */
+/*jslint browser: true, esnext: true */
+import * as rfc6902 from 'rfc6902';
+import angular from 'angular';
+import 'ngstorage';
 
-var app = angular.module('app', ['ngStorage'], function($interpolateProvider) {
-  // jekyll reserves/hijacks {{ and }}
-  $interpolateProvider.startSymbol('<%');
-  $interpolateProvider.endSymbol('%>');
-});
+var app = angular.module('app', ['ngStorage']);
 
 app.controller('nav', function($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({
@@ -20,9 +19,11 @@ app.controller('nav', function($scope, $localStorage) {
 app.directive('json', function() {
   return {
     restrict: 'E',
-    template: '<textarea ng-model="raw" ng-change="change()" ng-blur="blur()"></textarea>' +
-      '<div ng-if="model.$valid" class="valid">Valid JSON</div>' +
-      '<div ng-if="model.$invalid" class="invalid">Invalid JSON: {{error}}</div>',
+    template: `
+      <textarea ng-model="raw" ng-change="change()" ng-blur="blur()"></textarea>
+      <div ng-if="model.$valid" class="valid">Valid JSON</div>
+      <div ng-if="model.$invalid" class="invalid">Invalid JSON: {{error}}</div>
+    `,
     scope: {},
     require: 'ngModel',
     link: function(scope, el, attrs, ngModel) {
@@ -66,7 +67,7 @@ app.controller('demo', function($scope, $localStorage) {
   $scope.diff = function() {
     var input = $scope.$storage.input;
     var output = $scope.$storage.output;
-    $scope.patches = diff.diff(input, output);
+    $scope.patches = rfc6902.createPatch(input, output);
   };
   $scope.diff();
 });

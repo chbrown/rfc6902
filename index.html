@@ -1,6 +1,12 @@
----
-layout: default
----
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>RFC6902 documentation</title>
+  <meta name="description" content="Demo of RFC6902 (https://github.com/chbrown/rfc6902)">
+  <link href="favicon.ico" rel="icon" type="image/x-icon">
+  <link href="site.css" rel="stylesheet" type="text/css">
+</head>
+<body ng-app="app">
 <nav ng-controller="nav">
   <section>
     This demo powered by <a href="https://github.com/chbrown/rfc6902/tree/gh-pages">github pages</a>;
@@ -47,9 +53,11 @@ layout: default
   <div class="patches">
     <table>
       <tr ng-repeat="patch in patches track by $index">
-        <td><% patch %></td>
-        <td>Patch <% $index %></td>
+        <td>{{patch}}</td>
+        <td>Patch {{$index}}</td>
       </tr>
     </table>
   </div>
 </section>
+</body>
+<script src="bundle.js"></script>
