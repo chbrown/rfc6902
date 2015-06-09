@@ -5,7 +5,7 @@ all: dist.js
 $(BIN)/browserify $(BIN)/mocha:
 	npm install
 
-dist.js: index.js diff.js equal.js errors.js patch.js pointer.js $(BIN)/browserify
+dist.js: index.js diff.js equal.js errors.js patch.js pointer.js package.json $(BIN)/browserify
 	$(BIN)/browserify $< --transform babelify --plugin derequire/plugin --standalone rfc6902 --outfile $@
 
 .PHONY: test
