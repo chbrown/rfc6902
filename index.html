@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <title>RFC6902 documentation</title>
   <meta name="description" content="Demo of RFC6902 (https://github.com/chbrown/rfc6902)">
-  <link href="favicon.ico" rel="icon" type="image/x-icon">
+  <link href="img/favicon.ico" rel="icon" type="image/x-icon">
   <link href="site.css" rel="stylesheet" type="text/css">
 </head>
 <body ng-app="app">
@@ -39,17 +39,17 @@
   <table>
     <tr>
       <td style="width: 50%">
-        <h2>Input</h2>
+        <h2><code>input</code></h2>
         <json ng-model="$storage.input" ng-change="diff()"></json>
       </td>
       <td style="width: 50%">
-        <h2>Output</h2>
+        <h2><code>output</code></h2>
         <json ng-model="$storage.output" ng-change="diff()"></json>
       </td>
     </tr>
   </table>
   <h3>Diff</h3>
-  <pre>var patches = diff.diff(input, output); // produces:</pre>
+  <pre>var patches = rfc6902.createPatch(input, output); // produces:</pre>
   <div class="patches">
     <table>
       <tr ng-repeat="patch in patches track by $index">
