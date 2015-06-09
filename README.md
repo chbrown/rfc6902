@@ -1,10 +1,37 @@
 # rfc6902
 
-Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902)
-(including [RFC6901](http://tools.ietf.org/html/rfc6901)),
+Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902) "JavaScript Object Notation (JSON) Patch"
+(including [RFC6901](http://tools.ietf.org/html/rfc6901) "JavaScript Object Notation (JSON) Pointer"),
 for creating and consuming `application/json-patch+json` documents.
 
-No fancy Object.observe, no TypeScript, no missing "diff" function.
+Implements "diff" functionality without using `Object.observe`.
+
+## Quickstart
+
+    npm install --save rfc6902
+
+In your script:
+
+    var rfc6902 = require('rfc6902');
+
+Calculate diff between two objects:
+
+    rfc6902.createPatch({first: 'Chris'}, {first: 'Chris', last: 'Brown'});
+
+> `[ { op: 'add', path: '/last', value: 'Brown' } ]`
+
+Apply a patch to some object.
+
+    var users = [{first: 'Chris', last: 'Brown', age: 20}];
+    rfc6902.applyPatch(users, [
+      {op: 'replace', path: '/0/age', value: 21},
+      {op: 'add', path: '/-', value: {first: 'Raphael', age: 37}},
+    ]);
+
+Now the value of `users` is:
+
+> `[ { first: 'Chris', last: 'Brown', age: 21 },`
+> `  { first: 'Raphael', age: 37 } ]`
 
 
 ## Demo
@@ -31,27 +58,90 @@ Of course, this only applies to generating the patches.
 Applying them is deterministic and completely specified by [RFC6902](http://tools.ietf.org/html/rfc6902).
 
 
-## Installation
+# Tutorial
 
-**From npm:**
+## JSON Pointer (RFC6901)
 
-```sh
-npm install rfc6902
-```
+The [RFC](http://tools.ietf.org/html/rfc6901) is a quick and easy read, but here's the gist:
 
-**Or github:**
+* JSON Pointer is a system for pointing to some fragment of a JSON document.
+* A pointer is a string that is composed of zero or more <code>/<i>reference-token</i></code> parts.
+  - When there are zero (the empty string), the pointer indicates the entire JSON document.
+  - Otherwise, the parts are read from left to right, each one selecting part of the current document, and presenting only that fragment of the document to the next part.
+* The <code><i>reference-token</i></code> bits are usually Object keys, but may also be decimals, to indicate array indices.
 
-```sh
-git clone https://github.com/chbrown/rfc6902.git
-cd rfc6902
-npm install -g
-```
+E.g., consider the NPM registry:
 
-**Import:**
+    {
+      "_updated": 1417985649051,
+      "flickr-with-uploads": {
+        "name": "flickr-with-uploads",
+        "description": "Flickr API with OAuth 1.0A and uploads",
+        "repository": {
+          "type": "git",
+          "url": "git://github.com/chbrown/flickr-with-uploads.git"
+        },
+        "homepage": "https://github.com/chbrown/flickr-with-uploads",
+        "keywords": [
+          "flickr",
+          "api",
+          "backup"
+        ],
+        ...
+      },
+      ...
+    }
 
-```js
-var rfc6902 = require('rfc6902');
-```
+1. `/_updated`: this selects the value of for that key, which is just a number: `1417985649051`
+2. `/flickr-with-uploads`: This selects the entire object:
+
+        {
+          "name": "flickr-with-uploads",
+          "description": "Flickr API with OAuth 1.0A and uploads",
+          "repository": {
+            "type": "git",
+            "url": "git://github.com/chbrown/flickr-with-uploads.git"
+          },
+          ...
+        }
+3. `/flickr-with-uploads/name`: this effectively applies the `/name` pointer to the result of the previous item, which selects the string, `"flickr-with-uploads"`.
+4. `/flickr-with-uploads/keywords/1`: Array indices are 0-indexed, so this selects the first item from the `keywords` array, namely, `"api"`.
+
+**Rules:**
+
+* A pointer, if it is not empty, must always start with a slash; otherwise, it is an "Invalid pointer syntax" error.
+* If a key within the JSON document contains a forward slash character (which is totally valid JSON, but not very nice), the `/` in the desired key should be replaced by the escape sequence, `~1`.
+* If a key within the JSON document contains a tilde (again valid JSON, but not very common), the `~` should be replaced by the other escape sequence, `~0`. This allows keys containing the literal string `~1` (which is especially cruel) to be referenced by a JSON pointer.
+* All double quotation marks, reverse slashes, and control characters _must_ escaped, since a JSON Pointer is a JSON string.
+* A pointer that refers to a non-existent value counts as an error, too. But not necessarily as fatal as the syntax error.
+
+## JSON Patch (RFC6902)
+
+The [RFC](http://tools.ietf.org/html/rfc6902) is only 18 pages long, and pretty straight-forward, but here are the basics.
+
+A JSON Patch document is a JSON document such that:
+
+* The MIME Type is `application/json-patch+json`
+* The file extension is `.json-patch`
+* It is an array of patch objects, potentially empty.
+* Each patch object has a key, `op`, with one of the following values, and an operator-specific set of other keys.
+  - **`add`**: Insert the given `value` at `path`. Or replace it, if it already exists. If the parent of the intended target does not exist, produce an error. If the final reference-token of `path` is "`-`", and the parent is an array, append `value` to it.
+    + `path`: JSON Pointer
+    + `value`: JSON object
+  - **`remove`**: Remove the value at `path`. Produces an error if it does not exist. If `path` refers to an element within an array, splice it out, so that subsequent elements fill in the gap, and the length of the array is decremented by 1.
+    + `path`: JSON Pointer
+  - **`replace`**: Replace the current value at `path` with `value`; it's exactly the same as performing a `remove` operation and then an `add` operation, since there _must_ be a pre-existing value.
+    + `path`: JSON Pointer
+    + `value`: JSON object
+  - **`move`**: Remove the value at `from`, and set `path` to that value. There _must_ be a value at `from`, but not necessarily at `path`; it's the same as performing a `remove` operation, and then an `add` operation.
+    + `from`: JSON Pointer
+    + `path`: JSON Pointer
+  - **`copy`**: Get the value at `from` and set `path` to that value. Same as `move`, but don't remove the original value.
+    + `from`: JSON Pointer
+    + `path`: JSON Pointer
+  - **`test`**: Check that the value at `path` is equal to `value`. If it is not, the entire patch is considered to be a failure.
+    + `path`: JSON Pointer
+    + `value`: JSON object
 
 
 ## License
