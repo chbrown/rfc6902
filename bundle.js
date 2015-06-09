@@ -28413,6 +28413,19 @@ function _intersection(xs) {
   return Object.keys(obj);
 }
 
+function objectType(object) {
+  if (object === undefined) {
+    return 'undefined';
+  }
+  if (object === null) {
+    return 'null';
+  }
+  if (Array.isArray(object)) {
+    return 'array';
+  }
+  return typeof object;
+}
+
 /**
 All diff* functions should return a list of operations, often empty.
 
@@ -28525,15 +28538,14 @@ function diffValues(input, output, ptr) {
 }
 
 function diffAny(input, output, ptr) {
-  // Arrays first, since Arrays are subsets of Objects
-  if (Array.isArray(input) && Array.isArray(output)) {
+  var input_type = objectType(input);
+  var output_type = objectType(output);
+  if (input_type == 'array' && output_type == 'array') {
     return diffArrays(input, output, ptr);
   }
-
-  if (input === Object(input) && output === Object(output)) {
+  if (input_type == 'object' && output_type == 'object') {
     return diffObjects(input, output, ptr);
   }
-
   // only pairs of arrays and objects can go down a path to produce a smaller
   // diff; everything else must be wholesale replaced if inequal
   return diffValues(input, output, ptr);
@@ -28771,7 +28783,7 @@ function diff(input, output) {
 },{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
