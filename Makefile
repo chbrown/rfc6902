@@ -1,6 +1,6 @@
 BIN := node_modules/.bin
 
-all: bundle.min.js bundle.js site.css
+all: bundle.js site.css
 
 $(BIN)/lessc $(BIN)/cleancss $(BIN)/browserify:
 	npm install
