@@ -7,6 +7,6 @@ declare module "rfc6902" {
   }
   type Patch = Operation[];
   interface OperationResult extends Error { }
-  function applyPatch(object: any, operations: Patch): OperationResult[];
+  function applyPatch(object: any, patch: Patch): OperationResult[];
   function createPatch(input: any, output: any): Patch;
 }
