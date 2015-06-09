@@ -61,7 +61,7 @@
       }
     }
   patch:
-    [{op: "move", "from": "/foo/waldo", path: "/qux/thud"}]
+    [{op: "move", from: "/foo/waldo", path: "/qux/thud"}]
   output:
     {
       "foo": {
@@ -79,7 +79,7 @@
   input:
     {"foo": [ "all", "grass", "cows", "eat" ]}
   patch:
-    [{op: "move", "from": "/foo/1", path: "/foo/3"}]
+    [{op: "move", from: "/foo/1", path: "/foo/3"}]
   output:
     {"foo": [ "all", "cows", "eat", "grass" ]}
   errors: []
