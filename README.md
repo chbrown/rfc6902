@@ -2,9 +2,21 @@
 
 Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902) "JavaScript Object Notation (JSON) Patch"
 (including [RFC6901](http://tools.ietf.org/html/rfc6901) "JavaScript Object Notation (JSON) Pointer"),
-for creating and consuming `application/json-patch+json` documents.
+for creating and consuming `application/json-patch+json` documents. Also offers "diff" functionality without using `Object.observe`.
 
-Implements "diff" functionality without using `Object.observe`.
+**Important news!** `v1.0.2`, published on **2015**-06-09, renames a few of the public API methods from `v0.0.6`, the previous version, which was published on **2014**-01-23.
+
+| `v0.0.6` name                       | `v1.0.2` equivalent                  |
+|:------------------------------------|:-------------------------------------|
+| `rfc6902.patch(object, operations)` | `rfc6902.applyPatch(object, patch)`  |
+| `rfc6902.diff(input, output)`       | `rfc6902.createPatch(input, output)` |
+
+The arguments and return values are unchanged, except that the list of operation results returned by `rfc6902.applyPatch()` contains `null` (in `v1.0.2`) for each successful operation, instead of `undefined` (which was `v0.0.6` behavior).
+
+The old names are currently aliased to the new names, but will print a deprecation warning via `console.error()`.
+
+See [API](#api) below for details.
+
 
 ## Quickstart
 
@@ -34,11 +46,24 @@ Now the value of `users` is:
 > `  { first: 'Raphael', age: 37 } ]`
 
 
+# API
+
+`rfc6902` exposes two methods. I'm using TypeScript-like type annotations for documentation purposes only; the library is written in standard ES6.
+
+* `rfc6902.applyPatch(object: any, patch: Operation[]): Array<Error | null>`
+
+  The operations in `patch` are applied to `object` in-place, and it returns a list of results. The returned list will have the same length as `patch`. If all operations were successful, each item in the returned list will be `null`. If any of them failed, the corresponding item in the returned list will be an Error instance with descriptive `.name` and `.message` properties.
+* `rfc6902.createPatch(input: any, output: any): Operation[]`
+
+  Returns a list of operations (a JSON Patch) of the required operations to make `input` equal to `output`. In most cases, there is more than one way to transform an object into another. This method is more efficient than wholesale replacement, but does not always provide the optimal list of patches. It uses a simple Levenshtein-type implementation with Arrays, but it doesn't try for anything much smarter than that, so it's limited to `remove`, `add`, and `replace` operations.
+* `interface Operation { op: string; from?: string; path?: string; value?: string; }`
+
+
 ## Demo
 
-Simple [web app](http://chbrown.github.io/rfc6902) using the browser-compiled version of the code.
+Simple [web app](https://chbrown.github.io/rfc6902) using the browser-compiled version of the code.
 
-* Currently only demos `diff(input, output)` functionality.
+* Currently only demos `createPatch(input, output)` functionality.
 
 
 ## Determinism
