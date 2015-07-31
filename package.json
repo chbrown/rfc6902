@@ -12,7 +12,7 @@
   "repository": "git://github.com/chbrown/rfc6902.git",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
-  "main": "./dist.js",
+  "main": "./rfc6902.js",
   "dependencies": {},
   "devDependencies": {
     "babel": "*",
