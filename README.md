@@ -130,7 +130,7 @@ E.g., consider the NPM registry:
           ...
         }
 3. `/flickr-with-uploads/name`: this effectively applies the `/name` pointer to the result of the previous item, which selects the string, `"flickr-with-uploads"`.
-4. `/flickr-with-uploads/keywords/1`: Array indices are 0-indexed, so this selects the first item from the `keywords` array, namely, `"api"`.
+4. `/flickr-with-uploads/keywords/1`: Array indices are 0-indexed, so this selects the second item from the `keywords` array, namely, `"api"`.
 
 **Rules:**
 
