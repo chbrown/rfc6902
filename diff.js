@@ -70,17 +70,34 @@ Everything Else, which is pretty much just what JSON substantially
 differentiates between.
 */
 
+/**
+Array-diffing smarter (levenshtein-like) diffing here
+
+To get from the input ABC to the output AZ we could just delete all the input
+and say "insert A, insert Z" and be done with it. That's what we do if the
+input is empty. But we can be smarter.
+
+          output
+          A Z
+        0 1 2
+input A 1 0 1
+      B 2 1 2
+      C 3 2 3
+
+if input (source) is empty, they'll all be in the top row, just a bunch of
+additions. If the output is empty, everything will be in the left column, as a
+bunch of deletions.
+*/
 function diffArrays(input, output, ptr) {
-  // smarter (levenshtein-like) diffing here
-  // var nrows = input.length + 1;
-  // var ncols = output.length + 1;
   // set up cost matrix (very simple initialization: just a map)
-  // if input (source) is empty, they'll all be in the top row
   var memo = {
     '0,0': {operations: [], cost: 0}
   };
-  // input[i's] -> output[j's]
-  var dist = function(i, j) {
+  /**
+
+  input[i's] -> output[j's]
+  */
+  function dist(i, j) {
     // returns object of cost and list of operations needed to get to this place in the matrix
     var memoized = memo[[i, j]];
     if (memoized === undefined) {
@@ -90,7 +107,7 @@ function diffArrays(input, output, ptr) {
       else {
         var directions = [];
         if (i > 0) {
-          // NOT topmost row (e.g., )
+          // NOT topmost row
           directions.push({dist: dist(i-1, j  ), type: 'deletion'});
         }
         if (j > 0) {
@@ -129,9 +146,9 @@ function diffArrays(input, output, ptr) {
       memo[[i, j]] = memoized;
     }
     return memoized;
-  };
+  }
   var end = dist(input.length, output.length);
-  return end.operations;
+  return end.operations.reverse();
 }
 
 function diffObjects(input, output, ptr) {
