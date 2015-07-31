@@ -2,13 +2,13 @@ BIN := node_modules/.bin
 
 all: bundle.js site.css img/favicon.ico
 
-$(BIN)/lessc $(BIN)/cleancss $(BIN)/browserify:
+$(BIN)/watsh $(BIN)/lessc $(BIN)/cleancss $(BIN)/browserify $(BIN)/watchify:
 	npm install
 
 %.css: %.less $(BIN)/lessc $(BIN)/cleancss
 	$(BIN)/lessc $< | $(BIN)/cleancss --keep-line-breaks --skip-advanced -o $@
 
-bundle.min.js: bundle.js
+%.min.js: %.js
 	closure-compiler --language_in ECMASCRIPT5 --warning_level QUIET <$< >$@
 
 bundle.js: app.js $(BIN)/browserify
@@ -19,3 +19,9 @@ img/favicon-%.png: img/favicon.psd
 	convert $<[0] -resize $*x$* $@ # [0] pulls off the composited layer from the original PSD
 img/favicon.ico: img/favicon-16.png img/favicon-32.png
 	convert $^ $@
+
+dev: $(BIN)/watsh $(BIN)/watchify
+	(\
+    $(BIN)/watsh 'make site.css' site.less & \
+    $(BIN)/watchify app.js -t babelify -o bundle.js -v & \
+    wait)

@@ -4,25 +4,37 @@ body {
 }
 
 nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   color: #555;
   font-size: 90%;
   border-bottom: 1px solid #DDD;
-  padding: 5px 0;
-  margin-bottom: 10px;
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 section {
-  margin: 0 auto;
+  margin: 5px auto;
   max-width: 800px;
 }
 
 h2, h3, h4 {
-  margin: 1ex 0 .5ex 0;
+  margin: .5ex 0;
   font-family: sans-serif;
 }
 
-a.js {
-  cursor: help;
+.columns-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  & > div {
+    flex-grow: 1;
+  }
+}
+
+hr {
+  max-width: 800px;
 }
 
 pre {

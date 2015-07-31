@@ -1,22 +1,12 @@
 /*jslint browser: true, esnext: true */
-import * as rfc6902 from 'rfc6902';
+import {applyPatch, createPatch} from 'rfc6902';
 import angular from 'angular';
 import 'ngstorage';
 
-var app = angular.module('app', ['ngStorage']);
-
-app.controller('nav', function($scope, $localStorage) {
-  $scope.$storage = $localStorage.$default({
-    birdy: false
-  });
-
-  $scope.toggle = function(key, ev) {
-    $scope.$storage[key] = !$scope.$storage[key];
-    ev.preventDefault();
-  };
-});
-
-app.directive('json', function() {
+angular.module('app', [
+  'ngStorage'
+])
+.directive('json', function() {
   return {
     restrict: 'E',
     template: `
@@ -56,19 +46,34 @@ app.directive('json', function() {
       };
     }
   };
-});
-
-app.controller('demo', function($scope, $localStorage) {
+})
+.controller('createPatchDemo', function($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({
     input: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
     output: {"name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"]},
   });
 
-  $scope.diff = function() {
+  function refresh() {
     var input = $scope.$storage.input;
     var output = $scope.$storage.output;
-    $scope.patches = rfc6902.createPatch(input, output);
-  };
-  $scope.diff();
-});
+    $scope.patch = createPatch(input, output);
+  }
 
+  $scope.$watchGroup(['$storage.input', '$storage.output'], refresh);
+})
+.controller('applyPatchDemo', function($scope, $localStorage) {
+  $scope.$storage = $localStorage.$default({
+    original: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
+    patch: [
+      {"op": "replace", "path": "/name", "value": "Christopher Brown"},
+      {"op": "add", "path": "/repositories/-", "value": "rfc6902"}
+    ],
+  });
+
+  function refresh() {
+    $scope.output = angular.copy($scope.$storage.original);
+    applyPatch($scope.output, $scope.$storage.patch);
+  }
+
+  $scope.$watchGroup(['$storage.original', '$storage.patch'], refresh);
+});

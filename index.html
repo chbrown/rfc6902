@@ -5,59 +5,51 @@
   <meta name="description" content="Demo of RFC6902 (https://github.com/chbrown/rfc6902)">
   <link href="img/favicon.ico" rel="icon" type="image/x-icon">
   <link href="site.css" rel="stylesheet" type="text/css">
+  <script src="bundle.js"></script>
 </head>
 <body ng-app="app">
-<nav ng-controller="nav">
-  <section>
-    This demo powered by <a href="https://github.com/chbrown/rfc6902/tree/gh-pages">github pages</a>;
-    source code available at <a href="https://github.com/chbrown/rfc6902">github.com/chbrown/rfc6902</a>,
-    via <a href="#" class="js" ng-click="toggle('birdy', $event)">birdy</a>,
-    or <a href="#" class="js" ng-click="toggle('raw', $event)">raw</a>.
+  <nav>
+    <section>
+      This demo powered by <a href="https://github.com/chbrown/rfc6902/tree/gh-pages">github pages</a>.
+      Source code available at <a href="https://github.com/chbrown/rfc6902">github.com/chbrown/rfc6902</a>.
+      Install with <code>npm install rfc6902</code>, or use from CDN: <a href="https://cdn.rawgit.com/chbrown/rfc6902/v1.0.5/rfc6902.js">rfc6902.js</a> / <a href="https://cdn.rawgit.com/chbrown/rfc6902/v1.0.5/rfc6902.min.js">rfc6902.min.js</a>.
+    </section>
+  </nav>
+  <div style="height: 45px"></div>
+  <section ng-controller="createPatchDemo">
+    <h2>Create Patch</h2>
+    <div class="columns-2">
+      <div>
+        <h3><code>input</code></h3>
+        <json ng-model="$storage.input"></json>
+      </div>
+      <span>&nbsp;</span>
+      <div>
+        <h3><code>output</code></h3>
+        <json ng-model="$storage.output"></json>
+      </div>
+    </div>
+    <pre>var patch = rfc6902.createPatch(input, output);</pre>
+    <i>result:</i>
+    <pre>{{patch | json:'  '}}</pre>
   </section>
-  <section ng-if="$storage.birdy">
-    <h4>In your package.json:</h4>
-    <pre>
-  {
-    "staticDependencies": {
-      "rfc6902": {
-        "url": "git://github.com/chbrown/rfc6902.git",
-        "filter": ["rfc6902.js", "rfc6902.min.js"]
-      }
-    }
-  }</pre>
-    <h4>At the command line:</h4>
-    <pre>birdy install</pre>
+  <hr>
+  <section ng-controller="applyPatchDemo">
+    <h2>Apply Patch</h2>
+    <div class="columns-2">
+      <div>
+        <h3><code>original</code></h3>
+        <json ng-model="$storage.original"></json>
+      </div>
+      <span>&nbsp;</span>
+      <div>
+        <h3><code>patch</code></h3>
+        <json ng-model="$storage.patch"></json>
+      </div>
+    </div>
+    <pre>var output = clone(original);
+rfc6902.applyPatch(output, patch);</pre>
+    <i>result:</i>
+    <pre>{{output | json:'  '}}</pre>
   </section>
-  <section ng-if="$storage.raw">
-    <h4>In your &lt;head&gt;:</h4>
-    <pre>  &lt;script src="https://rawgithub.com/chbrown/rfc6902/master/rfc6902.js"&gt;&lt;/script&gt;</pre>
-    or
-    <pre>  &lt;script src="https://rawgithub.com/chbrown/rfc6902/master/rfc6902.min.js"&gt;&lt;/script&gt;</pre>
-</nav>
-
-<section ng-controller="demo">
-  <table>
-    <tr>
-      <td style="width: 50%">
-        <h2><code>input</code></h2>
-        <json ng-model="$storage.input" ng-change="diff()"></json>
-      </td>
-      <td style="width: 50%">
-        <h2><code>output</code></h2>
-        <json ng-model="$storage.output" ng-change="diff()"></json>
-      </td>
-    </tr>
-  </table>
-  <h3>Diff</h3>
-  <pre>var patches = rfc6902.createPatch(input, output); // produces:</pre>
-  <div class="patches">
-    <table>
-      <tr ng-repeat="patch in patches track by $index">
-        <td>{{patch}}</td>
-        <td>Patch {{$index}}</td>
-      </tr>
-    </table>
-  </div>
-</section>
 </body>
-<script src="bundle.js"></script>

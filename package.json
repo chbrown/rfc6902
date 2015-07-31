@@ -16,6 +16,8 @@
     "babelify": "*",
     "browserify": "*",
     "clean-css": "*",
-    "less": "*"
+    "less": "*",
+    "watchify": "*",
+    "watsh": "*"
   }
 }
