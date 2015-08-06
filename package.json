@@ -9,7 +9,7 @@
   "dependencies": {
     "angular": "*",
     "ngstorage": "gsklee/ngStorage",
-    "rfc6902": "*"
+    "rfc6902": "1.0.6"
   },
   "devDependencies": {
     "babel": "*",
