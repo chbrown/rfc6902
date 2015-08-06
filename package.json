@@ -20,7 +20,8 @@
     "browserify": "*",
     "derequire": "*",
     "js-yaml": "*",
-    "mocha": "*"
+    "mocha": "*",
+    "typescript": "*"
   },
   "scripts": {
     "test": "make test"

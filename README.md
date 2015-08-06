@@ -48,7 +48,7 @@ Now the value of `users` is:
 
 # API
 
-`rfc6902` exposes two methods. I'm using TypeScript-like type annotations for documentation purposes only; the library is written in standard ES6.
+`rfc6902` exposes two methods. (I'm using TypeScript-like type annotations here.)
 
 * `rfc6902.applyPatch(object: any, patch: Operation[]): Array<Error | null>`
 
