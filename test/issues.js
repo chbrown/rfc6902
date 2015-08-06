@@ -10,8 +10,8 @@ describe('issues/3', () => {
   var input = {arr: ['1', '2', '2']};
   var output = {arr: ['1']};
   var expected_patch = [
-    {op: 'remove', path: '/arr/2'},
-    {op: 'remove', path: '/arr/1'}
+    {op: 'remove', path: '/arr/1'},
+    {op: 'remove', path: '/arr/1'},
   ];
   var actual_patch = createPatch(input, output);
   it('should produce patch equal to expectation', () => {
@@ -29,8 +29,8 @@ describe('issues/4', () => {
   var input = ['A', 'B'];
   var output = ['B', 'A'];
   var expected_patch = [
-    {op: 'remove', path: '/1'},
     {op: 'add', path: '/0', value: 'B'},
+    {op: 'remove', path: '/2'},
   ];
   var actual_patch = createPatch(input, output);
   it('should produce patch equal to expectation', () => {
