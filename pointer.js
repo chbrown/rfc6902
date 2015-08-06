@@ -1,4 +1,3 @@
-/*jslint esnext: true */
 /**
 Unescape token part of a JSON Pointer string
 
@@ -20,9 +19,8 @@ I say "lower order" because '/' needs escaping due to the JSON Pointer serializa
 Whereas, '~' is escaped because escaping '/' uses the '~' character.
 */
 function unescape(token) {
-  return token.replace(/~1/g, '/').replace(/~0/g, '~');
+    return token.replace(/~1/g, '/').replace(/~0/g, '~');
 }
-
 /** Escape token part of a JSON Pointer string
 
 > '~' needs to be encoded as '~0' and '/'
@@ -32,58 +30,61 @@ function unescape(token) {
 This is the exact inverse of `unescape()`, so the reverse replacements must take place in reverse order.
 */
 function escape(token) {
-  return token.replace(/~/g, '~0').replace(/\//g, '~1');
+    return token.replace(/~/g, '~0').replace(/\//g, '~1');
 }
-
 /**
 JSON Pointer representation
 */
-export class Pointer {
-  constructor(tokens) {
-    this.tokens = tokens || [''];
-  }
-  /**
-  `path` *must* be a properly escaped string.
-  */
-  static fromJSON(path) {
-    var tokens = path.split('/').map(unescape);
-    if (tokens[0] !== '') throw new Error('Invalid JSON Pointer: ' + path);
-    return new Pointer(tokens);
-  }
-  toString() {
-    return this.tokens.map(escape).join('/');
-  }
-  /**
-  Returns an object with 'parent', 'key', and 'value' properties.
-  In the special case that pointer = "", parent and key will be null, and `value = obj`
-  Otherwise, parent will be the such that `parent[key] == value`
-  */
-  evaluate(object) {
-    var parent = null;
-    var token = null;
-    for (var i = 1, l = this.tokens.length; i < l; i++) {
-      parent = object;
-      token = this.tokens[i];
-      // not sure if this the best way to handle non-existant paths...
-      object = (parent || {})[token];
+var Pointer = (function () {
+    function Pointer(tokens) {
+        if (tokens === void 0) { tokens = ['']; }
+        this.tokens = tokens;
     }
-    return {
-      parent: parent,
-      key: token,
-      value: object,
+    /**
+    `path` *must* be a properly escaped string.
+    */
+    Pointer.fromJSON = function (path) {
+        var tokens = path.split('/').map(unescape);
+        if (tokens[0] !== '')
+            throw new Error("Invalid JSON Pointer: " + path);
+        return new Pointer(tokens);
     };
-  }
-  push(token) {
-    // mutable
-    this.tokens.push(token);
-  }
-  /**
-  `token` should be a String. It'll be coerced to one anyway.
-
-  immutable (shallowly)
-  */
-  add(token) {
-    var tokens = this.tokens.concat(String(token));
-    return new Pointer(tokens);
-  }
-}
+    Pointer.prototype.toString = function () {
+        return this.tokens.map(escape).join('/');
+    };
+    /**
+    Returns an object with 'parent', 'key', and 'value' properties.
+    In the special case that pointer = "", parent and key will be null, and `value = obj`
+    Otherwise, parent will be the such that `parent[key] == value`
+    */
+    Pointer.prototype.evaluate = function (object) {
+        var parent = null;
+        var token = null;
+        for (var i = 1, l = this.tokens.length; i < l; i++) {
+            parent = object;
+            token = this.tokens[i];
+            // not sure if this the best way to handle non-existant paths...
+            object = (parent || {})[token];
+        }
+        return {
+            parent: parent,
+            key: token,
+            value: object,
+        };
+    };
+    Pointer.prototype.push = function (token) {
+        // mutable
+        this.tokens.push(token);
+    };
+    /**
+    `token` should be a String. It'll be coerced to one anyway.
+  
+    immutable (shallowly)
+    */
+    Pointer.prototype.add = function (token) {
+        var tokens = this.tokens.concat(String(token));
+        return new Pointer(tokens);
+    };
+    return Pointer;
+})();
+exports.Pointer = Pointer;
