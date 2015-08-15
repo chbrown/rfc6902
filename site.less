@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  padding: 0;
+  padding: 0 0 20px 0;
 }
 
 nav {
@@ -51,27 +51,14 @@ table {
     vertical-align: top;
   }
 }
-.patches {
-  margin: 2ex 1em;
-  tr {
-    td {
-      border-bottom: 1px solid #EEE;
-      font-family: monospace;
-    }
-    td:first-child {
-      // padding-left: 1em;
-    }
-    td:last-child {
-      text-align: right;
-      width: 5em;
-      color: #AAA;
-    }
-  }
-  tr:last-child {
-    td {
-      border-bottom: 0;
-    }
-  }
+.input {
+  background-color: rgba(255, 255, 0, 0.15);
+}
+.output {
+  background-color: rgba(127, 255, 0, 0.15);
+}
+.patch {
+  background-color: rgba(0, 0, 255, 0.1);
 }
 
 textarea {

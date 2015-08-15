@@ -5,51 +5,55 @@
   <meta name="description" content="Demo of RFC6902 (https://github.com/chbrown/rfc6902)">
   <link href="img/favicon.ico" rel="icon" type="image/x-icon">
   <link href="site.css" rel="stylesheet" type="text/css">
-  <script src="bundle.js"></script>
+  <script src="bundle.min.js"></script>
 </head>
-<body ng-app="app">
-  <nav>
+<body ng-app="app" ng-controller="demoCtrl">
+  <nav fixedflow>
     <section>
       This demo powered by <a href="https://github.com/chbrown/rfc6902/tree/gh-pages">github pages</a>.
       Source code available at <a href="https://github.com/chbrown/rfc6902">github.com/chbrown/rfc6902</a>.
       Install with <code>npm install rfc6902</code>, or use from CDN: <a href="https://cdn.rawgit.com/chbrown/rfc6902/v1.0.6/rfc6902.js">rfc6902.js</a> / <a href="https://cdn.rawgit.com/chbrown/rfc6902/v1.0.6/rfc6902.min.js">rfc6902.min.js</a>.
+      Legend: <span class="input">input</span> · <span class="output">output</span> · <span class="patch">patch</span>.
     </section>
   </nav>
-  <div style="height: 45px"></div>
-  <section ng-controller="createPatchDemo">
+  <section>
     <h2>Create Patch</h2>
     <div class="columns-2">
       <div>
         <h3><code>input</code></h3>
-        <json ng-model="$storage.input"></json>
+        <json ng-model="$storage.createPatch.input" class="input"></json>
       </div>
       <span>&nbsp;</span>
       <div>
         <h3><code>output</code></h3>
-        <json ng-model="$storage.output"></json>
+        <json ng-model="$storage.createPatch.output" class="output"></json>
       </div>
     </div>
     <pre>var patch = rfc6902.createPatch(input, output);</pre>
     <i>result:</i>
-    <pre>{{patch | json:'  '}}</pre>
+    <pre class="patch">{{createPatch.patch | json:'  '}}</pre>
   </section>
-  <hr>
-  <section ng-controller="applyPatchDemo">
+  <section style="text-align: center">
+    <button ng-click="copy()">
+      Copy <code>input</code> and created <code>patch</code> to <code>original</code> and <code>patch</code> below
+    </button>
+  </section>
+  <section>
     <h2>Apply Patch</h2>
     <div class="columns-2">
       <div>
         <h3><code>original</code></h3>
-        <json ng-model="$storage.original"></json>
+        <json ng-model="$storage.applyPatch.original" class="input"></json>
       </div>
       <span>&nbsp;</span>
       <div>
         <h3><code>patch</code></h3>
-        <json ng-model="$storage.patch"></json>
+        <json ng-model="$storage.applyPatch.patch" class="patch"></json>
       </div>
     </div>
     <pre>var output = clone(original);
 rfc6902.applyPatch(output, patch);</pre>
     <i>result:</i>
-    <pre>{{output | json:'  '}}</pre>
+    <pre class="output">{{applyPatch.output | json:'  '}}</pre>
   </section>
 </body>

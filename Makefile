@@ -1,6 +1,6 @@
 BIN := node_modules/.bin
 
-all: bundle.js site.css img/favicon.ico
+all: bundle.js bundle.min.js site.css img/favicon.ico
 
 $(BIN)/watsh $(BIN)/lessc $(BIN)/cleancss $(BIN)/browserify $(BIN)/watchify:
 	npm install
@@ -9,10 +9,10 @@ $(BIN)/watsh $(BIN)/lessc $(BIN)/cleancss $(BIN)/browserify $(BIN)/watchify:
 	$(BIN)/lessc $< | $(BIN)/cleancss --keep-line-breaks --skip-advanced -o $@
 
 %.min.js: %.js
-	closure-compiler --language_in ECMASCRIPT5 --warning_level QUIET <$< >$@
+	closure-compiler --angular_pass --language_in ECMASCRIPT5 --warning_level QUIET $< >$@
 
 bundle.js: app.js $(BIN)/browserify
-	$(BIN)/browserify $< --transform babelify --outfile $@
+	$(BIN)/browserify $< -t babelify -t browserify-ngannotate -o $@
 
 .INTERMEDIATE: img/favicon-16.png img/favicon-32.png
 img/favicon-%.png: img/favicon.psd
@@ -23,5 +23,5 @@ img/favicon.ico: img/favicon-16.png img/favicon-32.png
 dev: $(BIN)/watsh $(BIN)/watchify
 	(\
     $(BIN)/watsh 'make site.css' site.less & \
-    $(BIN)/watchify app.js -t babelify -o bundle.js -v & \
+    $(BIN)/watchify app.js -t babelify -t browserify-ngannotate -o bundle.js -v & \
     wait)

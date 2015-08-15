@@ -1,4 +1,4 @@
-body{margin:0;padding:0}
+body{margin:0;padding:0 0 20px 0}
 nav{position:fixed;top:0;left:0;right:0;color:#555;font-size:90%;border-bottom:1px solid #DDD;background-color:rgba(255,255,255,.95)}
 section{margin:5px auto;max-width:800px}
 h2,h3,h4{margin:.5ex 0;font-family:sans-serif}
@@ -8,10 +8,9 @@ hr{max-width:800px}
 pre{margin:5px 0}
 table{width:100%;border-collapse:collapse}
 table td{padding:1px 4px 2px 2px;vertical-align:top}
-.patches{margin:2ex 1em}
-.patches tr td{border-bottom:1px solid #EEE;font-family:monospace}
-.patches tr td:last-child{text-align:right;width:5em;color:#AAA}
-.patches tr:last-child td{border-bottom:0}
+.input{background-color:rgba(255,255,0,.15)}
+.output{background-color:rgba(127,255,0,.15)}
+.patch{background-color:rgba(0,0,255,.1)}
 textarea{box-sizing:border-box;display:block;margin:5px 0;width:100%;min-height:200px;font-family:monospace}
 .invalid,.valid{font-size:90%}
 .valid{color:#272}

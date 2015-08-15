@@ -1,30 +1,35 @@
 /*jslint browser: true, esnext: true */
 import {applyPatch, createPatch} from 'rfc6902';
-import angular from 'angular';
+// angular annotation doesn't work with `import ...` syntax
+var angular = require('angular');
 import 'ngstorage';
+import 'flow-copy';
 
 angular.module('app', [
-  'ngStorage'
+  'ngStorage',
+  'flow-copy',
 ])
-.directive('json', function() {
+.directive('json', () => {
   return {
     restrict: 'E',
     template: `
-      <textarea ng-model="raw" ng-change="change()" ng-blur="blur()"></textarea>
+      <textarea ng-model="raw" ng-change="change()" ng-blur="blur()" ng-class="className"></textarea>
       <div ng-if="model.$valid" class="valid">Valid JSON</div>
       <div ng-if="model.$invalid" class="invalid">Invalid JSON: {{error}}</div>
     `,
     scope: {},
     require: 'ngModel',
-    link: function(scope, el, attrs, ngModel) {
+    link: (scope, el, attrs, ngModel) => {
       scope.model = ngModel;
 
+      scope.className = attrs.class;
+
       // scope.raw.viewChangeListeners = [];
-      scope.change = function() {
+      scope.change = () => {
         ngModel.$setViewValue(scope.raw);
       };
 
-      ngModel.$parsers = [function(string) {
+      ngModel.$parsers = [(string) => {
         try {
           var obj = angular.fromJson(string);
           ngModel.$setValidity('jsonInvalid', true);
@@ -38,7 +43,7 @@ angular.module('app', [
         }
       }];
 
-      ngModel.$render = function() {
+      ngModel.$render = () => {
         // just set the textarea to the JSON, but only if the current raw value is valid JSON
         if (ngModel.$valid) {
           scope.raw = angular.toJson(ngModel.$modelValue, true);
@@ -47,33 +52,36 @@ angular.module('app', [
     }
   };
 })
-.controller('createPatchDemo', function($scope, $localStorage) {
+.controller('demoCtrl', ($scope, $localStorage) => {
   $scope.$storage = $localStorage.$default({
-    input: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
-    output: {"name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"]},
+    createPatch: {
+      input: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
+      output: {"name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"]},
+    },
+    applyPatch: {
+      original: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
+      patch: [
+        {"op": "replace", "path": "/name", "value": "Christopher Brown"},
+        {"op": "add", "path": "/repositories/-", "value": "rfc6902"}
+      ],
+    },
+  });
+  $scope.createPatch = {patch: []};
+  $scope.applyPatch = {output: null};
+
+  $scope.$watchGroup(['$storage.createPatch.input', '$storage.createPatch.output'], () => {
+    var input = $scope.$storage.createPatch.input;
+    var output = $scope.$storage.createPatch.output;
+    $scope.createPatch.patch = createPatch(input, output);
   });
 
-  function refresh() {
-    var input = $scope.$storage.input;
-    var output = $scope.$storage.output;
-    $scope.patch = createPatch(input, output);
-  }
-
-  $scope.$watchGroup(['$storage.input', '$storage.output'], refresh);
-})
-.controller('applyPatchDemo', function($scope, $localStorage) {
-  $scope.$storage = $localStorage.$default({
-    original: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
-    patch: [
-      {"op": "replace", "path": "/name", "value": "Christopher Brown"},
-      {"op": "add", "path": "/repositories/-", "value": "rfc6902"}
-    ],
+  $scope.$watchGroup(['$storage.applyPatch.original', '$storage.applyPatch.patch'], () => {
+    $scope.applyPatch.output = angular.copy($scope.$storage.applyPatch.original);
+    applyPatch($scope.applyPatch.output, $scope.$storage.applyPatch.patch);
   });
 
-  function refresh() {
-    $scope.output = angular.copy($scope.$storage.original);
-    applyPatch($scope.output, $scope.$storage.patch);
-  }
-
-  $scope.$watchGroup(['$storage.original', '$storage.patch'], refresh);
+  $scope.copy = () => {
+    $scope.$storage.applyPatch.original = $scope.$storage.createPatch.input;
+    $scope.$storage.applyPatch.patch = $scope.createPatch.patch;
+  };
 });

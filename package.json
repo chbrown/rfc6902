@@ -8,6 +8,7 @@
   "license": "MIT",
   "dependencies": {
     "angular": "*",
+    "flow-copy": "*",
     "ngstorage": "gsklee/ngStorage",
     "rfc6902": "1.0.6"
   },
@@ -15,6 +16,7 @@
     "babel": "*",
     "babelify": "*",
     "browserify": "*",
+    "browserify-ngannotate": "*",
     "clean-css": "*",
     "less": "*",
     "watchify": "*",
