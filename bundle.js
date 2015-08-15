@@ -2,24 +2,26 @@
 /*jslint browser: true, esnext: true */
 'use strict';
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 var _rfc6902 = require('rfc6902');
 
-var _angular = require('angular');
-
-var _angular2 = _interopRequireDefault(_angular);
+// angular annotation doesn't work with `import ...` syntax
 
 require('ngstorage');
 
-_angular2['default'].module('app', ['ngStorage']).directive('json', function () {
+require('flow-copy');
+
+var angular = require('angular');
+
+angular.module('app', ['ngStorage', 'flow-copy']).directive('json', function () {
   return {
     restrict: 'E',
-    template: '\n      <textarea ng-model="raw" ng-change="change()" ng-blur="blur()"></textarea>\n      <div ng-if="model.$valid" class="valid">Valid JSON</div>\n      <div ng-if="model.$invalid" class="invalid">Invalid JSON: {{error}}</div>\n    ',
+    template: '\n      <textarea ng-model="raw" ng-change="change()" ng-blur="blur()" ng-class="className"></textarea>\n      <div ng-if="model.$valid" class="valid">Valid JSON</div>\n      <div ng-if="model.$invalid" class="invalid">Invalid JSON: {{error}}</div>\n    ',
     scope: {},
     require: 'ngModel',
     link: function link(scope, el, attrs, ngModel) {
       scope.model = ngModel;
+
+      scope.className = attrs['class'];
 
       // scope.raw.viewChangeListeners = [];
       scope.change = function () {
@@ -28,7 +30,7 @@ _angular2['default'].module('app', ['ngStorage']).directive('json', function () 
 
       ngModel.$parsers = [function (string) {
         try {
-          var obj = _angular2['default'].fromJson(string);
+          var obj = angular.fromJson(string);
           ngModel.$setValidity('jsonInvalid', true);
           return obj;
         } catch (exc) {
@@ -42,39 +44,43 @@ _angular2['default'].module('app', ['ngStorage']).directive('json', function () 
       ngModel.$render = function () {
         // just set the textarea to the JSON, but only if the current raw value is valid JSON
         if (ngModel.$valid) {
-          scope.raw = _angular2['default'].toJson(ngModel.$modelValue, true);
+          scope.raw = angular.toJson(ngModel.$modelValue, true);
         }
       };
     }
   };
-}).controller('createPatchDemo', function ($scope, $localStorage) {
+}).controller('demoCtrl', ["$scope", "$localStorage", function ($scope, $localStorage) {
   $scope.$storage = $localStorage.$default({
-    input: { "name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"] },
-    output: { "name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"] }
+    createPatch: {
+      input: { "name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"] },
+      output: { "name": "Christopher Brown", "repositories": ["amulet", "flickr-with-uploads", "rfc6902"] }
+    },
+    applyPatch: {
+      original: { "name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"] },
+      patch: [{ "op": "replace", "path": "/name", "value": "Christopher Brown" }, { "op": "add", "path": "/repositories/-", "value": "rfc6902" }]
+    }
+  });
+  $scope.createPatch = { patch: [] };
+  $scope.applyPatch = { output: null };
+
+  $scope.$watchGroup(['$storage.createPatch.input', '$storage.createPatch.output'], function () {
+    var input = $scope.$storage.createPatch.input;
+    var output = $scope.$storage.createPatch.output;
+    $scope.createPatch.patch = (0, _rfc6902.createPatch)(input, output);
   });
 
-  function refresh() {
-    var input = $scope.$storage.input;
-    var output = $scope.$storage.output;
-    $scope.patch = (0, _rfc6902.createPatch)(input, output);
-  }
-
-  $scope.$watchGroup(['$storage.input', '$storage.output'], refresh);
-}).controller('applyPatchDemo', function ($scope, $localStorage) {
-  $scope.$storage = $localStorage.$default({
-    original: { "name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"] },
-    patch: [{ "op": "replace", "path": "/name", "value": "Christopher Brown" }, { "op": "add", "path": "/repositories/-", "value": "rfc6902" }]
+  $scope.$watchGroup(['$storage.applyPatch.original', '$storage.applyPatch.patch'], function () {
+    $scope.applyPatch.output = angular.copy($scope.$storage.applyPatch.original);
+    (0, _rfc6902.applyPatch)($scope.applyPatch.output, $scope.$storage.applyPatch.patch);
   });
 
-  function refresh() {
-    $scope.output = _angular2['default'].copy($scope.$storage.original);
-    (0, _rfc6902.applyPatch)($scope.output, $scope.$storage.patch);
-  }
+  $scope.copy = function () {
+    $scope.$storage.applyPatch.original = $scope.$storage.createPatch.input;
+    $scope.$storage.applyPatch.patch = $scope.createPatch.patch;
+  };
+}]);
 
-  $scope.$watchGroup(['$storage.original', '$storage.patch'], refresh);
-});
-
-},{"angular":3,"ngstorage":4,"rfc6902":5}],2:[function(require,module,exports){
+},{"angular":3,"flow-copy":4,"ngstorage":5,"rfc6902":6}],2:[function(require,module,exports){
 /**
  * @license AngularJS v1.4.3
  * (c) 2010-2015 Google, Inc. http://angularjs.org
@@ -28444,6 +28450,53 @@ require('./angular');
 module.exports = angular;
 
 },{"./angular":2}],4:[function(require,module,exports){
+/*jslint browser: true */
+
+function FlowCopy(original) {
+  // prepare copy (placeholder), which is just a super simple empty shadow element
+  var original_style = window.getComputedStyle(original);
+  var copy = this.copy = document.createElement('div');
+  copy.setAttribute('class', 'flow-copy');
+  copy.setAttribute('style', 'height: ' + original_style.height);
+  original.parentNode.insertBefore(copy, original.nextSibling);
+  var resize_queued = false;
+  // listen for changes to original
+  this.observer = new MutationObserver(function() {
+    if (!resize_queued) {
+      window.requestAnimationFrame(function() {
+        var original_style = window.getComputedStyle(original);
+        copy.style.height = original_style.height;
+        resize_queued = false;
+      });
+    }
+  }).observe(original, {
+    childList: true,
+    subtree: true,
+  });
+}
+
+exports.FlowCopy = FlowCopy;
+
+if (typeof angular !== 'undefined') {
+  /** This directive is intended to be used with a `position: absolute` or
+  `position: fixed` element, so that even when it drops out of flow, an empty
+  placeholder element is created in its current position to keep its place.
+
+  <nav fixedflow>
+    <a href="/admin/individuals">Individuals</a>
+    <a href="/admin/administrators">Administrators</a>
+  </nav>
+  */
+  angular.module('flow-copy', []).directive('fixedflow', function() {
+    return {
+      link: function(scope, el) {
+        new FlowCopy(el[0]);
+      }
+    };
+  });
+}
+
+},{}],5:[function(require,module,exports){
 (function (root, factory) {
   'use strict';
 
@@ -28496,6 +28549,25 @@ module.exports = angular;
               throw new TypeError('[ngStorage] - ' + storageType + 'Provider.setKeyPrefix() expects a String.');
             }
             storageKeyPrefix = prefix;
+          };
+
+          var serializer = angular.toJson;
+          var deserializer = angular.fromJson;
+
+          this.setSerializer = function (s) {
+            if (typeof s !== 'function') {
+              throw new TypeError('[ngStorage] - ' + storageType + 'Provider.setSerializer expects a function.');
+            }
+
+            serializer = s;
+          };
+
+          this.setDeserializer = function (d) {
+            if (typeof d !== 'function') {
+              throw new TypeError('[ngStorage] - ' + storageType + 'Provider.setDeserializer expects a function.');
+            }
+
+            deserializer = d;
           };
 
           this.$get = [
@@ -28565,7 +28637,7 @@ module.exports = angular;
                         $sync: function () {
                             for (var i = 0, l = webStorage.length, k; i < l; i++) {
                                 // #8, #10: `webStorage.key(i)` may be an empty string (or throw an exception in IE9 if `webStorage` is empty)
-                                (k = webStorage.key(i)) && storageKeyPrefix === k.slice(0, 10) && ($storage[k.slice(10)] = angular.fromJson(webStorage.getItem(k)));
+                                (k = webStorage.key(i)) && storageKeyPrefix === k.slice(0, 10) && ($storage[k.slice(10)] = deserializer(webStorage.getItem(k)));
                             }
                         }
                     },
@@ -28584,7 +28656,7 @@ module.exports = angular;
                         if (!angular.equals($storage, _last$storage)) {
                             temp$storage = angular.copy(_last$storage);
                             angular.forEach($storage, function(v, k) {
-                                angular.isDefined(v) && '$' !== k[0] && webStorage.setItem(storageKeyPrefix + k, angular.toJson(v));
+                                angular.isDefined(v) && '$' !== k[0] && webStorage.setItem(storageKeyPrefix + k, serializer(v));
 
                                 delete temp$storage[k];
                             });
@@ -28601,7 +28673,7 @@ module.exports = angular;
                 // #6: Use `$window.addEventListener` instead of `angular.element` to avoid the jQuery-specific `event.originalEvent`
                 $window.addEventListener && $window.addEventListener('storage', function(event) {
                     if (storageKeyPrefix === event.key.slice(0, 10)) {
-                        event.newValue ? $storage[event.key.slice(10)] = angular.fromJson(event.newValue) : delete $storage[event.key.slice(10)];
+                        event.newValue ? $storage[event.key.slice(10)] = deserializer(event.newValue) : delete $storage[event.key.slice(10)];
 
                         _last$storage = angular.copy($storage);
 
@@ -28617,7 +28689,7 @@ module.exports = angular;
 
 }));
 
-},{"angular":3}],5:[function(require,module,exports){
+},{"angular":3}],6:[function(require,module,exports){
 (function (global){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rfc6902 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
