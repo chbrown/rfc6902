@@ -3,7 +3,7 @@ nav{position:fixed;top:0;left:0;right:0;color:#555;font-size:90%;border-bottom:1
 section{margin:5px auto;max-width:800px}
 h2,h3,h4{margin:.5ex 0;font-family:sans-serif}
 .columns-2{display:flex;justify-content:space-between;align-items:center}
-.columns-2>div{flex-grow:1}
+.columns-2>div{width:50%;flex-grow:1}
 hr{max-width:800px}
 pre{margin:5px 0}
 table{width:100%;border-collapse:collapse}
