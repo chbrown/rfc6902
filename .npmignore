@@ -3,5 +3,4 @@ test/
 Makefile
 diff.ts
 equal.ts
-index.js
 pointer.ts
