@@ -1,7 +1,13 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rfc6902 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
-var equal_1 = _dereq_('./equal');
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+exports.diffAny = diffAny;
+
+var _equal = _dereq_('./equal');
+
 function pushAll(array, items) {
     return Array.prototype.push.apply(array, items);
 }
@@ -94,7 +100,7 @@ function diffArrays(input, output, ptr) {
         // memoized
         var memoized = memo[i + ',' + j];
         if (memoized === undefined) {
-            if (equal_1.compare(input[i - 1], output[j - 1])) {
+            if ((0, _equal.compare)(input[i - 1], output[j - 1])) {
                 // equal (no operations => no cost)
                 memoized = dist(i - 1, j - 1);
             } else {
@@ -179,16 +185,16 @@ function diffArrays(input, output, ptr) {
     return operations;
 }
 function diffObjects(input, output, ptr) {
-    // if a key is in input but not output -> remove
+    // if a key is in input but not output -> remove it
     var operations = [];
     subtract(input, output).forEach(function (key) {
         operations.push({ op: 'remove', path: ptr.add(key).toString() });
     });
-    // if a key is in output but not input -> add
+    // if a key is in output but not input -> add it
     subtract(output, input).forEach(function (key) {
         operations.push({ op: 'add', path: ptr.add(key).toString(), value: output[key] });
     });
-    // if a key is in both, diff it
+    // if a key is in both, diff it recursively
     intersection([input, output]).forEach(function (key) {
         pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
     });
@@ -196,11 +202,12 @@ function diffObjects(input, output, ptr) {
 }
 function diffValues(input, output, ptr) {
     var operations = [];
-    if (!equal_1.compare(input, output)) {
+    if (!(0, _equal.compare)(input, output)) {
         operations.push({ op: 'replace', path: ptr.toString(), value: output });
     }
     return operations;
 }
+
 function diffAny(input, output, ptr) {
     var input_type = objectType(input);
     var output_type = objectType(output);
@@ -214,7 +221,6 @@ function diffAny(input, output, ptr) {
     // diff; everything else must be wholesale replaced if inequal
     return diffValues(input, output, ptr);
 }
-exports.diffAny = diffAny;
 
 },{"./equal":2}],2:[function(_dereq_,module,exports){
 /**
@@ -222,6 +228,10 @@ zip(a, b) assumes that a.length === b.length.
 */
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.compare = compare;
 function zip(a, b) {
     var zipped = [];
     for (var i = 0, l = a.length; i < l; i++) {
@@ -271,6 +281,7 @@ function compareObjects(left, right) {
 > o  literals (false, true, and null): are considered equal if they are
 >    the same.
 */
+
 function compare(left, right) {
     // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
     if (left === right) return true;
@@ -285,7 +296,6 @@ function compare(left, right) {
     // mismatched arrays & objects, etc., are always inequal
     return false;
 }
-exports.compare = compare;
 
 },{}],3:[function(_dereq_,module,exports){
 /*jslint esnext: true */
@@ -364,11 +374,15 @@ exports.diff = diff;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
 var _errors = _dereq_('./errors');
 
 var _pointer = _dereq_('./pointer');
 
 var _patch = _dereq_('./patch');
+
+var operationFunctions = _interopRequireWildcard(_patch);
 
 var _diff = _dereq_('./diff');
 
@@ -378,6 +392,7 @@ var _package2 = _interopRequireDefault(_package);
 
 var version = _package2['default'].version;
 
+exports.version = version;
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
 
@@ -395,11 +410,10 @@ Returns list of results, one for each operation.
   - otherwise, the result will be an instance of one of the Error classe
     defined in errors.js.
 */
-exports.version = version;
 
 function applyPatch(object, patch) {
   return patch.map(function (operation) {
-    var operationFunction = _patch.operationFunctions[operation.op];
+    var operationFunction = operationFunctions[operation.op];
     // speedy exit if we don't recognize the operation name
     if (operationFunction === undefined) {
       return new _errors.InvalidOperationError(operation.op);
@@ -441,7 +455,7 @@ function diff(input, output) {
 },{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
@@ -476,6 +490,12 @@ module.exports={
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.add = add;
+exports.remove = remove;
+exports.replace = replace;
+exports.move = move;
+exports.copy = copy;
+exports.test = test;
 
 var _pointer = _dereq_('./pointer');
 
@@ -514,6 +534,7 @@ function _remove(object, key) {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
+
 function add(object, operation) {
   var endpoint = _pointer.Pointer.fromJSON(operation.path).evaluate(object);
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
@@ -528,6 +549,7 @@ function add(object, operation) {
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
+
 function remove(object, operation) {
   // endpoint has parent, key, and value properties
   var endpoint = _pointer.Pointer.fromJSON(operation.path).evaluate(object);
@@ -551,6 +573,7 @@ function remove(object, operation) {
 
 Even more simply, it's like the add operation with an existence check.
 */
+
 function replace(object, operation) {
   var endpoint = _pointer.Pointer.fromJSON(operation.path).evaluate(object);
   if (endpoint.value === undefined) return new _errors.MissingError(operation.path);
@@ -574,6 +597,7 @@ function replace(object, operation) {
 
 TODO: throw if the check described in the previous paragraph fails.
 */
+
 function move(object, operation) {
   var from_endpoint = _pointer.Pointer.fromJSON(operation.from).evaluate(object);
   if (from_endpoint.value === undefined) return new _errors.MissingError(operation.from);
@@ -599,6 +623,7 @@ function move(object, operation) {
 
 Alternatively, it's like 'move' without the 'remove'.
 */
+
 function copy(object, operation) {
   var from_endpoint = _pointer.Pointer.fromJSON(operation.from).evaluate(object);
   if (from_endpoint.value === undefined) return new _errors.MissingError(operation.from);
@@ -618,22 +643,13 @@ function copy(object, operation) {
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
+
 function test(object, operation) {
   var endpoint = _pointer.Pointer.fromJSON(operation.path).evaluate(object);
   var result = (0, _equal.compare)(endpoint.value, operation.value);
   if (!result) return new _errors.TestError(endpoint.value, operation.value);
   return null;
 }
-
-var operationFunctions = {
-  add: add,
-  remove: remove,
-  replace: replace,
-  move: move,
-  copy: copy,
-  test: test
-};
-exports.operationFunctions = operationFunctions;
 
 },{"./equal":2,"./errors":3,"./pointer":7}],7:[function(_dereq_,module,exports){
 /**
@@ -658,6 +674,14 @@ Whereas, '~' is escaped because escaping '/' uses the '~' character.
 */
 'use strict';
 
+Object.defineProperty(exports, '__esModule', {
+    value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
 function unescape(token) {
     return token.replace(/~1/g, '/').replace(/~0/g, '~');
 }
@@ -675,58 +699,77 @@ function escape(token) {
 /**
 JSON Pointer representation
 */
+
 var Pointer = (function () {
-    function Pointer(tokens) {
-        if (tokens === void 0) {
-            tokens = [''];
-        }
+    function Pointer() {
+        var tokens = arguments.length <= 0 || arguments[0] === undefined ? [''] : arguments[0];
+
+        _classCallCheck(this, Pointer);
+
         this.tokens = tokens;
     }
+
     /**
     `path` *must* be a properly escaped string.
     */
-    Pointer.fromJSON = function (path) {
-        var tokens = path.split('/').map(unescape);
-        if (tokens[0] !== '') throw new Error("Invalid JSON Pointer: " + path);
-        return new Pointer(tokens);
-    };
-    Pointer.prototype.toString = function () {
-        return this.tokens.map(escape).join('/');
-    };
-    /**
-    Returns an object with 'parent', 'key', and 'value' properties.
-    In the special case that pointer = "", parent and key will be null, and `value = obj`
-    Otherwise, parent will be the such that `parent[key] == value`
-    */
-    Pointer.prototype.evaluate = function (object) {
-        var parent = null;
-        var token = null;
-        for (var i = 1, l = this.tokens.length; i < l; i++) {
-            parent = object;
-            token = this.tokens[i];
-            // not sure if this the best way to handle non-existant paths...
-            object = (parent || {})[token];
+
+    _createClass(Pointer, [{
+        key: 'toString',
+        value: function toString() {
+            return this.tokens.map(escape).join('/');
         }
-        return {
-            parent: parent,
-            key: token,
-            value: object
-        };
-    };
-    Pointer.prototype.push = function (token) {
-        // mutable
-        this.tokens.push(token);
-    };
-    /**
-    `token` should be a String. It'll be coerced to one anyway.
-       immutable (shallowly)
-    */
-    Pointer.prototype.add = function (token) {
-        var tokens = this.tokens.concat(String(token));
-        return new Pointer(tokens);
-    };
+
+        /**
+        Returns an object with 'parent', 'key', and 'value' properties.
+        In the special case that pointer = "", parent and key will be null, and `value = obj`
+        Otherwise, parent will be the such that `parent[key] == value`
+        */
+    }, {
+        key: 'evaluate',
+        value: function evaluate(object) {
+            var parent = null;
+            var token = null;
+            for (var i = 1, l = this.tokens.length; i < l; i++) {
+                parent = object;
+                token = this.tokens[i];
+                // not sure if this the best way to handle non-existant paths...
+                object = (parent || {})[token];
+            }
+            return {
+                parent: parent,
+                key: token,
+                value: object
+            };
+        }
+    }, {
+        key: 'push',
+        value: function push(token) {
+            // mutable
+            this.tokens.push(token);
+        }
+
+        /**
+        `token` should be a String. It'll be coerced to one anyway.
+           immutable (shallowly)
+        */
+    }, {
+        key: 'add',
+        value: function add(token) {
+            var tokens = this.tokens.concat(String(token));
+            return new Pointer(tokens);
+        }
+    }], [{
+        key: 'fromJSON',
+        value: function fromJSON(path) {
+            var tokens = path.split('/').map(unescape);
+            if (tokens[0] !== '') throw new Error('Invalid JSON Pointer: ' + path);
+            return new Pointer(tokens);
+        }
+    }]);
+
     return Pointer;
 })();
+
 exports.Pointer = Pointer;
 
 },{}]},{},[4])(4)
