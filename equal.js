@@ -14,7 +14,7 @@ compareArrays(left, right) assumes that `left` and `right` are both Arrays.
 function compareArrays(left, right) {
     if (left.length !== right.length)
         return false;
-    return zip(left, right).every(function (pair) { return compare(pair[0], pair[1]); });
+    return zip(left, right).every(pair => compare(pair[0], pair[1]));
 }
 /**
 compareObjects(left, right) assumes that `left` and `right` are both Objects.
@@ -24,7 +24,7 @@ function compareObjects(left, right) {
     var right_keys = Object.keys(right);
     if (!compareArrays(left_keys, right_keys))
         return false;
-    return left_keys.every(function (key) { return compare(left[key], right[key]); });
+    return left_keys.every(key => compare(left[key], right[key]));
 }
 /**
 `compare()` returns true if `left` and `right` are materially equal
@@ -48,7 +48,7 @@ function compareObjects(left, right) {
 > o  literals (false, true, and null): are considered equal if they are
 >    the same.
 */
-function compare(left, right) {
+export function compare(left, right) {
     // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
     if (left === right)
         return true;
@@ -63,4 +63,3 @@ function compare(left, right) {
     // mismatched arrays & objects, etc., are always inequal
     return false;
 }
-exports.compare = compare;

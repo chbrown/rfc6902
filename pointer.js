@@ -35,29 +35,28 @@ function escape(token) {
 /**
 JSON Pointer representation
 */
-var Pointer = (function () {
-    function Pointer(tokens) {
-        if (tokens === void 0) { tokens = ['']; }
+export class Pointer {
+    constructor(tokens = ['']) {
         this.tokens = tokens;
     }
     /**
     `path` *must* be a properly escaped string.
     */
-    Pointer.fromJSON = function (path) {
+    static fromJSON(path) {
         var tokens = path.split('/').map(unescape);
         if (tokens[0] !== '')
-            throw new Error("Invalid JSON Pointer: " + path);
+            throw new Error(`Invalid JSON Pointer: ${path}`);
         return new Pointer(tokens);
-    };
-    Pointer.prototype.toString = function () {
+    }
+    toString() {
         return this.tokens.map(escape).join('/');
-    };
+    }
     /**
     Returns an object with 'parent', 'key', and 'value' properties.
     In the special case that pointer = "", parent and key will be null, and `value = obj`
     Otherwise, parent will be the such that `parent[key] == value`
     */
-    Pointer.prototype.evaluate = function (object) {
+    evaluate(object) {
         var parent = null;
         var token = null;
         for (var i = 1, l = this.tokens.length; i < l; i++) {
@@ -71,20 +70,18 @@ var Pointer = (function () {
             key: token,
             value: object,
         };
-    };
-    Pointer.prototype.push = function (token) {
+    }
+    push(token) {
         // mutable
         this.tokens.push(token);
-    };
+    }
     /**
     `token` should be a String. It'll be coerced to one anyway.
   
     immutable (shallowly)
     */
-    Pointer.prototype.add = function (token) {
+    add(token) {
         var tokens = this.tokens.concat(String(token));
         return new Pointer(tokens);
-    };
-    return Pointer;
-})();
-exports.Pointer = Pointer;
+    }
+}

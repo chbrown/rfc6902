@@ -2,7 +2,7 @@
 import {InvalidOperationError} from './errors';
 import {Pointer} from './pointer';
 
-import {operationFunctions} from './patch';
+import * as operationFunctions from './patch';
 import {diffAny} from './diff';
 
 import package_json from './package';

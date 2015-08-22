@@ -1,4 +1,4 @@
-var equal_1 = require('./equal');
+import { compare } from './equal';
 function pushAll(array, items) {
     return Array.prototype.push.apply(array, items);
 }
@@ -24,7 +24,7 @@ intersection(objects) returns the keys that shared by all given `objects`.
 function intersection(objects) {
     // initialize like union()
     var key_counts = {};
-    objects.forEach(function (object) {
+    objects.forEach(object => {
         for (var key in object) {
             key_counts[key] = (key_counts[key] || 0) + 1;
         }
@@ -93,7 +93,7 @@ function diffArrays(input, output, ptr) {
         // memoized
         var memoized = memo[i + ',' + j];
         if (memoized === undefined) {
-            if (equal_1.compare(input[i - 1], output[j - 1])) {
+            if (compare(input[i - 1], output[j - 1])) {
                 // equal (no operations => no cost)
                 memoized = dist(i - 1, j - 1);
             }
@@ -139,7 +139,7 @@ function diffArrays(input, output, ptr) {
                 // the meat of the algorithm:
                 // sort by cost to find the lowest one (might be several ties for lowest)
                 // [4, 6, 7, 1, 2].sort(function(a, b) {return a - b;}); -> [ 1, 2, 4, 6, 7 ]
-                var best = alternatives.sort(function (a, b) { return a.cost - b.cost; })[0];
+                var best = alternatives.sort((a, b) => a.cost - b.cost)[0];
                 memoized = best;
             }
             memo[i + ',' + j] = memoized;
@@ -148,7 +148,7 @@ function diffArrays(input, output, ptr) {
     }
     var array_operations = dist(input.length, output.length).operations;
     var padding = 0;
-    var operations = array_operations.map(function (array_operation) {
+    var operations = array_operations.map(array_operation => {
         if (array_operation.op === 'add') {
             var padded_index = array_operation.index + 1 + padding;
             var index_token = padded_index < input.length ? String(padded_index) : '-';
@@ -179,29 +179,29 @@ function diffArrays(input, output, ptr) {
     return operations;
 }
 function diffObjects(input, output, ptr) {
-    // if a key is in input but not output -> remove
+    // if a key is in input but not output -> remove it
     var operations = [];
-    subtract(input, output).forEach(function (key) {
+    subtract(input, output).forEach(key => {
         operations.push({ op: 'remove', path: ptr.add(key).toString() });
     });
-    // if a key is in output but not input -> add
-    subtract(output, input).forEach(function (key) {
+    // if a key is in output but not input -> add it
+    subtract(output, input).forEach(key => {
         operations.push({ op: 'add', path: ptr.add(key).toString(), value: output[key] });
     });
-    // if a key is in both, diff it
-    intersection([input, output]).forEach(function (key) {
+    // if a key is in both, diff it recursively
+    intersection([input, output]).forEach(key => {
         pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
     });
     return operations;
 }
 function diffValues(input, output, ptr) {
     var operations = [];
-    if (!equal_1.compare(input, output)) {
+    if (!compare(input, output)) {
         operations.push({ op: 'replace', path: ptr.toString(), value: output });
     }
     return operations;
 }
-function diffAny(input, output, ptr) {
+export function diffAny(input, output, ptr) {
     var input_type = objectType(input);
     var output_type = objectType(output);
     if (input_type == 'array' && output_type == 'array') {
@@ -214,4 +214,3 @@ function diffAny(input, output, ptr) {
     // diff; everything else must be wholesale replaced if inequal
     return diffValues(input, output, ptr);
 }
-exports.diffAny = diffAny;

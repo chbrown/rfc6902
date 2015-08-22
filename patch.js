@@ -37,7 +37,7 @@ function _remove(object, key) {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
-function add(object, operation) {
+export function add(object, operation) {
   var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
   if (endpoint.parent === undefined) {
@@ -51,7 +51,7 @@ function add(object, operation) {
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
-function remove(object, operation) {
+export function remove(object, operation) {
   // endpoint has parent, key, and value properties
   var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
   if (endpoint.value === undefined) {
@@ -74,7 +74,7 @@ function remove(object, operation) {
 
 Even more simply, it's like the add operation with an existence check.
 */
-function replace(object, operation) {
+export function replace(object, operation) {
   var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
   if (endpoint.value === undefined) return new MissingError(operation.path);
 
@@ -97,7 +97,7 @@ function replace(object, operation) {
 
 TODO: throw if the check described in the previous paragraph fails.
 */
-function move(object, operation) {
+export function move(object, operation) {
   var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
   if (from_endpoint.value === undefined) return new MissingError(operation.from);
 
@@ -122,7 +122,7 @@ function move(object, operation) {
 
 Alternatively, it's like 'move' without the 'remove'.
 */
-function copy(object, operation) {
+export function copy(object, operation) {
   var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
   if (from_endpoint.value === undefined) return new MissingError(operation.from);
   var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
@@ -141,18 +141,9 @@ function copy(object, operation) {
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
-function test(object, operation) {
+export function test(object, operation) {
   var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
   var result = compare(endpoint.value, operation.value);
   if (!result) return new TestError(endpoint.value, operation.value);
   return null;
 }
-
-export const operationFunctions = {
-  add: add,
-  remove: remove,
-  replace: replace,
-  move: move,
-  copy: copy,
-  test: test,
-};

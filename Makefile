@@ -6,7 +6,7 @@ $(BIN)/browserify $(BIN)/mocha $(BIN)/tsc:
 	npm install
 
 %.js: %.ts $(BIN)/tsc
-	$(BIN)/tsc -m commonjs -t ES5 $<
+	$(BIN)/tsc -t ES6 $<
 
 rfc6902.js: index.js diff.js equal.js errors.js patch.js pointer.js package.json $(BIN)/browserify
 	$(BIN)/browserify $< --transform babelify --plugin derequire/plugin --standalone rfc6902 --outfile $@
