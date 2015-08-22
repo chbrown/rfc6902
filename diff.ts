@@ -20,7 +20,7 @@ function last<T>(array: T[]): T {
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
 function subtract<A, B>(a: A, b: B): string[] {
-  var obj = {};
+  var obj: {[index: string]: number} = {};
   for (var add_key in a) {
     obj[add_key] = 1;
   }
@@ -35,7 +35,7 @@ intersection(objects) returns the keys that shared by all given `objects`.
 */
 function intersection<T>(objects: T[]): string[] {
   // initialize like union()
-  var key_counts = {};
+  var key_counts: {[index: string]: number} = {};
   objects.forEach(object => {
     for (var key in object) {
       key_counts[key] = (key_counts[key] || 0) + 1;
@@ -231,24 +231,24 @@ function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
   return operations;
 }
 
-function diffObjects(input, output, ptr: Pointer): Operation[] {
-  // if a key is in input but not output -> remove
+function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {
+  // if a key is in input but not output -> remove it
   var operations: Operation[] = [];
   subtract(input, output).forEach(key => {
     operations.push({op: 'remove', path: ptr.add(key).toString()});
   });
-  // if a key is in output but not input -> add
+  // if a key is in output but not input -> add it
   subtract(output, input).forEach(key => {
     operations.push({op: 'add', path: ptr.add(key).toString(), value: output[key]});
   });
-  // if a key is in both, diff it
+  // if a key is in both, diff it recursively
   intersection([input, output]).forEach(key => {
     pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
   });
   return operations;
 }
 
-function diffValues(input, output, ptr: Pointer): Operation[] {
+function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
   var operations: Operation[] = [];
   if (!compare(input, output)) {
     operations.push({op: 'replace', path: ptr.toString(), value: output});
@@ -256,7 +256,7 @@ function diffValues(input, output, ptr: Pointer): Operation[] {
   return operations;
 }
 
-export function diffAny(input, output, ptr: Pointer): Operation[] {
+export function diffAny(input: any, output: any, ptr: Pointer): Operation[] {
   var input_type = objectType(input);
   var output_type = objectType(output);
   if (input_type == 'array' && output_type == 'array') {

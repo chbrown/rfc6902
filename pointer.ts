@@ -48,12 +48,12 @@ export class Pointer {
   /**
   `path` *must* be a properly escaped string.
   */
-  static fromJSON(path) {
+  static fromJSON(path: string): Pointer {
     var tokens = path.split('/').map(unescape);
     if (tokens[0] !== '') throw new Error(`Invalid JSON Pointer: ${path}`);
     return new Pointer(tokens);
   }
-  toString() {
+  toString(): string {
     return this.tokens.map(escape).join('/');
   }
   /**
