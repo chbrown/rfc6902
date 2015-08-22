@@ -1,13 +1,7 @@
 test/
-tmp/
 .travis.yml
 Makefile
 diff.ts
-diff.js
 equal.ts
-equal.js
-errors.js
 index.js
-patch.js
 pointer.ts
-pointer.js
