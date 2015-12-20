@@ -21,6 +21,7 @@
   ],
   "ignore": [
     "**/.*",
+    "CVS",
     "node_modules",
     "bower_components",
     "test"
