@@ -1,5 +1,6 @@
-/*jslint esnext: true */ /*globals describe, it */
 import assert from 'assert';
+import {describe, it} from 'mocha';
+
 import {applyPatch, createPatch} from '../index';
 
 function clone(object) {
