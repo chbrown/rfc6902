@@ -9,14 +9,16 @@
     "rfc6902"
   ],
   "homepage": "https://github.com/chbrown/rfc6902",
-  "repository": "git://github.com/chbrown/rfc6902.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chbrown/rfc6902.git"
+  },
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "main": "./rfc6902.js",
-  "dependencies": {},
   "devDependencies": {
-    "babel": "*",
-    "babelify": "*",
+    "babel-core": "^5.0.0",
+    "babelify": "^5.0.0",
     "browserify": "*",
     "derequire": "*",
     "js-yaml": "*",
