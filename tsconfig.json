@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES6"
+  },
+  "files": [
+    "diff.ts",
+    "equal.ts",
+    "pointer.ts"
+  ]
+}
