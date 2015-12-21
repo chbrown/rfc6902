@@ -1,12 +1,13 @@
-/*jslint esnext: true */ /*globals describe, it */
 import assert from 'assert';
-import path from 'path';
+import {describe, it} from 'mocha';
+import {join} from 'path';
 import {readFileSync} from 'fs';
 import yaml from 'js-yaml';
+
 import {applyPatch, createPatch} from '../index';
 import {Pointer} from '../pointer';
 
-var spec_data = readFileSync(path.join(__dirname, 'spec.yaml'), {encoding: 'utf8'});
+var spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'});
 var spec_patch_results = yaml.load(spec_data);
 
 function clone(object) {

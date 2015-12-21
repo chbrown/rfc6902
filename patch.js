@@ -1,4 +1,3 @@
-/*jslint esnext: true */
 import {Pointer} from './pointer';
 import {compare} from './equal';
 import {MissingError, TestError} from './errors';

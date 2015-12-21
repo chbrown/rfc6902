@@ -1,4 +1,3 @@
-/*jslint esnext: true */
 export class MissingError extends Error {
   constructor(path) {
     super(`Value required at path: ${path}`);
