@@ -63,8 +63,6 @@ Now the value of `users` is:
 
 Simple [web app](https://chbrown.github.io/rfc6902) using the browser-compiled version of the code.
 
-* Currently only demos `createPatch(input, output)` functionality.
-
 
 ## Determinism
 
@@ -94,7 +92,7 @@ The [RFC](http://tools.ietf.org/html/rfc6901) is a quick and easy read, but here
 * A pointer is a string that is composed of zero or more <code>/<i>reference-token</i></code> parts.
   - When there are zero (the empty string), the pointer indicates the entire JSON document.
   - Otherwise, the parts are read from left to right, each one selecting part of the current document, and presenting only that fragment of the document to the next part.
-* The <code><i>reference-token</i></code> bits are usually Object keys, but may also be decimals, to indicate array indices.
+* The <code><i>reference-token</i></code> bits are usually Object keys, but may also be numerals, to indicate array indices.
 
 E.g., consider the NPM registry:
 
@@ -178,4 +176,4 @@ A JSON Patch document is a JSON document such that:
 
 ## License
 
-Copyright 2014-2015 Christopher Brown. [MIT Licensed](http://opensource.org/licenses/MIT).
+Copyright 2014-2015 Christopher Brown. [MIT Licensed](http://chbrown.github.io/licenses/MIT/#2014-2015).
