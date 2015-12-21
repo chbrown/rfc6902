@@ -1,4 +1,3 @@
-/*jslint esnext: true */
 import {InvalidOperationError} from './errors';
 import {Pointer} from './pointer';
 
@@ -35,10 +34,6 @@ export function applyPatch(object, patch) {
     return operationFunction(object, operation);
   });
 }
-export function patch(object, patch) {
-  console.error('rfc6902.patch(object, patch) has been deprecated. Use rfc6902.applyPatch(object, patch) instead.');
-  return applyPatch(object, patch);
-}
 
 /**
 Produce a 'application/json-patch+json'-type patch to get from one object to
@@ -57,8 +52,4 @@ export function createPatch(input, output) {
     operation.path = operation.path.toString();
   });
   return operations;
-}
-export function diff(input, output) {
-  console.error('rfc6902.diff(input, output) has been deprecated. Use rfc6902.createPatch(input, output) instead.');
-  return createPatch(input, output);
 }
