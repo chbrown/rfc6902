@@ -73,7 +73,7 @@
       }
     }
   results: [null]
-  diffable: true
+  diffable: false
 
 - name: A.7. Moving an Array Element
   input:
@@ -83,7 +83,7 @@
   output:
     {"foo": [ "all", "cows", "eat", "grass" ]}
   results: [null]
-  diffable: true
+  diffable: false
 
 - name: "A.8. Testing a Value: Success"
   input:
