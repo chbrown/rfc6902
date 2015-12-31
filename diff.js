@@ -2,9 +2,6 @@ import { compare } from './equal';
 function pushAll(array, items) {
     return Array.prototype.push.apply(array, items);
 }
-function last(array) {
-    return array[array.length - 1];
-}
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */

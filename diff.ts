@@ -12,10 +12,6 @@ function pushAll<T>(array: T[], items: T[]): void {
   return Array.prototype.push.apply(array, items);
 }
 
-function last<T>(array: T[]): T {
-  return array[array.length - 1];
-}
-
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
