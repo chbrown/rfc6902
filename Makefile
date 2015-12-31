@@ -1,10 +1,10 @@
 BIN := node_modules/.bin
-TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -v node_modules)
-# JAVASCRIPT := $(TYPESCRIPT:%.ts=%.js)
+TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv .d.ts)
+MOCHA_ARGS := --compilers js:babel-core/register tests/
 
 all: rfc6902.js rfc6902.min.js
 
-$(BIN)/browserify $(BIN)/mocha $(BIN)/tsc:
+$(BIN)/browserify $(BIN)/mocha $(BIN)/tsc $(BIN)/istanbul $(BIN)/_mocha $(BIN)/coveralls:
 	npm install
 
 %.js: %.ts $(BIN)/tsc
@@ -16,5 +16,6 @@ rfc6902.js: index.js diff.js equal.js errors.js patch.js pointer.js package.json
 %.min.js: %.js
 	closure-compiler --language_in ECMASCRIPT5 --warning_level QUIET $< >$@
 
-test: $(BIN)/mocha
-	$(BIN)/mocha --compilers js:babel-core/register tests/
+test: $(TYPESCRIPT:%.ts=%.js) $(BIN)/istanbul $(BIN)/_mocha $(BIN)/coveralls
+	$(BIN)/istanbul cover $(BIN)/_mocha -- $(MOCHA_ARGS) -R spec
+	cat coverage/lcov.info | $(BIN)/coveralls || true

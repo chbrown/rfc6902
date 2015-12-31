@@ -17,12 +17,15 @@
   "license": "MIT",
   "main": "./rfc6902.js",
   "devDependencies": {
-    "babel-core": "5.8.34",
-    "babelify": "5.0.5",
+    "babel-core": "^5.0.0",
+    "babelify": "^5.0.0",
     "browserify": "12.0.1",
+    "coveralls": "*",
     "derequire": "2.0.3",
+    "istanbul": "*",
     "js-yaml": "*",
     "mocha": "*",
+    "mocha-lcov-reporter": "*",
     "typescript": "*"
   },
   "scripts": {

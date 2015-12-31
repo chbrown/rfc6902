@@ -11,9 +11,6 @@ var compare = _dereq_("./equal").compare;
 function pushAll(array, items) {
     return Array.prototype.push.apply(array, items);
 }
-function last(array) {
-    return array[array.length - 1];
-}
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
@@ -423,7 +420,7 @@ function createPatch(input, output) {
 },{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
@@ -440,12 +437,15 @@ module.exports={
   "license": "MIT",
   "main": "./rfc6902.js",
   "devDependencies": {
-    "babel-core": "5.8.34",
-    "babelify": "5.0.5",
+    "babel-core": "^5.0.0",
+    "babelify": "^5.0.0",
     "browserify": "12.0.1",
+    "coveralls": "*",
     "derequire": "2.0.3",
+    "istanbul": "*",
     "js-yaml": "*",
     "mocha": "*",
+    "mocha-lcov-reporter": "*",
     "typescript": "*"
   },
   "scripts": {
