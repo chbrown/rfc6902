@@ -28714,6 +28714,10 @@ if (typeof angular !== 'undefined') {
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.rfc6902 = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 "use strict";
 
+var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) { _arr.push(_step.value); if (i && _arr.length === i) break; } return _arr; } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } };
+
+var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
+
 exports.diffAny = diffAny;
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -28721,9 +28725,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var compare = _dereq_("./equal").compare;
 
-function pushAll(array, items) {
-    return Array.prototype.push.apply(array, items);
-}
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
@@ -28768,6 +28769,15 @@ function objectType(object) {
         return "array";
     }
     return typeof object;
+}
+function isArrayAdd(array_operation) {
+    return array_operation.op === "add";
+}
+function isArrayRemove(array_operation) {
+    return array_operation.op === "remove";
+}
+function isArrayReplace(array_operation) {
+    return array_operation.op === "replace";
 }
 /**
 Array-diffing smarter (levenshtein-like) diffing here
@@ -28837,11 +28847,16 @@ function diffArrays(input, output, ptr) {
                 }
                 if (i > 0 && j > 0) {
                     // TABLE MIDDLE
+                    // supposing we replaced it, compute the rest of the costs:
                     var replace_alternative = dist(i - 1, j - 1);
+                    // okay, the general plan is to replace it, but we can be smarter,
+                    // recursing into the structure and replacing only part of it if
+                    // possible, but to do so we'll need the original value
                     alternatives.push({
                         operations: replace_alternative.operations.concat({
                             op: "replace",
                             index: i - 1,
+                            original: input[i - 1],
                             value: output[j - 1] }),
                         cost: replace_alternative.cost + 1 });
                 }
@@ -28859,30 +28874,40 @@ function diffArrays(input, output, ptr) {
         return memoized;
     }
     var array_operations = dist(input.length, output.length).operations;
-    var padding = 0;
-    var operations = array_operations.map(function (array_operation) {
-        if (array_operation.op === "add") {
+
+    var _array_operations$reduce = array_operations.reduce(function (_ref, array_operation) {
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var operations = _ref2[0];
+        var padding = _ref2[1];
+
+        if (isArrayAdd(array_operation)) {
             var padded_index = array_operation.index + 1 + padding;
             var index_token = padded_index < input.length ? String(padded_index) : "-";
             var operation = {
                 op: array_operation.op,
                 path: ptr.add(index_token).toString(),
                 value: array_operation.value };
-            padding++; // maybe only if array_operation.index > -1 ?
-            return operation;
-        } else if (array_operation.op === "remove") {
+            // padding++; // maybe only if array_operation.index > -1 ?
+            return [operations.concat(operation), padding + 1];
+        } else if (isArrayRemove(array_operation)) {
             var operation = {
                 op: array_operation.op,
                 path: ptr.add(String(array_operation.index + padding)).toString() };
-            padding--;
-            return operation;
+            // padding--;
+            return [operations.concat(operation), padding - 1];
         } else {
-            return {
-                op: array_operation.op,
-                path: ptr.add(String(array_operation.index + padding)).toString(),
-                value: array_operation.value };
+            var replace_ptr = ptr.add(String(array_operation.index + padding));
+            var replace_operations = diffAny(array_operation.original, array_operation.value, replace_ptr);
+            return [operations.concat.apply(operations, _toConsumableArray(replace_operations)), padding];
         }
-    });
+    }, [[], 0]);
+
+    var _array_operations$reduce2 = _slicedToArray(_array_operations$reduce, 2);
+
+    var operations = _array_operations$reduce2[0];
+    var padding = _array_operations$reduce2[1];
+
     return operations;
 }
 function diffObjects(input, output, ptr) {
@@ -28897,16 +28922,15 @@ function diffObjects(input, output, ptr) {
     });
     // if a key is in both, diff it recursively
     intersection([input, output]).forEach(function (key) {
-        pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
+        operations.push.apply(operations, _toConsumableArray(diffAny(input[key], output[key], ptr.add(key))));
     });
     return operations;
 }
 function diffValues(input, output, ptr) {
-    var operations = [];
     if (!compare(input, output)) {
-        operations.push({ op: "replace", path: ptr.toString(), value: output });
+        return [{ op: "replace", path: ptr.toString(), value: output }];
     }
-    return operations;
+    return [];
 }
 
 function diffAny(input, output, ptr) {
@@ -29133,7 +29157,7 @@ function createPatch(input, output) {
 },{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
 module.exports={
   "name": "rfc6902",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
