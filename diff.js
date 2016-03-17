@@ -1,7 +1,4 @@
 import { compare } from './equal';
-function pushAll(array, items) {
-    return Array.prototype.push.apply(array, items);
-}
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
@@ -187,7 +184,7 @@ function diffObjects(input, output, ptr) {
     });
     // if a key is in both, diff it recursively
     intersection([input, output]).forEach(key => {
-        pushAll(operations, diffAny(input[key], output[key], ptr.add(key)));
+        operations.push(...diffAny(input[key], output[key], ptr.add(key)));
     });
     return operations;
 }
