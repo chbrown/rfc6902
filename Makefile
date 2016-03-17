@@ -1,6 +1,5 @@
 BIN := node_modules/.bin
 TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv .d.ts)
-MOCHA_ARGS := --compilers js:babel-core/register tests/
 
 all: rfc6902.js rfc6902.min.js
 
@@ -17,5 +16,5 @@ rfc6902.js: index.js diff.js equal.js errors.js patch.js pointer.js package.json
 	closure-compiler --language_in ECMASCRIPT5 --warning_level QUIET $< >$@
 
 test: $(TYPESCRIPT:%.ts=%.js) $(BIN)/istanbul $(BIN)/_mocha $(BIN)/coveralls
-	$(BIN)/istanbul cover $(BIN)/_mocha -- $(MOCHA_ARGS) -R spec
+	$(BIN)/istanbul cover $(BIN)/_mocha -- tests/ --compilers js:babel-core/register -R spec
 	cat coverage/lcov.info | $(BIN)/coveralls || true
