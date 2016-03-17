@@ -63,3 +63,21 @@ describe('issues/5', () => {
     assert.deepEqual(patch_results, [null, null]);
   });
 });
+
+describe('issues/9', () => {
+  var input = [{A: 1, B: 2}, {C: 3}];
+  var output = [{A: 1, B: 20}, {C: 3}];
+  var expected_patch = [
+    {op: 'replace', path: '/0/B', value: 20},
+  ];
+  var actual_patch = createPatch(input, output);
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch);
+  });
+  it('should apply patch to arrive at output', () => {
+    var actual_output = clone(input);
+    var patch_results = applyPatch(actual_output, actual_patch);
+    assert.deepEqual(actual_output, output);
+    assert.deepEqual(patch_results, [null]);
+  });
+});
