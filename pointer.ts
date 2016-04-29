@@ -34,7 +34,7 @@ function escape(token: string): string {
   return token.replace(/~/g, '~0').replace(/\//g, '~1');
 }
 
-interface PointerEvaluation {
+export interface PointerEvaluation {
   parent: any;
   key: string;
   value: any;

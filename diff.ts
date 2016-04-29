@@ -24,19 +24,19 @@ Everything Else, which is pretty much just what JSON substantially
 differentiates between.
 */
 
-interface AddOperation { op: 'add', path: string, value: string }
-interface RemoveOperation { op: 'remove', path: string }
-interface ReplaceOperation { op: 'replace', path: string, value: string }
-interface MoveOperation { op: 'move', from: string, path: string }
-interface CopyOperation { op: 'copy', from: string, path: string }
-interface TestOperation { op: 'test', from: string, path: string }
+export interface AddOperation { op: 'add', path: string, value: string }
+export interface RemoveOperation { op: 'remove', path: string }
+export interface ReplaceOperation { op: 'replace', path: string, value: string }
+export interface MoveOperation { op: 'move', from: string, path: string }
+export interface CopyOperation { op: 'copy', from: string, path: string }
+export interface TestOperation { op: 'test', from: string, path: string }
 
-type Operation = AddOperation |
-                 RemoveOperation |
-                 ReplaceOperation |
-                 MoveOperation |
-                 CopyOperation |
-                 TestOperation;
+export type Operation = AddOperation |
+                        RemoveOperation |
+                        ReplaceOperation |
+                        MoveOperation |
+                        CopyOperation |
+                        TestOperation;
 
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
@@ -205,7 +205,7 @@ function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
 
         // the meat of the algorithm:
         // sort by cost to find the lowest one (might be several ties for lowest)
-        // [4, 6, 7, 1, 2].sort(function(a, b) {return a - b;}); -> [ 1, 2, 4, 6, 7 ]
+        // [4, 6, 7, 1, 2].sort((a, b) => a - b); -> [ 1, 2, 4, 6, 7 ]
         const best = alternatives.sort((a, b) => a.cost - b.cost)[0];
         memoized = best;
       }
