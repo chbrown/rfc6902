@@ -213,11 +213,15 @@ function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
     }
     return memoized;
   }
-  const array_operations = dist(input.length, output.length).operations;
+  // handle weird objects masquerading as Arrays that don't have proper length
+  // properties by using 0 for everything but positive numbers
+  const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length;
+  const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length;
+  const array_operations = dist(input_length, output_length).operations;
   const [operations, padding] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
     if (isArrayAdd(array_operation)) {
       const padded_index = array_operation.index + 1 + padding;
-      const index_token = padded_index < input.length ? String(padded_index) : '-';
+      const index_token = padded_index < input_length ? String(padded_index) : '-';
       const operation = {
         op: array_operation.op,
         path: ptr.add(index_token).toString(),
