@@ -6,6 +6,9 @@
   "files": [
     "diff.ts",
     "equal.ts",
+    "errors.ts",
+    "index.ts",
+    "patch.ts",
     "pointer.ts"
   ]
 }

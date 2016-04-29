@@ -1,21 +1,19 @@
 export class MissingError extends Error {
-  constructor(path) {
+  constructor(public path: string) {
     super(`Value required at path: ${path}`);
     this.name = this.constructor.name;
-    this.path = path;
   }
 }
 
 export class InvalidOperationError extends Error {
-  constructor(op) {
+  constructor(public op: string) {
     super(`Invalid operation: ${op}`);
     this.name = this.constructor.name;
-    this.op = op;
   }
 }
 
 export class TestError extends Error {
-  constructor(actual, expected) {
+  constructor(public actual: any, public expected: any) {
     super(`Test failed: ${actual} != ${expected}`);
     this.name = this.constructor.name;
     this.actual = actual;

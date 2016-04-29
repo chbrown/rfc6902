@@ -2,10 +2,7 @@ import {InvalidOperationError} from './errors';
 import {Pointer} from './pointer';
 
 import * as operationFunctions from './patch';
-import {diffAny} from './diff';
-
-import package_json from './package';
-export var version = package_json.version;
+import {Operation, diffAny} from './diff';
 
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
@@ -26,7 +23,7 @@ Returns list of results, one for each operation.
 */
 export function applyPatch(object, patch) {
   return patch.map(operation => {
-    var operationFunction = operationFunctions[operation.op];
+    const operationFunction = operationFunctions[operation.op];
     // speedy exit if we don't recognize the operation name
     if (operationFunction === undefined) {
       return new InvalidOperationError(operation.op);
@@ -44,12 +41,8 @@ side-effects (which is not a good idea anyway).
 
 Returns list of operations to perform on `input` to produce `output`.
 */
-export function createPatch(input, output) {
-  var ptr = new Pointer();
+export function createPatch(input, output): Operation[] {
+  const ptr = new Pointer();
   // a new Pointer gets a default path of [''] if not specified
-  var operations = diffAny(input, output, ptr);
-  operations.forEach(function(operation) {
-    operation.path = operation.path.toString();
-  });
-  return operations;
+  return diffAny(input, output, ptr);
 }
