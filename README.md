@@ -8,20 +8,6 @@ Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902) "JavaSc
 (including [RFC6901](http://tools.ietf.org/html/rfc6901) "JavaScript Object Notation (JSON) Pointer"),
 for creating and consuming `application/json-patch+json` documents. Also offers "diff" functionality without using `Object.observe`.
 
-**Important news!** `v1.0.2`, published on **2015**-06-09, renames a few of the public API methods from `v0.0.6`, the previous version, which was published on **2014**-01-23.
-
-| `v0.0.6` name                       | `v1.0.2` equivalent                  |
-|:------------------------------------|:-------------------------------------|
-| `rfc6902.patch(object, operations)` | `rfc6902.applyPatch(object, patch)`  |
-| `rfc6902.diff(input, output)`       | `rfc6902.createPatch(input, output)` |
-
-The arguments and return values are unchanged, except that the list of operation results returned by `rfc6902.applyPatch()` contains `null` (in `v1.0.2`) for each successful operation, instead of `undefined` (which was `v0.0.6` behavior).
-
-The old names are currently aliased to the new names, but will print a deprecation warning via `console.error()`.
-
-See [API](#api) below for details.
-
-
 ## Quickstart
 
     npm install --save rfc6902
@@ -30,13 +16,13 @@ In your script:
 
     var rfc6902 = require('rfc6902');
 
-Calculate diff between two objects:
+**Calculate diff** between two objects:
 
     rfc6902.createPatch({first: 'Chris'}, {first: 'Chris', last: 'Brown'});
 
 > `[ { op: 'add', path: '/last', value: 'Brown' } ]`
 
-Apply a patch to some object.
+**Apply a patch** to some object.
 
     var users = [{first: 'Chris', last: 'Brown', age: 20}];
     rfc6902.applyPatch(users, [
@@ -73,7 +59,6 @@ Simple [web app](https://chbrown.github.io/rfc6902) using the browser-compiled v
 If you've ever implemented Levenshtein's algorithm,
 or played tricks with `git stash` to get a reasonable sequence of commits,
 you'll realize that computing diffs is rarely deterministic.
-(This explains why 2 out of the 103 tests are currently failing.)
 
 Applying `json-patch` documents is way easier than generating them,
 which might explain why there are more than five patch-applying RFC6902 implementations in NPM,
@@ -180,4 +165,4 @@ A JSON Patch document is a JSON document such that:
 
 ## License
 
-Copyright 2014-2015 Christopher Brown. [MIT Licensed](http://chbrown.github.io/licenses/MIT/#2014-2015).
+Copyright 2014-2016 Christopher Brown. [MIT Licensed](http://chbrown.github.io/licenses/MIT/#2014-2016).
