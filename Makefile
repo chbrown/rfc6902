@@ -1,10 +1,13 @@
 BIN := node_modules/.bin
 TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv .d.ts)
 
-all: rfc6902.js rfc6902.min.js
+all: rfc6902.js rfc6902.min.js .npmignore
 
 $(BIN)/browserify $(BIN)/mocha $(BIN)/tsc $(BIN)/istanbul $(BIN)/_mocha $(BIN)/coveralls:
 	npm install
+
+.npmignore: tsconfig.json
+	echo $(TYPESCRIPT) .travis.yml Makefile tsconfig.json test/ coverage/ | tr ' ' '\n' > $@
 
 %.js: %.ts $(BIN)/tsc
 	$(BIN)/tsc

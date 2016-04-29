@@ -1,7 +1,8 @@
-test/
-coverage/
-.travis.yml
-Makefile
 diff.ts
 equal.ts
 pointer.ts
+.travis.yml
+Makefile
+tsconfig.json
+test/
+coverage/
