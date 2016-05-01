@@ -5,67 +5,17 @@ var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; }
 
 var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
 
-exports.diffAny = diffAny;
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var compare = _dereq_("./equal").compare;
-
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
-function subtract(a, b) {
-    var obj = {};
-    for (var add_key in a) {
-        obj[add_key] = 1;
-    }
-    for (var del_key in b) {
-        delete obj[del_key];
-    }
-    return Object.keys(obj);
-}
+exports.subtract = subtract;
+
 /**
 intersection(objects) returns the keys that shared by all given `objects`.
 */
-function intersection(objects) {
-    // initialize like union()
-    var key_counts = {};
-    objects.forEach(function (object) {
-        for (var key in object) {
-            key_counts[key] = (key_counts[key] || 0) + 1;
-        }
-    });
-    // but then, extra requirement: delete less commonly-seen keys
-    var threshold = objects.length;
-    for (var key in key_counts) {
-        if (key_counts[key] < threshold) {
-            delete key_counts[key];
-        }
-    }
-    return Object.keys(key_counts);
-}
-function objectType(object) {
-    if (object === undefined) {
-        return "undefined";
-    }
-    if (object === null) {
-        return "null";
-    }
-    if (Array.isArray(object)) {
-        return "array";
-    }
-    return typeof object;
-}
-function isArrayAdd(array_operation) {
-    return array_operation.op === "add";
-}
-function isArrayRemove(array_operation) {
-    return array_operation.op === "remove";
-}
-function isArrayReplace(array_operation) {
-    return array_operation.op === "replace";
-}
+exports.intersection = intersection;
+exports.objectType = objectType;
+
 /**
 Array-diffing smarter (levenshtein-like) diffing here
 
@@ -90,6 +40,67 @@ if input (source) is empty, they'll all be in the top row, just a bunch of
 additions. If the output is empty, everything will be in the left column, as a
 bunch of deletions.
 */
+exports.diffArrays = diffArrays;
+exports.diffObjects = diffObjects;
+exports.diffValues = diffValues;
+exports.diffAny = diffAny;
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var compare = _dereq_("./equal").compare;
+
+function subtract(a, b) {
+    var obj = {};
+    for (var add_key in a) {
+        obj[add_key] = 1;
+    }
+    for (var del_key in b) {
+        delete obj[del_key];
+    }
+    return Object.keys(obj);
+}
+
+function intersection(objects) {
+    // initialize like union()
+    var key_counts = {};
+    objects.forEach(function (object) {
+        for (var key in object) {
+            key_counts[key] = (key_counts[key] || 0) + 1;
+        }
+    });
+    // but then, extra requirement: delete less commonly-seen keys
+    var threshold = objects.length;
+    for (var key in key_counts) {
+        if (key_counts[key] < threshold) {
+            delete key_counts[key];
+        }
+    }
+    return Object.keys(key_counts);
+}
+
+function objectType(object) {
+    if (object === undefined) {
+        return "undefined";
+    }
+    if (object === null) {
+        return "null";
+    }
+    if (Array.isArray(object)) {
+        return "array";
+    }
+    return typeof object;
+}
+
+function isArrayAdd(array_operation) {
+    return array_operation.op === "add";
+}
+function isArrayRemove(array_operation) {
+    return array_operation.op === "remove";
+}
+function isArrayReplace(array_operation) {
+    return array_operation.op === "replace";
+}
 function diffArrays(input, output, ptr) {
     // set up cost matrix (very simple initialization: just a map)
     var memo = {
@@ -201,6 +212,7 @@ function diffArrays(input, output, ptr) {
 
     return operations;
 }
+
 function diffObjects(input, output, ptr) {
     // if a key is in input but not output -> remove it
     var operations = [];
@@ -217,6 +229,7 @@ function diffObjects(input, output, ptr) {
     });
     return operations;
 }
+
 function diffValues(input, output, ptr) {
     if (!compare(input, output)) {
         return [{ op: "replace", path: ptr.toString(), value: output }];
