@@ -7,5 +7,5 @@ pointer.ts
 .travis.yml
 Makefile
 tsconfig.json
-test/
+tests/
 coverage/
