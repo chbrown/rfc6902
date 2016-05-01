@@ -41,7 +41,7 @@ export type Operation = AddOperation |
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
-function subtract<A, B>(a: A, b: B): string[] {
+export function subtract<A, B>(a: A, b: B): string[] {
   const obj: {[index: string]: number} = {};
   for (let add_key in a) {
     obj[add_key] = 1;
@@ -55,7 +55,7 @@ function subtract<A, B>(a: A, b: B): string[] {
 /**
 intersection(objects) returns the keys that shared by all given `objects`.
 */
-function intersection<T>(objects: T[]): string[] {
+export function intersection<T>(objects: T[]): string[] {
   // initialize like union()
   const key_counts: {[index: string]: number} = {};
   objects.forEach(object => {
@@ -73,7 +73,7 @@ function intersection<T>(objects: T[]): string[] {
   return Object.keys(key_counts);
 }
 
-function objectType(object: any): string {
+export function objectType(object: any): string {
   if (object === undefined) {
     return 'undefined';
   }
@@ -135,7 +135,7 @@ if input (source) is empty, they'll all be in the top row, just a bunch of
 additions. If the output is empty, everything will be in the left column, as a
 bunch of deletions.
 */
-function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
+export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
   const memo: {[index: string]: DynamicAlternative} = {
     '0,0': {operations: [], cost: 0}
@@ -247,7 +247,7 @@ function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
   return operations;
 }
 
-function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {
+export function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {
   // if a key is in input but not output -> remove it
   const operations: Operation[] = [];
   subtract(input, output).forEach(key => {
@@ -264,7 +264,7 @@ function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {
   return operations;
 }
 
-function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
+export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
   if (!compare(input, output)) {
     return [{op: 'replace', path: ptr.toString(), value: output}];
   }
