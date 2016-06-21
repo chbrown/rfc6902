@@ -61,8 +61,10 @@ or played tricks with `git stash` to get a reasonable sequence of commits,
 you'll realize that computing diffs is rarely deterministic.
 
 Applying `json-patch` documents is way easier than generating them,
-which might explain why there are more than five patch-applying RFC6902 implementations in NPM,
-but only one (this one) that attempts to generate patch documents from two distinct objects (there's one that uses `Object.observe()`, which is cheating, and only works when you're the one making the changes).
+which might explain why, when I started this project,
+there were more than five patch-applying RFC6902 implementations in NPM,
+but none for generating a patch from two distinct objects.
+(There was one that used `Object.observe()`, which only works when you're the one making the changes, and only as long as `Object.observe()` hasn't been deprecated, which it has.)
 
 So when comparing _your_ data objects, you'll want to ensure that the patches it generates meet your needs.
 The algorithm used by this library is not optimal, but it's more efficient than the strategy of wholesale replacing everything that's not an exact match.
