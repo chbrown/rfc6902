@@ -28718,67 +28718,17 @@ var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; }
 
 var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
 
-exports.diffAny = diffAny;
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var compare = _dereq_("./equal").compare;
-
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
-function subtract(a, b) {
-    var obj = {};
-    for (var add_key in a) {
-        obj[add_key] = 1;
-    }
-    for (var del_key in b) {
-        delete obj[del_key];
-    }
-    return Object.keys(obj);
-}
+exports.subtract = subtract;
+
 /**
 intersection(objects) returns the keys that shared by all given `objects`.
 */
-function intersection(objects) {
-    // initialize like union()
-    var key_counts = {};
-    objects.forEach(function (object) {
-        for (var key in object) {
-            key_counts[key] = (key_counts[key] || 0) + 1;
-        }
-    });
-    // but then, extra requirement: delete less commonly-seen keys
-    var threshold = objects.length;
-    for (var key in key_counts) {
-        if (key_counts[key] < threshold) {
-            delete key_counts[key];
-        }
-    }
-    return Object.keys(key_counts);
-}
-function objectType(object) {
-    if (object === undefined) {
-        return "undefined";
-    }
-    if (object === null) {
-        return "null";
-    }
-    if (Array.isArray(object)) {
-        return "array";
-    }
-    return typeof object;
-}
-function isArrayAdd(array_operation) {
-    return array_operation.op === "add";
-}
-function isArrayRemove(array_operation) {
-    return array_operation.op === "remove";
-}
-function isArrayReplace(array_operation) {
-    return array_operation.op === "replace";
-}
+exports.intersection = intersection;
+exports.objectType = objectType;
+
 /**
 Array-diffing smarter (levenshtein-like) diffing here
 
@@ -28803,6 +28753,67 @@ if input (source) is empty, they'll all be in the top row, just a bunch of
 additions. If the output is empty, everything will be in the left column, as a
 bunch of deletions.
 */
+exports.diffArrays = diffArrays;
+exports.diffObjects = diffObjects;
+exports.diffValues = diffValues;
+exports.diffAny = diffAny;
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var compare = _dereq_("./equal").compare;
+
+function subtract(a, b) {
+    var obj = {};
+    for (var add_key in a) {
+        obj[add_key] = 1;
+    }
+    for (var del_key in b) {
+        delete obj[del_key];
+    }
+    return Object.keys(obj);
+}
+
+function intersection(objects) {
+    // initialize like union()
+    var key_counts = {};
+    objects.forEach(function (object) {
+        for (var key in object) {
+            key_counts[key] = (key_counts[key] || 0) + 1;
+        }
+    });
+    // but then, extra requirement: delete less commonly-seen keys
+    var threshold = objects.length;
+    for (var key in key_counts) {
+        if (key_counts[key] < threshold) {
+            delete key_counts[key];
+        }
+    }
+    return Object.keys(key_counts);
+}
+
+function objectType(object) {
+    if (object === undefined) {
+        return "undefined";
+    }
+    if (object === null) {
+        return "null";
+    }
+    if (Array.isArray(object)) {
+        return "array";
+    }
+    return typeof object;
+}
+
+function isArrayAdd(array_operation) {
+    return array_operation.op === "add";
+}
+function isArrayRemove(array_operation) {
+    return array_operation.op === "remove";
+}
+function isArrayReplace(array_operation) {
+    return array_operation.op === "replace";
+}
 function diffArrays(input, output, ptr) {
     // set up cost matrix (very simple initialization: just a map)
     var memo = {
@@ -28863,7 +28874,7 @@ function diffArrays(input, output, ptr) {
                 // the only other case, i === 0 && j === 0, has already been memoized
                 // the meat of the algorithm:
                 // sort by cost to find the lowest one (might be several ties for lowest)
-                // [4, 6, 7, 1, 2].sort(function(a, b) {return a - b;}); -> [ 1, 2, 4, 6, 7 ]
+                // [4, 6, 7, 1, 2].sort((a, b) => a - b); -> [ 1, 2, 4, 6, 7 ]
                 var best = alternatives.sort(function (a, b) {
                     return a.cost - b.cost;
                 })[0];
@@ -28873,7 +28884,11 @@ function diffArrays(input, output, ptr) {
         }
         return memoized;
     }
-    var array_operations = dist(input.length, output.length).operations;
+    // handle weird objects masquerading as Arrays that don't have proper length
+    // properties by using 0 for everything but positive numbers
+    var input_length = isNaN(input.length) || input.length <= 0 ? 0 : input.length;
+    var output_length = isNaN(output.length) || output.length <= 0 ? 0 : output.length;
+    var array_operations = dist(input_length, output_length).operations;
 
     var _array_operations$reduce = array_operations.reduce(function (_ref, array_operation) {
         var _ref2 = _slicedToArray(_ref, 2);
@@ -28883,7 +28898,7 @@ function diffArrays(input, output, ptr) {
 
         if (isArrayAdd(array_operation)) {
             var padded_index = array_operation.index + 1 + padding;
-            var index_token = padded_index < input.length ? String(padded_index) : "-";
+            var index_token = padded_index < input_length + padding ? String(padded_index) : "-";
             var operation = {
                 op: array_operation.op,
                 path: ptr.add(index_token).toString(),
@@ -28910,6 +28925,7 @@ function diffArrays(input, output, ptr) {
 
     return operations;
 }
+
 function diffObjects(input, output, ptr) {
     // if a key is in input but not output -> remove it
     var operations = [];
@@ -28926,6 +28942,7 @@ function diffObjects(input, output, ptr) {
     });
     return operations;
 }
+
 function diffValues(input, output, ptr) {
     if (!compare(input, output)) {
         return [{ op: "replace", path: ptr.toString(), value: output }];
@@ -29035,56 +29052,56 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 var MissingError = exports.MissingError = (function (_Error) {
-  function MissingError(path) {
-    _classCallCheck(this, MissingError);
+    function MissingError(path) {
+        _classCallCheck(this, MissingError);
 
-    _get(Object.getPrototypeOf(MissingError.prototype), "constructor", this).call(this, "Value required at path: " + path);
-    this.name = this.constructor.name;
-    this.path = path;
-  }
+        _get(Object.getPrototypeOf(MissingError.prototype), "constructor", this).call(this, "Value required at path: " + path);
+        this.path = path;
+        this.name = this.constructor.name;
+    }
 
-  _inherits(MissingError, _Error);
+    _inherits(MissingError, _Error);
 
-  return MissingError;
+    return MissingError;
 })(Error);
 
 var InvalidOperationError = exports.InvalidOperationError = (function (_Error2) {
-  function InvalidOperationError(op) {
-    _classCallCheck(this, InvalidOperationError);
+    function InvalidOperationError(op) {
+        _classCallCheck(this, InvalidOperationError);
 
-    _get(Object.getPrototypeOf(InvalidOperationError.prototype), "constructor", this).call(this, "Invalid operation: " + op);
-    this.name = this.constructor.name;
-    this.op = op;
-  }
+        _get(Object.getPrototypeOf(InvalidOperationError.prototype), "constructor", this).call(this, "Invalid operation: " + op);
+        this.op = op;
+        this.name = this.constructor.name;
+    }
 
-  _inherits(InvalidOperationError, _Error2);
+    _inherits(InvalidOperationError, _Error2);
 
-  return InvalidOperationError;
+    return InvalidOperationError;
 })(Error);
 
 var TestError = exports.TestError = (function (_Error3) {
-  function TestError(actual, expected) {
-    _classCallCheck(this, TestError);
+    function TestError(actual, expected) {
+        _classCallCheck(this, TestError);
 
-    _get(Object.getPrototypeOf(TestError.prototype), "constructor", this).call(this, "Test failed: " + actual + " != " + expected);
-    this.name = this.constructor.name;
-    this.actual = actual;
-    this.expected = expected;
-  }
+        _get(Object.getPrototypeOf(TestError.prototype), "constructor", this).call(this, "Test failed: " + actual + " != " + expected);
+        this.actual = actual;
+        this.expected = expected;
+        this.name = this.constructor.name;
+        this.actual = actual;
+        this.expected = expected;
+    }
 
-  _inherits(TestError, _Error3);
+    _inherits(TestError, _Error3);
 
-  return TestError;
+    return TestError;
 })(Error);
 
 },{}],4:[function(_dereq_,module,exports){
 "use strict";
-
-var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
 
 var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
 
@@ -29118,7 +29135,7 @@ Returns list of operations to perform on `input` to produce `output`.
 */
 exports.createPatch = createPatch;
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 var InvalidOperationError = _dereq_("./errors").InvalidOperationError;
@@ -29129,69 +29146,24 @@ var operationFunctions = _interopRequireWildcard(_dereq_("./patch"));
 
 var diffAny = _dereq_("./diff").diffAny;
 
-var package_json = _interopRequire(_dereq_("./package"));
-
-var version = package_json.version;exports.version = version;
-
 function applyPatch(object, patch) {
-  return patch.map(function (operation) {
-    var operationFunction = operationFunctions[operation.op];
-    // speedy exit if we don't recognize the operation name
-    if (operationFunction === undefined) {
-      return new InvalidOperationError(operation.op);
-    }
-    return operationFunction(object, operation);
-  });
+    return patch.map(function (operation) {
+        var operationFunction = operationFunctions[operation.op];
+        // speedy exit if we don't recognize the operation name
+        if (operationFunction === undefined) {
+            return new InvalidOperationError(operation.op);
+        }
+        return operationFunction(object, operation);
+    });
 }
 
 function createPatch(input, output) {
-  var ptr = new Pointer();
-  // a new Pointer gets a default path of [''] if not specified
-  var operations = diffAny(input, output, ptr);
-  operations.forEach(function (operation) {
-    operation.path = operation.path.toString();
-  });
-  return operations;
+    var ptr = new Pointer();
+    // a new Pointer gets a default path of [''] if not specified
+    return diffAny(input, output, ptr);
 }
 
-},{"./diff":1,"./errors":3,"./package":5,"./patch":6,"./pointer":7}],5:[function(_dereq_,module,exports){
-module.exports={
-  "name": "rfc6902",
-  "version": "1.1.2",
-  "description": "Complete implementation of RFC6902 (patch and diff)",
-  "keywords": [
-    "json",
-    "patch",
-    "diff",
-    "rfc6902"
-  ],
-  "homepage": "https://github.com/chbrown/rfc6902",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chbrown/rfc6902.git"
-  },
-  "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
-  "license": "MIT",
-  "main": "./rfc6902.js",
-  "devDependencies": {
-    "babel-core": "^5.0.0",
-    "babelify": "^5.0.0",
-    "browserify": "12.0.1",
-    "coveralls": "*",
-    "derequire": "2.0.3",
-    "istanbul": "*",
-    "js-yaml": "*",
-    "mocha": "*",
-    "mocha-lcov-reporter": "*",
-    "typescript": "*"
-  },
-  "scripts": {
-    "test": "make test"
-  }
-}
-
-},{}],6:[function(_dereq_,module,exports){
-
+},{"./diff":1,"./errors":3,"./patch":5,"./pointer":6}],5:[function(_dereq_,module,exports){
 
 /**
 >  o  If the target location specifies an array index, a new value is
@@ -29267,7 +29239,7 @@ exports.copy = copy;
 */
 exports.test = test;
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
 var Pointer = _dereq_("./pointer").Pointer;
@@ -29280,89 +29252,88 @@ var MissingError = _errors.MissingError;
 var TestError = _errors.TestError;
 
 function _add(object, key, value) {
-  if (Array.isArray(object)) {
-    // `key` must be an index
-    if (key == "-") {
-      object.push(value);
+    if (Array.isArray(object)) {
+        // `key` must be an index
+        if (key == "-") {
+            object.push(value);
+        } else {
+            object.splice(key, 0, value);
+        }
     } else {
-      object.splice(key, 0, value);
+        object[key] = value;
     }
-  } else {
-    object[key] = value;
-  }
 }
-
 function _remove(object, key) {
-  if (Array.isArray(object)) {
-    // '-' syntax doesn't make sense when removing
-    object.splice(key, 1);
-  } else {
-    // not sure what the proper behavior is when path = ''
-    delete object[key];
-  }
+    if (Array.isArray(object)) {
+        // '-' syntax doesn't make sense when removing
+        object.splice(key, 1);
+    } else {
+        // not sure what the proper behavior is when path = ''
+        delete object[key];
+    }
 }
 function add(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
-  if (endpoint.parent === undefined) {
-    return new MissingError(operation.path);
-  }
-  _add(endpoint.parent, endpoint.key, operation.value);
-  return null;
+    var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
+    if (endpoint.parent === undefined) {
+        return new MissingError(operation.path);
+    }
+    _add(endpoint.parent, endpoint.key, operation.value);
+    return null;
 }
 
 function remove(object, operation) {
-  // endpoint has parent, key, and value properties
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.value === undefined) {
-    return new MissingError(operation.path);
-  }
-  // not sure what the proper behavior is when path = ''
-  _remove(endpoint.parent, endpoint.key);
-  return null;
+    // endpoint has parent, key, and value properties
+    var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    if (endpoint.value === undefined) {
+        return new MissingError(operation.path);
+    }
+    // not sure what the proper behavior is when path = ''
+    _remove(endpoint.parent, endpoint.key);
+    return null;
 }
 
 function replace(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.value === undefined) {
-    return new MissingError(operation.path);
-  }endpoint.parent[endpoint.key] = operation.value;
-  return null;
+    var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    if (endpoint.value === undefined) {
+        return new MissingError(operation.path);
+    }endpoint.parent[endpoint.key] = operation.value;
+    return null;
 }
 
 function move(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
-  if (from_endpoint.value === undefined) {
-    return new MissingError(operation.from);
-  }var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.parent === undefined) {
-    return new MissingError(operation.path);
-  }_remove(from_endpoint.parent, from_endpoint.key);
-  _add(endpoint.parent, endpoint.key, from_endpoint.value);
-  return null;
+    var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
+    if (from_endpoint.value === undefined) {
+        return new MissingError(operation.from);
+    }var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    if (endpoint.parent === undefined) {
+        return new MissingError(operation.path);
+    }_remove(from_endpoint.parent, from_endpoint.key);
+    _add(endpoint.parent, endpoint.key, from_endpoint.value);
+    return null;
 }
 
 function copy(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
-  if (from_endpoint.value === undefined) {
-    return new MissingError(operation.from);
-  }var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.parent === undefined) {
-    return new MissingError(operation.path);
-  }_remove(from_endpoint.parent, from_endpoint.key);
-  _add(endpoint.parent, endpoint.key, from_endpoint.value);
-  return null;
+    var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
+    if (from_endpoint.value === undefined) {
+        return new MissingError(operation.from);
+    }var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    if (endpoint.parent === undefined) {
+        return new MissingError(operation.path);
+    }_remove(from_endpoint.parent, from_endpoint.key);
+    _add(endpoint.parent, endpoint.key, from_endpoint.value);
+    return null;
 }
 
 function test(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  var result = compare(endpoint.value, operation.value);
-  if (!result) {
-    return new TestError(endpoint.value, operation.value);
-  }return null;
+    var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    var result = compare(endpoint.value, operation.value);
+    if (!result) {
+        return new TestError(endpoint.value, operation.value);
+    }return null;
 }
 
-},{"./equal":2,"./errors":3,"./pointer":7}],7:[function(_dereq_,module,exports){
+},{"./equal":2,"./errors":3,"./pointer":6}],6:[function(_dereq_,module,exports){
 "use strict";
 
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
