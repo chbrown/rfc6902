@@ -221,7 +221,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
   const [operations, padding] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
     if (isArrayAdd(array_operation)) {
       const padded_index = array_operation.index + 1 + padding;
-      const index_token = padded_index < input_length ? String(padded_index) : '-';
+      const index_token = padded_index < (input_length + padding) ? String(padded_index) : '-';
       const operation = {
         op: array_operation.op,
         path: ptr.add(index_token).toString(),
