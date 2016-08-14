@@ -185,7 +185,7 @@ function diffArrays(input, output, ptr) {
 
         if (isArrayAdd(array_operation)) {
             var padded_index = array_operation.index + 1 + padding;
-            var index_token = padded_index < input_length ? String(padded_index) : "-";
+            var index_token = padded_index < input_length + padding ? String(padded_index) : "-";
             var operation = {
                 op: array_operation.op,
                 path: ptr.add(index_token).toString(),
