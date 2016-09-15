@@ -38,12 +38,16 @@ Now the value of `users` is:
 
 # API
 
-`rfc6902` exposes two methods. (I'm using TypeScript-like type annotations here.)
+`rfc6902` exports two methods, no default. So in ES6 syntax, that would be:
 
-* `rfc6902.applyPatch(object: any, patch: Operation[]): Array<Error | null>`
+    import {applyPatch, createPatch} from 'rfc6902';
+
+Using TypeScript annotations:
+
+* `applyPatch(object: any, patch: Operation[]): Array<Error | null>`
 
   The operations in `patch` are applied to `object` in-place, and it returns a list of results. The returned list will have the same length as `patch`. If all operations were successful, each item in the returned list will be `null`. If any of them failed, the corresponding item in the returned list will be an Error instance with descriptive `.name` and `.message` properties.
-* `rfc6902.createPatch(input: any, output: any): Operation[]`
+* `createPatch(input: any, output: any): Operation[]`
 
   Returns a list of operations (a JSON Patch) of the required operations to make `input` equal to `output`. In most cases, there is more than one way to transform an object into another. This method is more efficient than wholesale replacement, but does not always provide the optimal list of patches. It uses a simple Levenshtein-type implementation with Arrays, but it doesn't try for anything much smarter than that, so it's limited to `remove`, `add`, and `replace` operations.
 * `interface Operation { op: string; from?: string; path?: string; value?: string; }`
