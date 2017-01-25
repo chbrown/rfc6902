@@ -46,3 +46,31 @@ export function createPatch(input, output): Operation[] {
   // a new Pointer gets a default path of [''] if not specified
   return diffAny(input, output, ptr);
 }
+
+/**
+Produce an 'application/json-patch+json'-type patch to test a patch before
+working with existing values.
+
+This does not alter `input` or `output` unless they have a property getter with
+side-effects (which is not a good idea anyway).
+
+Returns list of test operations to perform on `input` to validate `patch`.
+*/
+export function createTests(input, patch: Operation[]): Operation[] {
+  let tests = new Array<Operation>();
+
+  let patchesToTest = patch.filter(p => p.op === 'remove'
+                                     || p.op === 'replace'
+                                     || p.op === 'copy'
+                                     || p.op === 'move');
+
+  for(let op of patchesToTest) {
+    const pointer = new Pointer(op.path.split('/'));
+    const pathItem = pointer.evaluate(input);
+    if(pathItem){
+        tests.push({ op: 'test', from:'', path: op.path, value: pathItem.value });
+    }
+  }
+
+  return tests;
+}
