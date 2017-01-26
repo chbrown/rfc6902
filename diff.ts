@@ -60,7 +60,7 @@ export function intersection<T>(objects: T[]): string[] {
   const key_counts: {[index: string]: number} = {};
   objects.forEach(object => {
     for (let key in object) {
-      key_counts[key] = (key_counts[key] || 0) + 1;
+      key_counts[key] = (key_counts[<string>key] || 0) + 1;
     }
   });
   // but then, extra requirement: delete less commonly-seen keys
