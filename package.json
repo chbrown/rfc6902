@@ -30,8 +30,5 @@
   },
   "scripts": {
     "test": "make test"
-  },
-  "dependencies": {
-    "typescript": "^2.1.5"
   }
 }
