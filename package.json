@@ -26,9 +26,12 @@
     "js-yaml": "*",
     "mocha": "*",
     "mocha-lcov-reporter": "*",
-    "typescript": "~2.0"
+    "typescript": "*"
   },
   "scripts": {
     "test": "make test"
+  },
+  "dependencies": {
+    "typescript": "^2.1.5"
   }
 }
