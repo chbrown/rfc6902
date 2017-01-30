@@ -35,12 +35,20 @@ Now the value of `users` is:
 > `[ { first: 'Chris', last: 'Brown', age: 21 },`
 > `  { first: 'Raphael', age: 37 } ]`
 
+**Create tests** for a patch and a given object:
+
+    var obj = {flavors: ['apple', 'banana', 'cherry']};
+    rfc6902.createTests(obj, [
+      {op: 'remove', path: '/flavors/1'}
+    ]);
+
+> `[{op: 'test', path: '/flavors/1', value: 'banana'}]`
 
 # API
 
-`rfc6902` exports two methods, no default. So in ES6 syntax, that would be:
+`rfc6902` exports three methods, no default. So in ES6 syntax, that would be:
 
-    import {applyPatch, createPatch} from 'rfc6902';
+    import {applyPatch, createPatch, createTests} from 'rfc6902';
 
 Using TypeScript annotations:
 

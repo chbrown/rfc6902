@@ -29,7 +29,7 @@ export interface RemoveOperation { op: 'remove', path: string }
 export interface ReplaceOperation { op: 'replace', path: string, value: string }
 export interface MoveOperation { op: 'move', from: string, path: string }
 export interface CopyOperation { op: 'copy', from: string, path: string }
-export interface TestOperation { op: 'test', from: string, path: string }
+export interface TestOperation { op: 'test', path: string, value: string }
 
 export type Operation = AddOperation |
                         RemoveOperation |
@@ -37,6 +37,10 @@ export type Operation = AddOperation |
                         MoveOperation |
                         CopyOperation |
                         TestOperation;
+
+export function isDestructive({op}: Operation): boolean {
+  return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move';
+}
 
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
@@ -60,7 +64,7 @@ export function intersection<T>(objects: T[]): string[] {
   const key_counts: {[index: string]: number} = {};
   objects.forEach(object => {
     for (let key in object) {
-      key_counts[key] = (key_counts[key] || 0) + 1;
+      key_counts[key] = (key_counts[<string>key] || 0) + 1;
     }
   });
   // but then, extra requirement: delete less commonly-seen keys
