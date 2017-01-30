@@ -35,16 +35,14 @@ Now the value of `users` is:
 > `[ { first: 'Chris', last: 'Brown', age: 21 },`
 > `  { first: 'Raphael', age: 37 } ]`
 
-**Create tests** between an object and a patch:
+**Create tests** for a patch and a given object:
 
-    var obj = { "itemCodes": [ "123", "456", "789" ] };
+    var obj = {flavors: ['apple', 'banana', 'cherry']};
     rfc6902.createTests(obj, [
-      {op: 'remove', path: '/itemCodes/1'}
+      {op: 'remove', path: '/flavors/1'}
     ]);
 
-Will generate:
-
-    [ {op: 'test', from: '', path: '/itemCodes/1', value: "456"} ]
+> `[{op: 'test', path: '/flavors/1', value: 'banana'}]`
 
 # API
 

@@ -29,7 +29,7 @@ export interface RemoveOperation { op: 'remove', path: string }
 export interface ReplaceOperation { op: 'replace', path: string, value: string }
 export interface MoveOperation { op: 'move', from: string, path: string }
 export interface CopyOperation { op: 'copy', from: string, path: string }
-export interface TestOperation { op: 'test', from: string, path: string }
+export interface TestOperation { op: 'test', path: string, value: string }
 
 export type Operation = AddOperation |
                         RemoveOperation |
@@ -37,6 +37,10 @@ export type Operation = AddOperation |
                         MoveOperation |
                         CopyOperation |
                         TestOperation;
+
+export function isDestructive({op}: Operation): boolean {
+  return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move';
+}
 
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.

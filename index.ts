@@ -2,7 +2,7 @@ import {InvalidOperationError} from './errors';
 import {Pointer} from './pointer';
 
 import * as operationFunctions from './patch';
-import {Operation, diffAny} from './diff';
+import {Operation, diffAny, isDestructive, TestOperation} from './diff';
 
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
@@ -47,42 +47,32 @@ export function createPatch(input, output): Operation[] {
   return diffAny(input, output, ptr);
 }
 
+function createTest(input: any, path: string): TestOperation {
+  const endpoint = Pointer.fromJSON(path).evaluate(input);
+  if (endpoint !== undefined) {
+    return {op: 'test', path, value: endpoint.value};
+  }
+}
+
 /**
-Produce an 'application/json-patch+json'-type patch to test a patch before
-working with existing values.
+Produce an 'application/json-patch+json'-type list of tests, to verify that
+existing values in an object are identical to the those captured at some
+checkpoint (whenever this function is called).
 
 This does not alter `input` or `output` unless they have a property getter with
 side-effects (which is not a good idea anyway).
 
-Returns list of test operations to perform on `input` to validate `patch`.
+Returns list of test operations.
 */
-export function createTests(input: any, patch: Operation[]): Operation[] {
-  const tests = new Array<Operation>();
-
-  function addTest(path: string) {
-    const pointer = Pointer.fromJSON(path);
-    const pathItem = pointer.evaluate(input);
-    if (pathItem) {
-      tests.push({
-        op: 'test',
-        from:'',
-        path: path,
-        value: pathItem.value
-      });
+export function createTests(input: any, patch: Operation[]): TestOperation[] {
+  const tests = new Array<TestOperation>();
+  patch.filter(isDestructive).forEach(operation => {
+    const pathTest = createTest(input, operation.path);
+    if (pathTest) tests.push(pathTest);
+    if ('from' in operation) {
+      const fromTest = createTest(input, operation['from']);
+      if (fromTest) tests.push(fromTest);
     }
-  }
-
-  const patchesToTest = patch.filter(p => p.op === 'remove'
-                                       || p.op === 'replace'
-                                       || p.op === 'copy'
-                                       || p.op === 'move');
-
-  for (const op of patchesToTest) {
-    addTest(op.path);
-    if (op.op === 'copy' || op.op === 'move') {
-      addTest(op.from);
-    }
-  }
-
+  });
   return tests;
 }
