@@ -5,6 +5,8 @@ var _slicedToArray = function (arr, i) { if (Array.isArray(arr)) { return arr; }
 
 var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
 
+exports.isDestructive = isDestructive;
+
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
@@ -49,6 +51,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 var compare = _dereq_("./equal").compare;
+
+function isDestructive(_ref) {
+    var op = _ref.op;
+
+    return op === "remove" || op === "replace" || op === "copy" || op === "move";
+}
 
 function subtract(a, b) {
     var obj = {};
@@ -421,6 +429,18 @@ side-effects (which is not a good idea anyway).
 Returns list of operations to perform on `input` to produce `output`.
 */
 exports.createPatch = createPatch;
+
+/**
+Produce an 'application/json-patch+json'-type list of tests, to verify that
+existing values in an object are identical to the those captured at some
+checkpoint (whenever this function is called).
+
+This does not alter `input` or `output` unless they have a property getter with
+side-effects (which is not a good idea anyway).
+
+Returns list of test operations.
+*/
+exports.createTests = createTests;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -431,7 +451,10 @@ var Pointer = _dereq_("./pointer").Pointer;
 
 var operationFunctions = _interopRequireWildcard(_dereq_("./patch"));
 
-var diffAny = _dereq_("./diff").diffAny;
+var _diff = _dereq_("./diff");
+
+var diffAny = _diff.diffAny;
+var isDestructive = _diff.isDestructive;
 
 function applyPatch(object, patch) {
     return patch.map(function (operation) {
@@ -448,6 +471,25 @@ function createPatch(input, output) {
     var ptr = new Pointer();
     // a new Pointer gets a default path of [''] if not specified
     return diffAny(input, output, ptr);
+}
+
+function createTest(input, path) {
+    var endpoint = Pointer.fromJSON(path).evaluate(input);
+    if (endpoint !== undefined) {
+        return { op: "test", path: path, value: endpoint.value };
+    }
+}
+function createTests(input, patch) {
+    var tests = new Array();
+    patch.filter(isDestructive).forEach(function (operation) {
+        var pathTest = createTest(input, operation.path);
+        if (pathTest) tests.push(pathTest);
+        if ("from" in operation) {
+            var fromTest = createTest(input, operation.from);
+            if (fromTest) tests.push(fromTest);
+        }
+    });
+    return tests;
 }
 
 },{"./diff":1,"./errors":3,"./patch":5,"./pointer":6}],5:[function(_dereq_,module,exports){
