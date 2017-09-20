@@ -12,7 +12,7 @@ $(BIN)/browserify $(BIN)/mocha $(BIN)/tsc $(BIN)/istanbul $(BIN)/_mocha $(BIN)/c
 .gitignore: tsconfig.json
 	echo $(TYPESCRIPT:%.ts=%.js) $(TYPESCRIPT:%.ts=%.d.ts) coverage/ | tr ' ' '\n' > $@
 
-%.js %.d.ts: %.ts $(BIN)/tsc
+%.js %.d.ts: %.ts tsconfig.json $(BIN)/tsc
 	$(BIN)/tsc
 
 rfc6902.js: index.js diff.js equal.js errors.js patch.js pointer.js package.json $(BIN)/browserify
