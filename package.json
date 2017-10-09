@@ -26,7 +26,7 @@
     "typescript": "^2.5.3"
   },
   "scripts": {
-    "prepare": "tsc -m commonjs -d",
+    "prepublish": "tsc -m commonjs -d",
     "test": "istanbul cover _mocha -- tests/ --compilers js:babel-core/register -R spec",
     "posttest": "coveralls < coverage/lcov.info",
     "dist": "tsc -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
