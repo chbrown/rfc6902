@@ -15,7 +15,6 @@
   },
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
-  "main": "./rfc6902.js",
   "devDependencies": {
     "babel-core": "^5.0.0",
     "babelify": "^5.0.0",
