@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "module": "commonjs",
-    "target": "ES6"
+    "target": "ES2015"
   },
   "files": [
     "diff.ts",
