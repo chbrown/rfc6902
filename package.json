@@ -1,6 +1,6 @@
 {
   "name": "rfc6902",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Complete implementation of RFC6902 (patch and diff)",
   "keywords": [
     "json",
