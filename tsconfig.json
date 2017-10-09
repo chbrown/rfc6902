@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "module": "es6",
+    "module": "commonjs",
     "target": "ES6"
   },
   "files": [
