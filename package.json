@@ -16,18 +16,18 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^5.0.0",
-    "babelify": "^5.0.0",
-    "browserify": "14.4.0",
     "coveralls": "^3.0.0",
-    "derequire": "2.0.3",
     "istanbul": "0.4.5",
     "js-yaml": "3.10.0",
     "mocha": "^4.0.1",
     "mocha-lcov-reporter": "1.3.0",
+    "rollup": "^0.50.0",
     "typescript": "^2.5.3"
   },
   "scripts": {
-    "test": "make test"
+    "prepare": "tsc -m commonjs -d",
+    "test": "istanbul cover _mocha -- tests/ --compilers js:babel-core/register -R spec",
+    "posttest": "coveralls < coverage/lcov.info",
+    "dist": "tsc -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js"
   }
 }
