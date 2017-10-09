@@ -1,30 +1,30 @@
-import {Pointer} from './pointer';
-import {compare} from './equal';
-import {MissingError, TestError} from './errors';
+import {Pointer} from './pointer'
+import {compare} from './equal'
+import {MissingError, TestError} from './errors'
 
 function _add(object, key, value) {
   if (Array.isArray(object)) {
     // `key` must be an index
     if (key == '-') {
-      object.push(value);
+      object.push(value)
     }
     else {
-      object.splice(key, 0, value);
+      object.splice(key, 0, value)
     }
   }
   else {
-    object[key] = value;
+    object[key] = value
   }
 }
 
 function _remove(object, key) {
   if (Array.isArray(object)) {
     // '-' syntax doesn't make sense when removing
-    object.splice(key, 1);
+    object.splice(key, 1)
   }
   else {
     // not sure what the proper behavior is when path = ''
-    delete object[key];
+    delete object[key]
   }
 }
 
@@ -37,13 +37,13 @@ function _remove(object, key) {
 >     that member's value is replaced.
 */
 export function add(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
   if (endpoint.parent === undefined) {
-    return new MissingError(operation.path);
+    return new MissingError(operation.path)
   }
-  _add(endpoint.parent, endpoint.key, operation.value);
-  return null;
+  _add(endpoint.parent, endpoint.key, operation.value)
+  return null
 }
 
 /**
@@ -52,13 +52,13 @@ export function add(object, operation) {
 */
 export function remove(object, operation) {
   // endpoint has parent, key, and value properties
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) {
-    return new MissingError(operation.path);
+    return new MissingError(operation.path)
   }
   // not sure what the proper behavior is when path = ''
-  _remove(endpoint.parent, endpoint.key);
-  return null;
+  _remove(endpoint.parent, endpoint.key)
+  return null
 }
 
 /**
@@ -74,11 +74,11 @@ export function remove(object, operation) {
 Even more simply, it's like the add operation with an existence check.
 */
 export function replace(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.value === undefined) return new MissingError(operation.path);
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  if (endpoint.value === undefined) return new MissingError(operation.path)
 
-  endpoint.parent[endpoint.key] = operation.value;
-  return null;
+  endpoint.parent[endpoint.key] = operation.value
+  return null
 }
 
 /**
@@ -97,15 +97,15 @@ export function replace(object, operation) {
 TODO: throw if the check described in the previous paragraph fails.
 */
 export function move(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
-  if (from_endpoint.value === undefined) return new MissingError(operation.from);
+  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
+  if (from_endpoint.value === undefined) return new MissingError(operation.from)
 
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.parent === undefined) return new MissingError(operation.path);
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  if (endpoint.parent === undefined) return new MissingError(operation.path)
 
-  _remove(from_endpoint.parent, from_endpoint.key);
-  _add(endpoint.parent, endpoint.key, from_endpoint.value);
-  return null;
+  _remove(from_endpoint.parent, from_endpoint.key)
+  _add(endpoint.parent, endpoint.key, from_endpoint.value)
+  return null
 }
 
 /**
@@ -122,14 +122,14 @@ export function move(object, operation) {
 Alternatively, it's like 'move' without the 'remove'.
 */
 export function copy(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
-  if (from_endpoint.value === undefined) return new MissingError(operation.from);
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  if (endpoint.parent === undefined) return new MissingError(operation.path);
+  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
+  if (from_endpoint.value === undefined) return new MissingError(operation.from)
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  if (endpoint.parent === undefined) return new MissingError(operation.path)
 
-  _remove(from_endpoint.parent, from_endpoint.key);
-  _add(endpoint.parent, endpoint.key, from_endpoint.value);
-  return null;
+  _remove(from_endpoint.parent, from_endpoint.key)
+  _add(endpoint.parent, endpoint.key, from_endpoint.value)
+  return null
 }
 
 /**
@@ -141,8 +141,8 @@ export function copy(object, operation) {
 > operation to be considered successful.
 */
 export function test(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-  var result = compare(endpoint.value, operation.value);
-  if (!result) return new TestError(endpoint.value, operation.value);
-  return null;
+  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  var result = compare(endpoint.value, operation.value)
+  if (!result) return new TestError(endpoint.value, operation.value)
+  return null
 }
