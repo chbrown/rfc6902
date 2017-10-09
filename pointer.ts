@@ -70,10 +70,18 @@ export class Pointer {
       // not sure if this the best way to handle non-existant paths...
       object = (parent || {})[token]
     }
-    return {
-      parent: parent,
-      key: token,
-      value: object,
+    return {parent, key: token, value: object}
+  }
+  get(object: any): any {
+    return this.evaluate(object).value
+  }
+  set(object: any, value: any): void {
+    for (var i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
+      // not sure if this the best way to handle non-existant paths...
+      object = (object || {})[token]
+    }
+    if (object) {
+      object[this.tokens[this.tokens.length - 1]] = value
     }
   }
   push(token: string): void {
