@@ -1,7 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ES2015"
-  },
   "files": [
     "arrays.ts",
     "createTests.ts",
