@@ -10,4 +10,9 @@
 /patch.d.ts
 /index.js
 /index.d.ts
+/tests/arrays.js
+/tests/createTests.js
+/tests/issues.js
+/tests/pointer.js
+/tests/spec.js
 coverage/

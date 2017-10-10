@@ -16,7 +16,9 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "devDependencies": {
-    "babel-core": "^5.0.0",
+    "@types/js-yaml": "^3.9.1",
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^8.0.33",
     "coveralls": "^2.13.3",
     "istanbul": "0.4.5",
     "js-yaml": "3.10.0",
@@ -27,7 +29,8 @@
   },
   "scripts": {
     "prepublish": "tsc -m commonjs -d",
-    "test": "istanbul cover _mocha -- tests/ --compilers js:babel-core/register -R spec",
+    "pretest": "tsc -p tests -m commonjs",
+    "test": "istanbul cover _mocha -- tests/ -R spec",
     "posttest": "coveralls < coverage/lcov.info",
     "dist": "tsc -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
     "clean": "tsc -m commonjs -d --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
