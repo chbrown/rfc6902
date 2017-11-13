@@ -24,12 +24,12 @@ Everything Else, which is pretty much just what JSON substantially
 differentiates between.
 */
 
-export interface AddOperation { op: 'add', path: string, value: string }
-export interface RemoveOperation { op: 'remove', path: string }
-export interface ReplaceOperation { op: 'replace', path: string, value: string }
-export interface MoveOperation { op: 'move', from: string, path: string }
-export interface CopyOperation { op: 'copy', from: string, path: string }
-export interface TestOperation { op: 'test', path: string, value: string }
+export interface AddOperation     { op: 'add',     path: string, value: any    }
+export interface RemoveOperation  { op: 'remove',  path: string                }
+export interface ReplaceOperation { op: 'replace', path: string, value: any    }
+export interface MoveOperation    { op: 'move',    from: string, path: string  }
+export interface CopyOperation    { op: 'copy',    from: string, path: string  }
+export interface TestOperation    { op: 'test',    path: string, value: any    }
 
 export type Operation = AddOperation |
                         RemoveOperation |
@@ -90,8 +90,8 @@ export function objectType(object: any): string {
   return typeof object
 }
 
-interface ArrayAdd { op: 'add', index: number, value: any }
-interface ArrayRemove { op: 'remove', index: number }
+interface ArrayAdd     { op: 'add',     index: number, value: any }
+interface ArrayRemove  { op: 'remove',  index: number }
 interface ArrayReplace { op: 'replace', index: number, original: any, value: any }
 /** These are not proper Operation objects, but will be converted into
 Operation objects eventually. {index} indicates the actual target position,
