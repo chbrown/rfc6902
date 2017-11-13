@@ -96,11 +96,19 @@ class Pointer {
             // not sure if this the best way to handle non-existant paths...
             object = (parent || {})[token];
         }
-        return {
-            parent: parent,
-            key: token,
-            value: object,
-        };
+        return { parent, key: token, value: object };
+    }
+    get(object) {
+        return this.evaluate(object).value;
+    }
+    set(object, value) {
+        for (var i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
+            // not sure if this the best way to handle non-existant paths...
+            object = (object || {})[token];
+        }
+        if (object) {
+            object[this.tokens[this.tokens.length - 1]] = value;
+        }
     }
     push(token) {
         // mutable
@@ -131,8 +139,9 @@ function zip(a, b) {
 compareArrays(left, right) assumes that `left` and `right` are both Arrays.
 */
 function compareArrays(left, right) {
-    if (left.length !== right.length)
+    if (left.length !== right.length) {
         return false;
+    }
     return zip(left, right).every(pair => compare(pair[0], pair[1]));
 }
 /**
@@ -141,8 +150,9 @@ compareObjects(left, right) assumes that `left` and `right` are both Objects.
 function compareObjects(left, right) {
     var left_keys = Object.keys(left);
     var right_keys = Object.keys(right);
-    if (!compareArrays(left_keys, right_keys))
+    if (!compareArrays(left_keys, right_keys)) {
         return false;
+    }
     return left_keys.every(key => compare(left[key], right[key]));
 }
 /**
@@ -169,8 +179,9 @@ function compareObjects(left, right) {
 */
 function compare(left, right) {
     // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
-    if (left === right)
+    if (left === right) {
         return true;
+    }
     // check arrays
     if (Array.isArray(left) && Array.isArray(right)) {
         return compareArrays(left, right);
@@ -480,7 +491,7 @@ function diffArrays(input, output, ptr) {
                 // the only other case, i === 0 && j === 0, has already been memoized
                 // the meat of the algorithm:
                 // sort by cost to find the lowest one (might be several ties for lowest)
-                // [4, 6, 7, 1, 2].sort((a, b) => a - b); -> [ 1, 2, 4, 6, 7 ]
+                // [4, 6, 7, 1, 2].sort((a, b) => a - b) -> [ 1, 2, 4, 6, 7 ]
                 const best = alternatives.sort((a, b) => a.cost - b.cost)[0];
                 memoized = best;
             }
@@ -502,7 +513,7 @@ function diffArrays(input, output, ptr) {
                 path: ptr.add(index_token).toString(),
                 value: array_operation.value,
             };
-            // padding++; // maybe only if array_operation.index > -1 ?
+            // padding++ // maybe only if array_operation.index > -1 ?
             return [operations.concat(operation), padding + 1];
         }
         else if (isArrayRemove(array_operation)) {
@@ -510,7 +521,7 @@ function diffArrays(input, output, ptr) {
                 op: array_operation.op,
                 path: ptr.add(String(array_operation.index + padding)).toString(),
             };
-            // padding--;
+            // padding--
             return [operations.concat(operation), padding - 1];
         }
         else {
