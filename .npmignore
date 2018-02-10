@@ -5,7 +5,6 @@ index.ts
 patch.ts
 pointer.ts
 .travis.yml
-Makefile
 tsconfig.json
 dist/
 tests/
