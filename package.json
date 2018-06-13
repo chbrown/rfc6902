@@ -28,7 +28,7 @@
     "typescript": "^2.5.3"
   },
   "scripts": {
-    "prepublish": "tsc -t ES5 -m commonjs -d",
+    "prepare": "tsc -t ES5 -m commonjs -d",
     "pretest": "tsc -p tests -t ES5 -m commonjs",
     "test": "istanbul cover _mocha -- tests/ -R spec",
     "posttest": "coveralls < coverage/lcov.info || true",
