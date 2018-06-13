@@ -38,6 +38,8 @@ export type Operation = AddOperation |
                         CopyOperation |
                         TestOperation
 
+export type Patch = Array<Operation>
+
 export function isDestructive({op}: Operation): boolean {
   return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move'
 }
