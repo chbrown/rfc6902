@@ -8,7 +8,10 @@ import {applyPatch, createPatch} from '../index'
 import {Pointer} from '../pointer'
 
 var spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'})
-var spec_patch_results = yaml.load(spec_data)
+var spec_data_parsed = yaml.load(spec_data)
+var spec_patch_results = Object.keys(spec_data_parsed).reduce((results, patch_result_key) => {
+  return results.concat(spec_data_parsed[patch_result_key])
+}, [])
 
 function clone(object) {
   return JSON.parse(JSON.stringify(object))
