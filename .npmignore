@@ -1,9 +1,5 @@
-diff.ts
-equal.ts
-errors.ts
-index.ts
-patch.ts
-pointer.ts
+*.ts
+!*.d.ts
 .travis.yml
 tsconfig.json
 dist/
