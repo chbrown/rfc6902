@@ -101,3 +101,39 @@ describe('issues/12', () => {
     assert.deepEqual(patch_results, [null, null, null])
   })
 })
+
+describe('issues/29', () => {
+  var input = {
+    geometry: {
+      coordinates: [
+        [0, 0],
+        [1, 1],
+        [2, 2],
+      ],
+    },
+  }
+  var output = {
+    geometry: {
+      coordinates: [
+        [0, 0],
+        [2, 1],
+        [1, 3],
+      ],
+    },
+  }
+  var expected_patch = [
+    { op: 'replace', path: '/geometry/coordinates/1', value: [ 2, 1 ] },
+    { op: 'replace', path: '/geometry/coordinates/2', value: [ 1, 3 ] },
+  ]
+  // limit patch to 3 levels deep, i.e. tokens in "/geometry/coordinates/1"
+  var actual_patch = createPatch(input, output, 3)
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch)
+  })
+  it('should apply patch to arrive at output', () => {
+    var actual_output = clone(input)
+    var patch_results = applyPatch(actual_output, actual_patch)
+    assert.deepEqual(actual_output, output)
+    assert.deepEqual(patch_results, [null, null])
+  })
+})
