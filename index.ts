@@ -2,9 +2,10 @@ import {InvalidOperationError} from './errors'
 import {Pointer} from './pointer'
 
 import * as operationFunctions from './patch'
-import {Operation, Patch, diffAny, isDestructive, TestOperation} from './diff'
+import {Operation, TestOperation, isDestructive, diffAny} from './diff'
 
-export {Operation, Patch, TestOperation}
+export {Operation, TestOperation}
+export type Patch = Operation[]
 
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
