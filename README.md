@@ -1,12 +1,13 @@
 # rfc6902
 
-[![npm version](https://badge.fury.io/js/rfc6902.svg)](https://www.npmjs.com/package/rfc6902)
-[![Travis CI Build Status](https://travis-ci.org/chbrown/rfc6902.svg)](https://travis-ci.org/chbrown/rfc6902)
-[![Coverage Status](https://coveralls.io/repos/chbrown/rfc6902/badge.svg)](https://coveralls.io/github/chbrown/rfc6902)
+[![latest version published to npm](https://badge.fury.io/js/rfc6902.svg)](https://www.npmjs.com/package/rfc6902)
+[![Travis CI build status](https://travis-ci.org/chbrown/rfc6902.svg?branch=master)](https://travis-ci.org/chbrown/rfc6902)
+[![Coverage status on Coveralls](https://coveralls.io/repos/github/chbrown/rfc6902/badge.svg?branch=master)](https://coveralls.io/github/chbrown/rfc6902?branch=master)
 
 Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902) "JavaScript Object Notation (JSON) Patch"
 (including [RFC6901](http://tools.ietf.org/html/rfc6901) "JavaScript Object Notation (JSON) Pointer"),
 for creating and consuming `application/json-patch+json` documents. Also offers "diff" functionality without using `Object.observe`.
+
 
 ## Quickstart
 
@@ -43,6 +44,7 @@ Now the value of `users` is:
     ]);
 
 > `[{op: 'test', path: '/flavors/1', value: 'banana'}]`
+
 
 # API
 
@@ -148,6 +150,7 @@ E.g., consider the NPM registry:
 * All double quotation marks, reverse slashes, and control characters _must_ escaped, since a JSON Pointer is a JSON string.
 * A pointer that refers to a non-existent value counts as an error, too. But not necessarily as fatal as a syntax error.
 
+
 ## JSON Patch (RFC6902)
 
 The [RFC](http://tools.ietf.org/html/rfc6902) is only 18 pages long, and pretty straightforward, but here are the basics.
@@ -179,4 +182,5 @@ A JSON Patch document is a JSON document such that:
 
 ## License
 
-Copyright 2014-2016 Christopher Brown. [MIT Licensed](http://chbrown.github.io/licenses/MIT/#2014-2016).
+Copyright 2014-2018 Christopher Brown.
+[MIT Licensed](https://chbrown.github.io/licenses/MIT/#2014-2018).
