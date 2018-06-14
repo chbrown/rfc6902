@@ -2,8 +2,8 @@
 zip(a, b) assumes that a.length === b.length.
 */
 function zip<A, B>(a: A[], b: B[]): Array<[A, B]> {
-  var zipped: Array<[A, B]> = []
-  for (var i = 0, l = a.length; i < l; i++) {
+  const zipped: Array<[A, B]> = []
+  for (let i = 0, l = a.length; i < l; i++) {
     zipped.push([a[i], b[i]])
   }
   return zipped
@@ -23,8 +23,8 @@ function compareArrays<L, R>(left: L[], right: R[]): boolean {
 compareObjects(left, right) assumes that `left` and `right` are both Objects.
 */
 function compareObjects<L, R>(left: L, right: R): boolean {
-  var left_keys = Object.keys(left)
-  var right_keys = Object.keys(right)
+  const left_keys = Object.keys(left)
+  const right_keys = Object.keys(right)
   if (!compareArrays(left_keys, right_keys)) {
     return false
   }

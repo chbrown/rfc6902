@@ -49,7 +49,7 @@ export class Pointer {
   `path` *must* be a properly escaped string.
   */
   static fromJSON(path: string): Pointer {
-    var tokens = path.split('/').map(unescape)
+    const tokens = path.split('/').map(unescape)
     if (tokens[0] !== '') throw new Error(`Invalid JSON Pointer: ${path}`)
     return new Pointer(tokens)
   }
@@ -62,26 +62,28 @@ export class Pointer {
   Otherwise, parent will be the such that `parent[key] == value`
   */
   evaluate(object: any): PointerEvaluation {
-    var parent: any = null
-    var token: string = null
-    for (var i = 1, l = this.tokens.length; i < l; i++) {
-      parent = object
+    let value: any = object
+    let parent: any = null
+    let token: string = null
+    for (let i = 1, l = this.tokens.length; i < l; i++) {
+      parent = value
       token = this.tokens[i]
       // not sure if this the best way to handle non-existant paths...
-      object = (parent || {})[token]
+      value = (parent || {})[token]
     }
-    return {parent, key: token, value: object}
+    return {parent, key: token, value}
   }
   get(object: any): any {
     return this.evaluate(object).value
   }
   set(object: any, value: any): void {
-    for (var i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
+    let cursor: any = object
+    for (let i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
       // not sure if this the best way to handle non-existant paths...
-      object = (object || {})[token]
+      cursor = (cursor || {})[token]
     }
-    if (object) {
-      object[this.tokens[this.tokens.length - 1]] = value
+    if (cursor) {
+      cursor[this.tokens[this.tokens.length - 1]] = value
     }
   }
   push(token: string): void {
@@ -94,7 +96,7 @@ export class Pointer {
   immutable (shallowly)
   */
   add(token: string): Pointer {
-    var tokens = this.tokens.concat(String(token))
+    const tokens = this.tokens.concat(String(token))
     return new Pointer(tokens)
   }
 }

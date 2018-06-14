@@ -37,7 +37,7 @@ function _remove(object, key) {
 >     that member's value is replaced.
 */
 export function add(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path)
@@ -52,7 +52,7 @@ export function add(object, operation) {
 */
 export function remove(object, operation) {
   // endpoint has parent, key, and value properties
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) {
     return new MissingError(operation.path)
   }
@@ -74,7 +74,7 @@ export function remove(object, operation) {
 Even more simply, it's like the add operation with an existence check.
 */
 export function replace(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) return new MissingError(operation.path)
 
   endpoint.parent[endpoint.key] = operation.value
@@ -97,10 +97,10 @@ export function replace(object, operation) {
 TODO: throw if the check described in the previous paragraph fails.
 */
 export function move(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
+  const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) return new MissingError(operation.from)
 
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.parent === undefined) return new MissingError(operation.path)
 
   _remove(from_endpoint.parent, from_endpoint.key)
@@ -122,9 +122,9 @@ export function move(object, operation) {
 Alternatively, it's like 'move' without the 'remove'.
 */
 export function copy(object, operation) {
-  var from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
+  const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) return new MissingError(operation.from)
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.parent === undefined) return new MissingError(operation.path)
 
   _remove(from_endpoint.parent, from_endpoint.key)
@@ -141,8 +141,8 @@ export function copy(object, operation) {
 > operation to be considered successful.
 */
 export function test(object, operation) {
-  var endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  var result = compare(endpoint.value, operation.value)
+  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  const result = compare(endpoint.value, operation.value)
   if (!result) return new TestError(endpoint.value, operation.value)
   return null
 }

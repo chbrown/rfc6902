@@ -49,10 +49,10 @@ subtract(a, b) returns the keys in `a` that are not in `b`.
 */
 export function subtract<A, B>(a: A, b: B): string[] {
   const obj: {[index: string]: number} = {}
-  for (let add_key in a) {
+  for (const add_key in a) {
     obj[add_key] = 1
   }
-  for (let del_key in b) {
+  for (const del_key in b) {
     delete obj[del_key]
   }
   return Object.keys(obj)
@@ -65,13 +65,13 @@ export function intersection<T>(objects: T[]): string[] {
   // initialize like union()
   const key_counts: {[index: string]: number} = {}
   objects.forEach(object => {
-    for (let key in object) {
-      key_counts[key] = (key_counts[<string>key] || 0) + 1
+    for (const key in object) {
+      key_counts[key] = (key_counts[key as string] || 0) + 1
     }
   })
   // but then, extra requirement: delete less commonly-seen keys
   const threshold = objects.length
-  for (let key in key_counts) {
+  for (const key in key_counts) {
     if (key_counts[key] < threshold) {
       delete key_counts[key]
     }
@@ -144,7 +144,7 @@ bunch of deletions.
 export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
   const memo: {[index: string]: DynamicAlternative} = {
-    '0,0': {operations: [], cost: 0}
+    '0,0': {operations: [], cost: 0},
   }
   /**
   input[i's] -> output[j's]
@@ -158,7 +158,8 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
   */
   function dist(i: number, j: number): DynamicAlternative {
     // memoized
-    let memoized = memo[i+','+j]
+    const memo_key = `${i},${j}`
+    let memoized = memo[memo_key]
     if (memoized === undefined) {
       if (compare(input[i - 1], output[j - 1])) {
         // equal (no operations => no cost)
@@ -215,7 +216,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
         const best = alternatives.sort((a, b) => a.cost - b.cost)[0]
         memoized = best
       }
-      memo[i+','+j] = memoized
+      memo[memo_key] = memoized
     }
     return memoized
   }
@@ -224,7 +225,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
   const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
   const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
   const array_operations = dist(input_length, output_length).operations
-  const [operations, padding] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
+  const [padded_operations] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
     if (isArrayAdd(array_operation)) {
       const padded_index = array_operation.index + 1 + padding
       const index_token = padded_index < (input_length + padding) ? String(padded_index) : '-'
@@ -250,7 +251,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
       return [operations.concat(...replace_operations), padding]
     }
   }, [[], 0])
-  return operations
+  return padded_operations
 }
 
 export function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {

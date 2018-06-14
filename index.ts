@@ -72,7 +72,7 @@ export function createTests(input: any, patch: Operation[]): TestOperation[] {
     const pathTest = createTest(input, operation.path)
     if (pathTest) tests.push(pathTest)
     if ('from' in operation) {
-      const fromTest = createTest(input, operation['from'])
+      const fromTest = createTest(input, operation.from)
       if (fromTest) tests.push(fromTest)
     }
   })
