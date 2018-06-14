@@ -42,12 +42,15 @@ another.
 This does not alter `input` or `output` unless they have a property getter with
 side-effects (which is not a good idea anyway).
 
+`depth` optionally specifies a limit to how deeply arrays & objects can be
+diffed. Pointers in the returned operations will not exceed this length.
+
 Returns list of operations to perform on `input` to produce `output`.
 */
-export function createPatch(input, output): Operation[] {
+export function createPatch(input, output, depth = Infinity): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  return diffAny(input, output, ptr)
+  return diffAny(input, output, ptr, depth)
 }
 
 function createTest(input: any, path: string): TestOperation {
