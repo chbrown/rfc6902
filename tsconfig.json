@@ -1,10 +1,6 @@
 {
-  "files": [
-    "diff.ts",
-    "equal.ts",
-    "errors.ts",
-    "index.ts",
-    "patch.ts",
-    "pointer.ts"
-  ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES5"
+  }
 }

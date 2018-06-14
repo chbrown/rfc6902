@@ -28,11 +28,11 @@
     "typescript": "^2.9.2"
   },
   "scripts": {
-    "prepare": "tsc -t ES5 -m commonjs -d",
-    "pretest": "tsc -p tests -t ES5 -m commonjs",
+    "prepare": "tsc -d",
+    "pretest": "tsc",
     "test": "istanbul cover _mocha -- tests/ -R spec",
     "posttest": "coveralls < coverage/lcov.info || true",
     "dist": "tsc -t ES2015 -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
-    "clean": "tsc -m commonjs -d --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
+    "clean": "tsc -d --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
   }
 }
