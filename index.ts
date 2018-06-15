@@ -34,7 +34,7 @@ export function applyPatch(object, patch) {
   })
 }
 
-export interface IDiffOptional {
+export interface ITryDiff {
   (input: any, output: any, ptr: Pointer): Operation[] | void
 }
 
@@ -54,14 +54,15 @@ Returns list of operations to perform on `input` to produce `output`.
 export function createPatch(
   input: any,
   output: any,
-  diff: IDiffOptional = (() => {}),
+  diff?: ITryDiff,
 ): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  function tryDiff(input, output, ptr) {
-    return diff(input, output, ptr) || diffAny(input, output, ptr, tryDiff)
+  function safeDiff(input, output, ptr) {
+    // ensure an array is always returned
+    return diff(input, output, ptr) || diffAny(input, output, ptr, safeDiff)
   }
-  return tryDiff(input, output, ptr)
+  return diff ? safeDiff(input, output, ptr) : diffAny(input, output, ptr)
 }
 
 function createTest(input: any, path: string): TestOperation {
