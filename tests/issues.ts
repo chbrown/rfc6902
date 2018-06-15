@@ -132,3 +132,34 @@ describe('issues/29', () => {
     assert.deepEqual(patch_results, [null, null])
   })
 })
+
+describe('issues/29 root', () => {
+  var input = ['a', 'b']
+  var output = ['a']
+  var expected_patch = [
+    {op: 'replace', path: '', value: ['a']},
+  ]
+  var actual_patch = createPatch(input, output, (input, output, ptr) => {
+    if (ptr.tokens.length === 1) {
+      // root pointer
+      return diffValues(input, output, ptr)
+    }
+  })
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch)
+  })
+  // applyPatch fails with error, see #32
+  //
+  // TypeError: Cannot set property 'null' of null
+  // at replace (patch.js:9:2939)
+  // at index.js:9:967
+  // at Array.map (<anonymous>)
+  // at Object.applyPatch (index.js:9:510)
+  // at Context.<anonymous> (tests/issues.js:153:37)
+  xit('should apply patch to arrive at output', () => {
+    var actual_output = clone(input)
+    var patch_results = applyPatch(actual_output, actual_patch)
+    assert.deepEqual(actual_output, output)
+    assert.deepEqual(patch_results, [null])
+  })
+})
