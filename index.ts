@@ -59,9 +59,11 @@ export function createPatch(
 ): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  return diffAny(input, output, ptr, (input, output, ptr) => {
-    return diffCustom(input, output, ptr) || diffAny(input, output, ptr)
-  })
+  function tryDiffCustom(input, output, ptr) {
+    const ops = diffCustom(input, output, ptr)
+    return ops || diffAny(input, output, ptr, tryDiffCustom)
+  }
+  return tryDiffCustom(input, output, ptr)
 }
 
 function createTest(input: any, path: string): TestOperation {
