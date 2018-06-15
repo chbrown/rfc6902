@@ -103,18 +103,22 @@ describe('issues/12', () => {
   })
 })
 
-describe('issues/29', () => {
+describe('issues/29 nested', () => {
   var input = {
-    diffed: ['a', 'b'],
-    not_diffed: ['a', 'b'],
+    root: {
+      diffed: ['a', 'b'],
+      not_diffed: ['a', 'b'],
+    },
   }
   var output = {
-    diffed: ['a'],
-    not_diffed: ['a'],
+    root: {
+      diffed: ['a'],
+      not_diffed: ['a'],
+    },
   }
   var expected_patch = [
-    {op: 'remove', path: '/diffed/1'},
-    {op: 'replace', path: '/not_diffed', value: ['a']},
+    {op: 'remove', path: '/root/diffed/1'},
+    {op: 'replace', path: '/root/not_diffed', value: ['a']},
   ]
   var actual_patch = createPatch(input, output, (input, output, ptr) => {
     if (ptr.tokens[ptr.tokens.length - 1] === 'not_diffed') {
