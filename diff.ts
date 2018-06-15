@@ -283,11 +283,7 @@ export function diffObjects(
   return operations
 }
 
-export function diffValues(
-  input: any,
-  output: any,
-  ptr: Pointer,
-): Operation[] {
+export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
   if (!compare(input, output)) {
     return [{op: 'replace', path: ptr.toString(), value: output}]
   }
@@ -295,9 +291,9 @@ export function diffValues(
 }
 
 export function diffAny(
-  input: any, 
-  output: any, 
-  ptr: Pointer, 
+  input: any,
+  output: any,
+  ptr: Pointer,
   diffNode: IDiffNode = diffAny,
 ): Operation[] {
   const input_type = objectType(input)
