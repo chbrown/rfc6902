@@ -42,6 +42,10 @@ export function isDestructive({op}: Operation): boolean {
   return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move'
 }
 
+export interface IDiffNode {
+  (input: any, output: any, ptr: Pointer): Operation[]
+}
+
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
 */
@@ -139,7 +143,12 @@ if input (source) is empty, they'll all be in the top row, just a bunch of
 additions. If the output is empty, everything will be in the left column, as a
 bunch of deletions.
 */
-export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[] {
+export function diffArrays<T>(
+  input: T[],
+  output: T[],
+  ptr: Pointer,
+  diffNode: IDiffNode = diffAny,
+): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
   const memo: {[index: string]: DynamicAlternative} = {
     '0,0': {operations: [], cost: 0},
@@ -245,14 +254,19 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer): Operation[
     }
     else { // replace
       const replace_ptr = ptr.add(String(array_operation.index + padding))
-      const replace_operations = diffAny(array_operation.original, array_operation.value, replace_ptr)
+      const replace_operations = diffNode(array_operation.original, array_operation.value, replace_ptr)
       return [operations.concat(...replace_operations), padding]
     }
   }, [[], 0])
   return padded_operations
 }
 
-export function diffObjects(input: any, output: any, ptr: Pointer): Operation[] {
+export function diffObjects(
+  input: any,
+  output: any,
+  ptr: Pointer,
+  diffNode: IDiffNode = diffAny,
+): Operation[] {
   // if a key is in input but not output -> remove it
   const operations: Operation[] = []
   subtract(input, output).forEach(key => {
@@ -264,26 +278,35 @@ export function diffObjects(input: any, output: any, ptr: Pointer): Operation[] 
   })
   // if a key is in both, diff it recursively
   intersection([input, output]).forEach(key => {
-    operations.push(...diffAny(input[key], output[key], ptr.add(key)))
+    operations.push(...diffNode(input[key], output[key], ptr.add(key)))
   })
   return operations
 }
 
-export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
+export function diffValues(
+  input: any,
+  output: any,
+  ptr: Pointer,
+): Operation[] {
   if (!compare(input, output)) {
     return [{op: 'replace', path: ptr.toString(), value: output}]
   }
   return []
 }
 
-export function diffAny(input: any, output: any, ptr: Pointer): Operation[] {
+export function diffAny(
+  input: any, 
+  output: any, 
+  ptr: Pointer, 
+  diffNode: IDiffNode = diffAny,
+): Operation[] {
   const input_type = objectType(input)
   const output_type = objectType(output)
   if (input_type == 'array' && output_type == 'array') {
-    return diffArrays(input, output, ptr)
+    return diffArrays(input, output, ptr, diffNode)
   }
   if (input_type == 'object' && output_type == 'object') {
-    return diffObjects(input, output, ptr)
+    return diffObjects(input, output, ptr, diffNode)
   }
   // only pairs of arrays and objects can go down a path to produce a smaller
   // diff; everything else must be wholesale replaced if inequal

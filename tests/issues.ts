@@ -2,6 +2,7 @@ import * as assert from 'assert'
 import 'mocha'
 
 import {applyPatch, createPatch} from '../index'
+import {diffValues} from '../diff'
 
 function clone(object) {
   return JSON.parse(JSON.stringify(object))
@@ -99,5 +100,35 @@ describe('issues/12', () => {
     var patch_results = applyPatch(actual_output, actual_patch)
     assert.deepEqual(actual_output, output)
     assert.deepEqual(patch_results, [null, null, null])
+  })
+})
+
+describe('issues/29', () => {
+  var input = {
+    diffed: ['a', 'b'],
+    not_diffed: ['a', 'b'],
+  }
+  var output = {
+    diffed: ['a'],
+    not_diffed: ['a'],
+  }
+  var expected_patch = [
+    {op: 'remove', path: '/diffed/1'},
+    {op: 'replace', path: '/not_diffed', value: ['a']},
+  ]
+  var actual_patch = createPatch(input, output, (input, output, ptr) => {
+    if (ptr.tokens[ptr.tokens.length - 1] === 'not_diffed') {
+      // do not compare arrays, replace instead
+      return diffValues(input, output, ptr)
+    }
+  })
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch)
+  })
+  it('should apply patch to arrive at output', () => {
+    var actual_output = clone(input)
+    var patch_results = applyPatch(actual_output, actual_patch)
+    assert.deepEqual(actual_output, output)
+    assert.deepEqual(patch_results, [null, null])
   })
 })

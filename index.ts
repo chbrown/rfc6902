@@ -35,6 +35,10 @@ export function applyPatch(object, patch) {
   })
 }
 
+export interface IDiffCustom {
+  (input: any, output: any, ptr: Pointer): Operation[] | void
+}
+
 /**
 Produce a 'application/json-patch+json'-type patch to get from one object to
 another.
@@ -42,12 +46,22 @@ another.
 This does not alter `input` or `output` unless they have a property getter with
 side-effects (which is not a good idea anyway).
 
+`diffCustom` is called with each pair of comparable nodes in the
+`input`/`output` object trees, producing nested patches.  Return `undefined`
+for default behaviour.
+
 Returns list of operations to perform on `input` to produce `output`.
 */
-export function createPatch(input, output): Operation[] {
+export function createPatch(
+  input: any,
+  output: any,
+  diffCustom: IDiffCustom = (() => {}),
+): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  return diffAny(input, output, ptr)
+  return diffAny(input, output, ptr, (input, output, ptr) => {
+    return diffCustom(input, output, ptr) || diffAny(input, output, ptr)
+  })
 }
 
 function createTest(input: any, path: string): TestOperation {
