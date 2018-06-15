@@ -2,6 +2,7 @@ import * as assert from 'assert'
 import 'mocha'
 
 import {applyPatch, createPatch} from '../index'
+import {diffValues} from '../diff'
 
 function clone(object) {
   return JSON.parse(JSON.stringify(object))
@@ -99,5 +100,70 @@ describe('issues/12', () => {
     var patch_results = applyPatch(actual_output, actual_patch)
     assert.deepEqual(actual_output, output)
     assert.deepEqual(patch_results, [null, null, null])
+  })
+})
+
+describe('issues/29 nested', () => {
+  var input = {
+    root: {
+      diffed: ['a', 'b'],
+      not_diffed: ['a', 'b'],
+    },
+  }
+  var output = {
+    root: {
+      diffed: ['a'],
+      not_diffed: ['a'],
+    },
+  }
+  var expected_patch = [
+    {op: 'remove', path: '/root/diffed/1'},
+    {op: 'replace', path: '/root/not_diffed', value: ['a']},
+  ]
+  var actual_patch = createPatch(input, output, (input, output, ptr) => {
+    if (ptr.tokens[ptr.tokens.length - 1] === 'not_diffed') {
+      // do not compare arrays, replace instead
+      return diffValues(input, output, ptr)
+    }
+  })
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch)
+  })
+  it('should apply patch to arrive at output', () => {
+    var actual_output = clone(input)
+    var patch_results = applyPatch(actual_output, actual_patch)
+    assert.deepEqual(actual_output, output)
+    assert.deepEqual(patch_results, [null, null])
+  })
+})
+
+describe('issues/29 root', () => {
+  var input = ['a', 'b']
+  var output = ['a']
+  var expected_patch = [
+    {op: 'replace', path: '', value: ['a']},
+  ]
+  var actual_patch = createPatch(input, output, (input, output, ptr) => {
+    if (ptr.tokens.length === 1) {
+      // root pointer
+      return diffValues(input, output, ptr)
+    }
+  })
+  it('should produce patch equal to expectation', () => {
+    assert.deepEqual(actual_patch, expected_patch)
+  })
+  // applyPatch fails with error, see #32
+  //
+  // TypeError: Cannot set property 'null' of null
+  // at replace (patch.js:9:2939)
+  // at index.js:9:967
+  // at Array.map (<anonymous>)
+  // at Object.applyPatch (index.js:9:510)
+  // at Context.<anonymous> (tests/issues.js:153:37)
+  xit('should apply patch to arrive at output', () => {
+    var actual_output = clone(input)
+    var patch_results = applyPatch(actual_output, actual_patch)
+    assert.deepEqual(actual_output, output)
+    assert.deepEqual(patch_results, [null])
   })
 })
