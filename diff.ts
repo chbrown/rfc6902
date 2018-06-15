@@ -42,7 +42,7 @@ export function isDestructive({op}: Operation): boolean {
   return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move'
 }
 
-export interface IDiffNode {
+export interface IDiff {
   (input: any, output: any, ptr: Pointer): Operation[]
 }
 
@@ -147,7 +147,7 @@ export function diffArrays<T>(
   input: T[],
   output: T[],
   ptr: Pointer,
-  diffNode: IDiffNode = diffAny,
+  diff: IDiff = diffAny,
 ): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
   const memo: {[index: string]: DynamicAlternative} = {
@@ -254,7 +254,7 @@ export function diffArrays<T>(
     }
     else { // replace
       const replace_ptr = ptr.add(String(array_operation.index + padding))
-      const replace_operations = diffNode(array_operation.original, array_operation.value, replace_ptr)
+      const replace_operations = diff(array_operation.original, array_operation.value, replace_ptr)
       return [operations.concat(...replace_operations), padding]
     }
   }, [[], 0])
@@ -265,7 +265,7 @@ export function diffObjects(
   input: any,
   output: any,
   ptr: Pointer,
-  diffNode: IDiffNode = diffAny,
+  diff: IDiff = diffAny,
 ): Operation[] {
   // if a key is in input but not output -> remove it
   const operations: Operation[] = []
@@ -278,7 +278,7 @@ export function diffObjects(
   })
   // if a key is in both, diff it recursively
   intersection([input, output]).forEach(key => {
-    operations.push(...diffNode(input[key], output[key], ptr.add(key)))
+    operations.push(...diff(input[key], output[key], ptr.add(key)))
   })
   return operations
 }
@@ -294,15 +294,15 @@ export function diffAny(
   input: any,
   output: any,
   ptr: Pointer,
-  diffNode: IDiffNode = diffAny,
+  diff: IDiff = diffAny,
 ): Operation[] {
   const input_type = objectType(input)
   const output_type = objectType(output)
   if (input_type == 'array' && output_type == 'array') {
-    return diffArrays(input, output, ptr, diffNode)
+    return diffArrays(input, output, ptr, diff)
   }
   if (input_type == 'object' && output_type == 'object') {
-    return diffObjects(input, output, ptr, diffNode)
+    return diffObjects(input, output, ptr, diff)
   }
   // only pairs of arrays and objects can go down a path to produce a smaller
   // diff; everything else must be wholesale replaced if inequal

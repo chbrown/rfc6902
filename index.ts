@@ -35,7 +35,7 @@ export function applyPatch(object, patch) {
   })
 }
 
-export interface IDiffCustom {
+export interface IDiffOptional {
   (input: any, output: any, ptr: Pointer): Operation[] | void
 }
 
@@ -46,24 +46,23 @@ another.
 This does not alter `input` or `output` unless they have a property getter with
 side-effects (which is not a good idea anyway).
 
-`diffCustom` is called with each pair of comparable nodes in the
+`diff` is called on each pair of comparable non-primitive nodes in the
 `input`/`output` object trees, producing nested patches.  Return `undefined`
-for default behaviour.
+to fall back to default behaviour.
 
 Returns list of operations to perform on `input` to produce `output`.
 */
 export function createPatch(
   input: any,
   output: any,
-  diffCustom: IDiffCustom = (() => {}),
+  diff: IDiffOptional = (() => {}),
 ): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  function tryDiffCustom(input, output, ptr) {
-    const ops = diffCustom(input, output, ptr)
-    return ops || diffAny(input, output, ptr, tryDiffCustom)
+  function tryDiff(input, output, ptr) {
+    return diff(input, output, ptr) || diffAny(input, output, ptr, tryDiff)
   }
-  return tryDiffCustom(input, output, ptr)
+  return tryDiff(input, output, ptr)
 }
 
 function createTest(input: any, path: string): TestOperation {
