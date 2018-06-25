@@ -159,18 +159,13 @@ describe('issues/29', () => {
   })
 })
 
-describe('issues/29 root', () => {
-  var input = ['a', 'b']
-  var output = ['a']
+describe('issues/32', () => {
+  var input = 'a'
+  var output = 'b'
   var expected_patch = [
-    {op: 'replace', path: '', value: ['a']},
+    {op: 'replace', path: '', value: 'b'},
   ]
-  var actual_patch = createPatch(input, output, (input, output, ptr) => {
-    if (ptr.tokens.length === 1) {
-      // root pointer
-      return diffValues(input, output, ptr)
-    }
-  })
+  var actual_patch = createPatch(input, output)
   it('should produce patch equal to expectation', () => {
     assert.deepEqual(actual_patch, expected_patch)
   })
