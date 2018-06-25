@@ -2,7 +2,7 @@ import {InvalidOperationError} from './errors'
 import {Pointer} from './pointer'
 
 import * as operationFunctions from './patch'
-import {Operation, TestOperation, isDestructive, diffAny} from './diff'
+import {Operation, TestOperation, isDestructive, Diff, VoidableDiff, diffAny} from './diff'
 
 export {Operation, TestOperation}
 export type Patch = Operation[]
@@ -35,8 +35,13 @@ export function applyPatch(object, patch) {
   })
 }
 
-export interface ITryDiff {
-  (input: any, output: any, ptr: Pointer): Operation[] | void
+function wrapVoidableDiff(diff: VoidableDiff): Diff {
+  function wrappedDiff(input: any, output: any, ptr: Pointer) {
+    const custom_patch = diff(input, output, ptr)
+    // ensure an array is always returned
+    return Array.isArray(custom_patch) ? custom_patch : diffAny(input, output, ptr, wrappedDiff)
+  }
+  return wrappedDiff
 }
 
 /**
@@ -47,23 +52,15 @@ This does not alter `input` or `output` unless they have a property getter with
 side-effects (which is not a good idea anyway).
 
 `diff` is called on each pair of comparable non-primitive nodes in the
-`input`/`output` object trees, producing nested patches.  Return `undefined`
+`input`/`output` object trees, producing nested patches. Return `undefined`
 to fall back to default behaviour.
 
 Returns list of operations to perform on `input` to produce `output`.
 */
-export function createPatch(
-  input: any,
-  output: any,
-  diff?: ITryDiff,
-): Operation[] {
+export function createPatch(input: any, output: any, diff?: VoidableDiff): Operation[] {
   const ptr = new Pointer()
   // a new Pointer gets a default path of [''] if not specified
-  function safeDiff(input, output, ptr) {
-    // ensure an array is always returned
-    return diff(input, output, ptr) || diffAny(input, output, ptr, safeDiff)
-  }
-  return diff ? safeDiff(input, output, ptr) : diffAny(input, output, ptr)
+  return (diff ? wrapVoidableDiff(diff) : diffAny)(input, output, ptr)
 }
 
 function createTest(input: any, path: string): TestOperation {

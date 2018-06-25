@@ -42,9 +42,8 @@ export function isDestructive({op}: Operation): boolean {
   return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move'
 }
 
-export interface IDiff {
-  (input: any, output: any, ptr: Pointer): Operation[]
-}
+export type Diff = (input: any, output: any, ptr: Pointer) => Operation[]
+export type VoidableDiff = (input: any, output: any, ptr: Pointer) => Operation[] | void
 
 /**
 subtract(a, b) returns the keys in `a` that are not in `b`.
@@ -143,12 +142,7 @@ if input (source) is empty, they'll all be in the top row, just a bunch of
 additions. If the output is empty, everything will be in the left column, as a
 bunch of deletions.
 */
-export function diffArrays<T>(
-  input: T[],
-  output: T[],
-  ptr: Pointer,
-  diff: IDiff = diffAny,
-): Operation[] {
+export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff = diffAny): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
   const memo: {[index: string]: DynamicAlternative} = {
     '0,0': {operations: [], cost: 0},
@@ -261,12 +255,7 @@ export function diffArrays<T>(
   return padded_operations
 }
 
-export function diffObjects(
-  input: any,
-  output: any,
-  ptr: Pointer,
-  diff: IDiff = diffAny,
-): Operation[] {
+export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
   // if a key is in input but not output -> remove it
   const operations: Operation[] = []
   subtract(input, output).forEach(key => {
@@ -290,12 +279,7 @@ export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
   return []
 }
 
-export function diffAny(
-  input: any,
-  output: any,
-  ptr: Pointer,
-  diff: IDiff = diffAny,
-): Operation[] {
+export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
   const input_type = objectType(input)
   const output_type = objectType(output)
   if (input_type == 'array' && output_type == 'array') {
