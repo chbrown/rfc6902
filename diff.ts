@@ -106,9 +106,6 @@ function isArrayAdd(array_operation: ArrayOperation): array_operation is ArrayAd
 function isArrayRemove(array_operation: ArrayOperation): array_operation is ArrayRemove {
   return array_operation.op === 'remove'
 }
-function isArrayReplace(array_operation: ArrayOperation): array_operation is ArrayReplace {
-  return array_operation.op === 'replace'
-}
 
 interface DynamicAlternative {
   operations: ArrayOperation[]
