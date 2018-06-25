@@ -45,10 +45,10 @@ describe('array diff+patch identity', () => {
   pairs.forEach(([input, output]) => {
     describe(`${JSON.stringify(input)} → ${JSON.stringify(output)}`, () => {
       it('should apply produced patch to arrive at output', () => {
-        var patch = createPatch(input, output)
-        var actual_output = clone(input)
+        const patch = createPatch(input, output)
+        const actual_output = clone(input)
         applyPatch(actual_output, patch)
-        assert.deepEqual(actual_output, output)
+        assert.deepStrictEqual(actual_output, output)
       })
     })
   })

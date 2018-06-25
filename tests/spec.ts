@@ -7,9 +7,9 @@ import * as yaml from 'js-yaml'
 import {applyPatch, createPatch} from '../index'
 import {Pointer} from '../pointer'
 
-var spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'})
-var spec_data_parsed = yaml.load(spec_data)
-var spec_patch_results = Object.keys(spec_data_parsed).reduce((results, patch_result_key) => {
+const spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'})
+const spec_data_parsed = yaml.load(spec_data)
+const spec_patch_results = Object.keys(spec_data_parsed).reduce((results, patch_result_key) => {
   return results.concat(spec_data_parsed[patch_result_key])
 }, [])
 
@@ -19,7 +19,7 @@ function clone(object) {
 
 describe('JSON Pointer - rfc-examples:', () => {
   // > For example, given the JSON document
-  var obj = {
+  const obj = {
     'foo': ['bar', 'baz'],
     '': 0,
     'a/b': 1,
@@ -29,11 +29,11 @@ describe('JSON Pointer - rfc-examples:', () => {
     'i\\j': 5,
     'k\'l': 6,
     ' ': 7,
-    'm~n': 8
+    'm~n': 8,
   }
 
   // > The following JSON strings evaluate to the accompanying values
-  var pointers = [
+  const pointers = [
     {path: ''      , expected: obj},
     {path: '/foo'  , expected: ['bar', 'baz']},
     {path: '/foo/0', expected: 'bar'},
@@ -51,40 +51,40 @@ describe('JSON Pointer - rfc-examples:', () => {
   pointers.forEach(pointer => {
     describe(`pointer "${pointer.path}"`, () => {
       it('should evaluate to expected output', () => {
-        var actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
-        assert.deepEqual(actual, pointer.expected)
+        const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
+        assert.deepStrictEqual(actual, pointer.expected)
       })
     })
   })
 })
 
 describe('JSON Pointer - package example:', () => {
-  var obj = {
-    first: 'chris',
-    last: 'brown',
-    github: {
+  const obj = {
+    'first': 'chris',
+    'last': 'brown',
+    'github': {
       account: {
         id: 'chbrown',
-        handle: '@chbrown'
+        handle: '@chbrown',
       },
       repos: [
-        'amulet', 'twilight', 'rfc6902'
+        'amulet', 'twilight', 'rfc6902',
       ],
       stars: [
         {
           owner: 'raspberrypi',
-          repo: 'userland'
+          repo: 'userland',
         },
         {
           owner: 'angular',
-          repo: 'angular.js'
+          repo: 'angular.js',
         },
-      ]
+      ],
     },
-    'github/account': 'deprecated'
+    'github/account': 'deprecated',
   }
 
-  var pointers = [
+  const pointers = [
     {path: '/first', expected: 'chris'},
     {path: '/github~1account', expected: 'deprecated'},
     {path: '/github/account/handle', expected: '@chbrown'},
@@ -96,20 +96,20 @@ describe('JSON Pointer - package example:', () => {
   pointers.forEach(pointer => {
     describe(`pointer "${pointer.path}"`, () => {
       it('should evaluate to expected output', () => {
-        var actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
-        assert.deepEqual(actual, pointer.expected)
+        const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
+        assert.deepStrictEqual(actual, pointer.expected)
       })
     })
   })
 })
 
 describe('Specification format:', () => {
-  it('should have 19 items', () => assert.equal(spec_patch_results.length, 19))
+  it('should have 19 items', () => assert.strictEqual(spec_patch_results.length, 19))
   // use sorted values and sort() to emulate set equality
-  var props = ['diffable', 'input', 'name', 'output', 'patch', 'results']
+  const props = ['diffable', 'input', 'name', 'output', 'patch', 'results']
   spec_patch_results.forEach(spec_patch_result => {
     it(`"${spec_patch_result.name}" should have items with specific properties`, () => {
-      assert.deepEqual(Object.keys(spec_patch_result).sort(), props)
+      assert.deepStrictEqual(Object.keys(spec_patch_result).sort(), props)
     })
   })
 })
@@ -120,17 +120,17 @@ describe('Specification patches:', () => {
   spec_patch_results.forEach(spec_patch_result => {
     describe(spec_patch_result.name, () => {
       // patch operations are applied to object in-place
-      var actual = clone(spec_patch_result.input)
-      var expected = spec_patch_result.output
-      var results = applyPatch(actual, spec_patch_result.patch)
+      const actual = clone(spec_patch_result.input)
+      const expected = spec_patch_result.output
+      const results = applyPatch(actual, spec_patch_result.patch)
       it('should equal expected output after applying patches', () => {
-        assert.deepEqual(actual, expected)
+        assert.deepStrictEqual(actual, expected)
       })
       // since errors are object instances, reduce them to strings to match
       // the spec's results, which has the type `Array<string | null>`
-      var results_names = results.map(error => error ? error.name : error)
+      const results_names = results.map(error => error ? error.name : error)
       it('should produce expected results', () => {
-        assert.deepEqual(results_names, spec_patch_result.results)
+        assert.deepStrictEqual(results_names, spec_patch_result.results)
       })
     })
   })
@@ -142,10 +142,10 @@ describe('Specification diffs:', () => {
     // ignore spec items that are marked as not diffable
     describe(spec_patch_result.name, () => {
       // perform diff (create patch = list of operations) and check result against non-test patches in spec
-      var actual = createPatch(spec_patch_result.input, spec_patch_result.output)
-      var expected = spec_patch_result.patch.filter(operation => operation.op !== 'test')
+      const actual = createPatch(spec_patch_result.input, spec_patch_result.output)
+      const expected = spec_patch_result.patch.filter(operation => operation.op !== 'test')
       it('should produce diff equal to spec patch', () => {
-        assert.deepEqual(actual, expected)
+        assert.deepStrictEqual(actual, expected)
       })
     })
   })
