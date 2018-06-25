@@ -103,29 +103,32 @@ describe('issues/12', () => {
   })
 })
 
-describe('issues/29 nested', () => {
-  var input = {
-    root: {
-      diffed: ['a', 'b'],
-      not_diffed: ['a', 'b'],
-    },
-  }
-  var output = {
-    root: {
-      diffed: ['a'],
-      not_diffed: ['a'],
-    },
-  }
-  var expected_patch = [
-    {op: 'remove', path: '/root/diffed/1'},
-    {op: 'replace', path: '/root/not_diffed', value: ['a']},
-  ]
-  var actual_patch = createPatch(input, output, (input, output, ptr) => {
-    if (ptr.tokens[ptr.tokens.length - 1] === 'not_diffed') {
+describe('issues/29', () => {
+  /**
+  Custom diff function that short-circuits recursion when the last token
+  in the current pointer is the key "stop_recursing", such that that key's
+  values are compared as primitives rather than objects/arrays.
+  */
+  function customDiff(input, output, ptr) {
+    if (ptr.tokens[ptr.tokens.length - 1] === 'stop_recursing') {
       // do not compare arrays, replace instead
       return diffValues(input, output, ptr)
     }
-  })
+  }
+
+  var input = {
+    normal: ['a', 'b'],
+    stop_recursing: ['a', 'b'],
+  }
+  var output = {
+    normal: ['a'],
+    stop_recursing: ['a'],
+  }
+  var expected_patch = [
+    {op: 'remove', path: '/normal/1'},
+    {op: 'replace', path: '/stop_recursing', value: ['a']},
+  ]
+  var actual_patch = createPatch(input, output, customDiff)
   it('should produce patch equal to expectation', () => {
     assert.deepEqual(actual_patch, expected_patch)
   })
@@ -134,5 +137,24 @@ describe('issues/29 nested', () => {
     var patch_results = applyPatch(actual_output, actual_patch)
     assert.deepEqual(actual_output, output)
     assert.deepEqual(patch_results, [null, null])
+  })
+
+  describe('nested', () => {
+    var nested_input = {root: input}
+    var nested_output = {root: output}
+    var nested_expected_patch = [
+      {op: 'remove', path: '/root/normal/1'},
+      {op: 'replace', path: '/root/stop_recursing', value: ['a']},
+    ]
+    var nested_actual_patch = createPatch(nested_input, nested_output, customDiff)
+    it('should produce patch equal to expectation', () => {
+      assert.deepEqual(nested_actual_patch, nested_expected_patch)
+    })
+    it('should apply patch to arrive at output', () => {
+      var actual_output = clone(nested_input)
+      var patch_results = applyPatch(actual_output, nested_actual_patch)
+      assert.deepEqual(actual_output, nested_output)
+      assert.deepEqual(patch_results, [null, null])
+    })
   })
 })
