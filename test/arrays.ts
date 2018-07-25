@@ -41,8 +41,9 @@ const pairs = [
   ],
 ]
 
-test('array diff+patch identity', t => {
-  pairs.forEach(([input, output]) => {
+
+pairs.forEach(([input, output]) => {
+  test(`diff+patch: [${input}] => [${output}]`, t => {
     const patch = createPatch(input, output)
     const actual_output = clone(input)
     applyPatch(actual_output, patch)

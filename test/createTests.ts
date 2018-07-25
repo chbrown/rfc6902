@@ -3,7 +3,7 @@ import test from 'ava'
 import {applyPatch, createTests} from '../index'
 import {AddOperation, RemoveOperation, ReplaceOperation, MoveOperation, CopyOperation, TestOperation} from '../diff'
 
-test('createTests for simple patch:', t => {
+test('simple patch', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 
@@ -20,7 +20,7 @@ test('createTests for simple patch:', t => {
   t.deepEqual(actualApply, [null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-test('createTests for complex patch:', t => {
+test('complex patch', t => {
   // > For example, given the JSON document
   const obj = {
     items: [
@@ -63,7 +63,7 @@ test('createTests for complex patch:', t => {
   t.deepEqual(actualApply, [null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-test('createTests for simple patch with add:', t => {
+test('simple patch with add', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 
@@ -77,7 +77,7 @@ test('createTests for simple patch with add:', t => {
   t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate no tests`)
 })
 
-test('createTests for simple patch with move:', t => {
+test('simple patch with move', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789'], alternateItemCodes: ['abc']}
 
@@ -97,7 +97,7 @@ test('createTests for simple patch with move:', t => {
   t.deepEqual(actualApply, [null, null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-test('createTests for simple patch with copy:', t => {
+test('simple patch with copy', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789'], alternateItemCodes: []}
 
@@ -123,7 +123,7 @@ test('createTests for simple patch with copy:', t => {
   t.deepEqual(actualApply, [null, null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-test('createTests for simple patch with replace:', t => {
+test('simple patch with replace', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 

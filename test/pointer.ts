@@ -2,11 +2,16 @@ import test from 'ava'
 
 import {Pointer} from '../pointer'
 
-test('Pointer#get', t => {
-  const input = {bool: false, arr: [10, 20, 30], obj: {a: 'A', b: 'B'}}
-  t.deepEqual(Pointer.fromJSON('/bool').get(input), false, 'should get bool value')
-  t.deepEqual(Pointer.fromJSON('/arr/1').get(input), 20, 'should get array value')
-  t.deepEqual(Pointer.fromJSON('/obj/b').get(input), 'B', 'should get object value')
+const example = {bool: false, arr: [10, 20, 30], obj: {a: 'A', b: 'B'}}
+
+test('Pointer#get bool', t => {
+  t.deepEqual(Pointer.fromJSON('/bool').get(example), false, 'should get bool value')
+})
+test('Pointer#get array', t => {
+  t.deepEqual(Pointer.fromJSON('/arr/1').get(example), 20, 'should get array value')
+})
+test('Pointer#get object', t => {
+  t.deepEqual(Pointer.fromJSON('/obj/b').get(example), 'B', 'should get object value')
 })
 
 test('Pointer#set bool', t => {
