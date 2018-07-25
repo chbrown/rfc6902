@@ -1,5 +1,5 @@
-import * as assert from 'assert'
-import 'mocha'
+import test from 'ava'
+
 import {applyPatch, createPatch} from '../index'
 
 function clone(object) {
@@ -41,15 +41,11 @@ const pairs = [
   ],
 ]
 
-describe('array diff+patch identity', () => {
+test('array diff+patch identity', t => {
   pairs.forEach(([input, output]) => {
-    describe(`${JSON.stringify(input)} → ${JSON.stringify(output)}`, () => {
-      it('should apply produced patch to arrive at output', () => {
-        const patch = createPatch(input, output)
-        const actual_output = clone(input)
-        applyPatch(actual_output, patch)
-        assert.deepStrictEqual(actual_output, output)
-      })
-    })
+    const patch = createPatch(input, output)
+    const actual_output = clone(input)
+    applyPatch(actual_output, patch)
+    t.deepEqual(actual_output, output, 'should apply produced patch to arrive at output')
   })
 })

@@ -17,21 +17,19 @@
   "license": "MIT",
   "devDependencies": {
     "@types/js-yaml": "^3.11.2",
-    "@types/mocha": "^5.2.5",
     "@types/node": "^10.5.3",
+    "ava": "1.0.0-beta.6",
     "coveralls": "^3.0.2",
-    "istanbul": "0.4.5",
     "js-yaml": "3.12.0",
-    "mocha": "^5.2.0",
-    "mocha-lcov-reporter": "1.3.0",
+    "nyc": "12.0.2",
     "rollup": "^0.63.4",
     "typescript": "^2.9.2"
   },
   "scripts": {
     "prepare": "tsc -d",
     "pretest": "tsc",
-    "test": "istanbul cover _mocha -- -R spec",
-    "posttest": "coveralls < coverage/lcov.info || true",
+    "test": "nyc ava",
+    "posttest": "nyc report --reporter=text-lcov | coveralls || true",
     "dist": "tsc -t ES2015 -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
     "clean": "tsc -d --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
   }

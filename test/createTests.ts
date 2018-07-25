@@ -1,10 +1,9 @@
-import * as assert from 'assert'
-import 'mocha'
+import test from 'ava'
 
 import {applyPatch, createTests} from '../index'
-import {AddOperation, RemoveOperation, ReplaceOperation, MoveOperation, CopyOperation} from '../diff'
+import {AddOperation, RemoveOperation, ReplaceOperation, MoveOperation, CopyOperation, TestOperation} from '../diff'
 
-describe('createTests for simple patch:', () => {
+test('createTests for simple patch:', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 
@@ -12,24 +11,16 @@ describe('createTests for simple patch:', () => {
   const patch: RemoveOperation[] = [{op: 'remove', path: '/itemCodes/1'}]
 
   // > should generate the following test
-  const expected = [{op: 'test', path: '/itemCodes/1', value: '456'}]
+  const expected: TestOperation[] = [{op: 'test', path: '/itemCodes/1', value: '456'}]
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate the expected test', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate the expected test`)
 
   const actualApply = applyPatch(obj, actual)
-  describe(`tests "${JSON.stringify(actual)}"`, () => {
-    it('should apply without errors', () => {
-      assert.deepStrictEqual(actualApply, [null])
-    })
-  })
+  t.deepEqual(actualApply, [null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-describe('createTests for complex patch:', () => {
+test('createTests for complex patch:', t => {
   // > For example, given the JSON document
   const obj = {
     items: [
@@ -53,7 +44,7 @@ describe('createTests for complex patch:', () => {
   const patch: RemoveOperation[] = [{op: 'remove', path: '/items/1'}]
 
   // > should generate the following test
-  const expected = [
+  const expected: TestOperation[] = [
     {
       op: 'test',
       path: '/items/1',
@@ -66,21 +57,13 @@ describe('createTests for complex patch:', () => {
   ]
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate the expected test', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate the expected test`)
 
   const actualApply = applyPatch(obj, actual)
-  describe(`tests "${JSON.stringify(actual)}"`, () => {
-    it('should apply without errors', () => {
-      assert.deepStrictEqual(actualApply, [null])
-    })
-  })
+  t.deepEqual(actualApply, [null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-describe('createTests for simple patch with add:', () => {
+test('createTests for simple patch with add:', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 
@@ -88,17 +71,13 @@ describe('createTests for simple patch with add:', () => {
   const patch: AddOperation[] = [{op: 'add', path: '/itemCodes/-', value: 'abc'}]
 
   // > should generate the following test
-  const expected = []
+  const expected: TestOperation[] = []
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate no tests', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate no tests`)
 })
 
-describe('createTests for simple patch with move:', () => {
+test('createTests for simple patch with move:', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789'], alternateItemCodes: ['abc']}
 
@@ -106,27 +85,19 @@ describe('createTests for simple patch with move:', () => {
   const patch: MoveOperation[] = [{op: 'move', from: '/itemCodes/1', path: '/alternateItemCodes/0'}]
 
   // > should generate the following test
-  const expected = [
+  const expected: TestOperation[] = [
     {op: 'test', path: '/alternateItemCodes/0', value: 'abc'},
     {op: 'test', path: '/itemCodes/1', value: '456'},
   ]
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate no tests', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate no tests`)
 
   const actualApply = applyPatch(obj, actual)
-  describe(`tests "${JSON.stringify(actual)}"`, () => {
-    it('should apply without errors', () => {
-      assert.deepStrictEqual(actualApply, [null, null])
-    })
-  })
+  t.deepEqual(actualApply, [null, null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-describe('createTests for simple patch with copy:', () => {
+test('createTests for simple patch with copy:', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789'], alternateItemCodes: []}
 
@@ -140,27 +111,19 @@ describe('createTests for simple patch with copy:', () => {
   ]
 
   // > should generate the following test
-  const expected = [
+  const expected: TestOperation[] = [
     {op: 'test', path: '/alternateItemCodes/0', value: undefined},
     {op: 'test', path: '/itemCodes/1', value: '456'},
   ]
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate no tests', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate no tests`)
 
   const actualApply = applyPatch(obj, actual)
-  describe(`tests "${JSON.stringify(actual)}"`, () => {
-    it('should apply without errors', () => {
-      assert.deepStrictEqual(actualApply, [null, null])
-    })
-  })
+  t.deepEqual(actualApply, [null, null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })
 
-describe('createTests for simple patch with replace:', () => {
+test('createTests for simple patch with replace:', t => {
   // > For example, given the JSON document
   const obj = {itemCodes: ['123', '456', '789']}
 
@@ -168,25 +131,11 @@ describe('createTests for simple patch with replace:', () => {
   const patch: ReplaceOperation[] = [{op: 'replace', path: '/itemCodes/1', value: 'abc'}]
 
   // > should generate the following test
-  const expected = [{op: 'test', path: '/itemCodes/1', value: '456'}]
+  const expected: TestOperation[] = [{op: 'test', path: '/itemCodes/1', value: '456'}]
 
   const actual = createTests(obj, patch)
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate the expected test', () => {
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actual, expected, `patch "${JSON.stringify(patch)}" should generate the expected test`)
 
   const actualApply = applyPatch(obj, actual)
-  describe(`tests "${JSON.stringify(actual)}"`, () => {
-    it('should apply without errors', () => {
-      assert.deepStrictEqual(actualApply, [null])
-    })
-  })
-  describe(`patch "${JSON.stringify(patch)}"`, () => {
-    it('should generate to expected test', () => {
-      const actual = createTests(obj, patch)
-      assert.deepStrictEqual(actual, expected)
-    })
-  })
+  t.deepEqual(actualApply, [null], `tests "${JSON.stringify(actual)}" should apply without errors`)
 })

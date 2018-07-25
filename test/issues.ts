@@ -1,109 +1,76 @@
-import * as assert from 'assert'
-import 'mocha'
+import test, {ExecutionContext} from 'ava'
 
 import {applyPatch, createPatch} from '../index'
-import {diffValues} from '../diff'
+import {diffValues, Operation} from '../diff'
 
 function clone(object) {
   return JSON.parse(JSON.stringify(object))
 }
 
-describe('issues/3', () => {
+function checkRoundtrip(t: ExecutionContext,
+                        input: any,
+                        output: any,
+                        expected_patch: Operation[],
+                        actual_patch: Operation[] = createPatch(input, output)) {
+  t.deepEqual(actual_patch, expected_patch, 'should produce patch equal to expectation')
+  const actual_output = clone(input)
+  const patch_results = applyPatch(actual_output, actual_patch)
+  t.deepEqual(actual_output, output, 'should apply patch to arrive at output')
+  t.deepEqual(patch_results.length, actual_patch.length, 'should apply all patches')
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+}
+
+test('issues/3', t => {
   const input = {arr: ['1', '2', '2']}
   const output = {arr: ['1']}
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'remove', path: '/arr/1'},
     {op: 'remove', path: '/arr/1'},
   ]
-  const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null, null])
-  })
+  checkRoundtrip(t, input, output, expected_patch)
 })
 
-describe('issues/4', () => {
+test('issues/4', t => {
   const input = ['A', 'B']
   const output = ['B', 'A']
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'add', path: '/0', value: 'B'},
     {op: 'remove', path: '/2'},
   ]
-  const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null, null])
-  })
+  checkRoundtrip(t, input, output, expected_patch)
 })
 
-describe('issues/5', () => {
+test('issues/5', t => {
   const input = []
   const output = ['A', 'B']
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'add', path: '/-', value: 'A'},
     {op: 'add', path: '/-', value: 'B'},
   ]
-  const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null, null])
-  })
+  checkRoundtrip(t, input, output, expected_patch)
 })
 
-describe('issues/9', () => {
+test('issues/9', t => {
   const input = [{A: 1, B: 2}, {C: 3}]
   const output = [{A: 1, B: 20}, {C: 3}]
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'replace', path: '/0/B', value: 20},
   ]
-  const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null])
-  })
+  checkRoundtrip(t, input, output, expected_patch)
 })
 
-describe('issues/12', () => {
+test('issues/12', t => {
   const input = {name: 'ABC', repositories: ['a', 'e']}
   const output = {name: 'ABC', repositories: ['a', 'b', 'c', 'd', 'e']}
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'add', path: '/repositories/1', value: 'b'},
     {op: 'add', path: '/repositories/2', value: 'c'},
     {op: 'add', path: '/repositories/3', value: 'd'},
   ]
-  const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null, null, null])
-  })
+  checkRoundtrip(t, input, output, expected_patch)
 })
 
-describe('issues/29', () => {
+test('issues/29', t => {
   /**
   Custom diff function that short-circuits recursion when the last token
   in the current pointer is the key "stop_recursing", such that that key's
@@ -124,51 +91,40 @@ describe('issues/29', () => {
     normal: ['a'],
     stop_recursing: ['a'],
   }
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'remove', path: '/normal/1'},
     {op: 'replace', path: '/stop_recursing', value: ['a']},
   ]
   const actual_patch = createPatch(input, output, customDiff)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
-  it('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null, null])
-  })
+  checkRoundtrip(t, input, output, expected_patch, actual_patch)
 
-  describe('nested', () => {
-    const nested_input = {root: input}
-    const nested_output = {root: output}
-    const nested_expected_patch = [
-      {op: 'remove', path: '/root/normal/1'},
-      {op: 'replace', path: '/root/stop_recursing', value: ['a']},
-    ]
-    const nested_actual_patch = createPatch(nested_input, nested_output, customDiff)
-    it('should produce patch equal to expectation', () => {
-      assert.deepStrictEqual(nested_actual_patch, nested_expected_patch)
-    })
-    it('should apply patch to arrive at output', () => {
-      const actual_output = clone(nested_input)
-      const patch_results = applyPatch(actual_output, nested_actual_patch)
-      assert.deepStrictEqual(actual_output, nested_output)
-      assert.deepStrictEqual(patch_results, [null, null])
-    })
-  })
+  const nested_input = {root: input}
+  const nested_output = {root: output}
+  const nested_expected_patch: Operation[] = [
+    {op: 'remove', path: '/root/normal/1'},
+    {op: 'replace', path: '/root/stop_recursing', value: ['a']},
+  ]
+  const nested_actual_patch = createPatch(nested_input, nested_output, customDiff)
+  checkRoundtrip(t, nested_input, nested_output, nested_expected_patch, nested_actual_patch)
 })
 
-describe('issues/32', () => {
+test('issues/32', t => {
   const input = 'a'
   const output = 'b'
-  const expected_patch = [
+  const expected_patch: Operation[] = [
     {op: 'replace', path: '', value: 'b'},
   ]
   const actual_patch = createPatch(input, output)
-  it('should produce patch equal to expectation', () => {
-    assert.deepStrictEqual(actual_patch, expected_patch)
-  })
+  t.deepEqual(actual_patch, expected_patch, 'should produce patch equal to expectation')
+})
+
+test.failing('issues/32 problem', t => {
+  const input = 'a'
+  const output = 'b'
+  const expected_patch: Operation[] = [
+    {op: 'replace', path: '', value: 'b'},
+  ]
+  const actual_patch = createPatch(input, output)
   // applyPatch fails with error, see #32
   //
   // TypeError: Cannot set property 'null' of null
@@ -177,10 +133,8 @@ describe('issues/32', () => {
   // at Array.map (<anonymous>)
   // at Object.applyPatch (index.js:9:510)
   // at Context.<anonymous> (tests/issues.js:153:37)
-  xit('should apply patch to arrive at output', () => {
-    const actual_output = clone(input)
-    const patch_results = applyPatch(actual_output, actual_patch)
-    assert.deepStrictEqual(actual_output, output)
-    assert.deepStrictEqual(patch_results, [null])
-  })
+  const actual_output = clone(input)
+  const patch_results = applyPatch(actual_output, actual_patch)
+  t.deepEqual(actual_output, output, 'should apply patch to arrive at output')
+  t.deepEqual(patch_results, [null])
 })

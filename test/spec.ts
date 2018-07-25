@@ -1,5 +1,5 @@
-import * as assert from 'assert'
-import 'mocha'
+import test from 'ava'
+
 import {join} from 'path'
 import {readFileSync} from 'fs'
 import * as yaml from 'js-yaml'
@@ -17,7 +17,7 @@ function clone(object) {
   return JSON.parse(JSON.stringify(object))
 }
 
-describe('JSON Pointer - rfc-examples:', () => {
+test('JSON Pointer - rfc-examples:', t => {
   // > For example, given the JSON document
   const obj = {
     'foo': ['bar', 'baz'],
@@ -49,16 +49,12 @@ describe('JSON Pointer - rfc-examples:', () => {
   ]
 
   pointers.forEach(pointer => {
-    describe(`pointer "${pointer.path}"`, () => {
-      it('should evaluate to expected output', () => {
-        const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
-        assert.deepStrictEqual(actual, pointer.expected)
-      })
-    })
+    const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
+    t.deepEqual(actual, pointer.expected, `pointer "${pointer.path}" should evaluate to expected output`)
   })
 })
 
-describe('JSON Pointer - package example:', () => {
+test('JSON Pointer - package example:', t => {
   const obj = {
     'first': 'chris',
     'last': 'brown',
@@ -94,59 +90,43 @@ describe('JSON Pointer - package example:', () => {
   ]
 
   pointers.forEach(pointer => {
-    describe(`pointer "${pointer.path}"`, () => {
-      it('should evaluate to expected output', () => {
-        const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
-        assert.deepStrictEqual(actual, pointer.expected)
-      })
-    })
+    const actual = Pointer.fromJSON(pointer.path).evaluate(obj).value
+    t.deepEqual(actual, pointer.expected, `pointer "${pointer.path}" should evaluate to expected output`)
   })
 })
 
-describe('Specification format:', () => {
-  it('should have 19 items', () => assert.strictEqual(spec_patch_results.length, 19))
+test('Specification format:', t => {
+  t.deepEqual(spec_patch_results.length, 19, 'should have 19 items')
   // use sorted values and sort() to emulate set equality
   const props = ['diffable', 'input', 'name', 'output', 'patch', 'results']
   spec_patch_results.forEach(spec_patch_result => {
-    it(`"${spec_patch_result.name}" should have items with specific properties`, () => {
-      assert.deepStrictEqual(Object.keys(spec_patch_result).sort(), props)
-    })
+    t.deepEqual(Object.keys(spec_patch_result).sort(), props, `"${spec_patch_result.name}" should have items with specific properties`)
   })
 })
 
-describe('Specification patches:', () => {
+test('Specification patches:', t => {
   // take the input, apply the patch, and check the actual result against the
   // expected output
   spec_patch_results.forEach(spec_patch_result => {
-    describe(spec_patch_result.name, () => {
-      // patch operations are applied to object in-place
-      const actual = clone(spec_patch_result.input)
-      const expected = spec_patch_result.output
-      const results = applyPatch(actual, spec_patch_result.patch)
-      it('should equal expected output after applying patches', () => {
-        assert.deepStrictEqual(actual, expected)
-      })
-      // since errors are object instances, reduce them to strings to match
-      // the spec's results, which has the type `Array<string | null>`
-      const results_names = results.map(error => error ? error.name : error)
-      it('should produce expected results', () => {
-        assert.deepStrictEqual(results_names, spec_patch_result.results)
-      })
-    })
+    // patch operations are applied to object in-place
+    const actual = clone(spec_patch_result.input)
+    const expected = spec_patch_result.output
+    const results = applyPatch(actual, spec_patch_result.patch)
+    t.deepEqual(actual, expected, `${spec_patch_result.name} should equal expected output after applying patches`)
+    // since errors are object instances, reduce them to strings to match
+    // the spec's results, which has the type `Array<string | null>`
+    const results_names = results.map(error => error ? error.name : error)
+    t.deepEqual(results_names, spec_patch_result.results, `${spec_patch_result.name} should produce expected results`)
   })
 })
 
-describe('Specification diffs:', () => {
+test('Specification diffs:', t => {
   spec_patch_results.filter(item => item.diffable).forEach(spec_patch_result => {
     // we read this separately because patch is destructive and it's easier just to start with a blank slate
     // ignore spec items that are marked as not diffable
-    describe(spec_patch_result.name, () => {
-      // perform diff (create patch = list of operations) and check result against non-test patches in spec
-      const actual = createPatch(spec_patch_result.input, spec_patch_result.output)
-      const expected = spec_patch_result.patch.filter(operation => operation.op !== 'test')
-      it('should produce diff equal to spec patch', () => {
-        assert.deepStrictEqual(actual, expected)
-      })
-    })
+    // perform diff (create patch = list of operations) and check result against non-test patches in spec
+    const actual = createPatch(spec_patch_result.input, spec_patch_result.output)
+    const expected = spec_patch_result.patch.filter(operation => operation.op !== 'test')
+    t.deepEqual(actual, expected, `${spec_patch_result.name} should produce diff equal to spec patch`)
   })
 })
