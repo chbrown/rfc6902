@@ -3,5 +3,5 @@
 .travis.yml
 tsconfig.json
 dist/
-tests/
+test/
 coverage/
