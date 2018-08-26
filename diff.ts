@@ -48,23 +48,27 @@ export type VoidableDiff = (input: any, output: any, ptr: Pointer) => Operation[
 /**
 List the keys in `minuend` that are not in `subtrahend`.
 
+A key is only considered if it is both 1) an own-property (o.hasOwnProperty(k))
+of the object, and 2) has a value that is not undefined. This is to match JSON
+semantics, where JSON object serialization drops keys with undefined values.
+
 @param minuend Object of interest
 @param subtrahend Object of comparison
-@returns Array of keys that are in ("own-properties" of) `minuend` but not in `subtrahend`.
+@returns Array of keys that are in `minuend` but not in `subtrahend`.
 */
 export function subtract(minuend: object, subtrahend: object): string[] {
   // initialize empty object; we only care about the keys, the values can be anything
   const obj: {[index: string]: number} = {}
   // build up obj with all the properties of minuend
   for (const add_key in minuend) {
-    if (minuend.hasOwnProperty(add_key)) {
+    if (minuend.hasOwnProperty(add_key) && minuend[add_key] !== undefined) {
       obj[add_key] = 1
     }
   }
   // now delete all the properties of subtrahend from obj
   // (deleting a missing key has no effect)
   for (const del_key in subtrahend) {
-    if (subtrahend.hasOwnProperty(del_key)) {
+    if (subtrahend.hasOwnProperty(del_key) && subtrahend[del_key] !== undefined) {
       delete obj[del_key]
     }
   }
@@ -74,6 +78,8 @@ export function subtract(minuend: object, subtrahend: object): string[] {
 
 /**
 List the keys that shared by all `objects`.
+
+The semantics of what constitutes a "key" is described in {@link subtract}.
 
 @param objects Array of objects to compare
 @returns Array of keys that are in ("own-properties" of) every object in `objects`.
@@ -86,7 +92,7 @@ export function intersection(objects: ArrayLike<object>): string[] {
   for (let i = 0; i < length; i++) {
     const object = objects[i]
     for (const key in object) {
-      if (object.hasOwnProperty(key)) {
+      if (object.hasOwnProperty(key) && object[key] !== undefined) {
         counter[key] = (counter[key] || 0) + 1
       }
     }

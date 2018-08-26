@@ -138,11 +138,11 @@ test.failing('issues/32 problem', t => {
   t.deepEqual(patch_results, [null])
 })
 
-test.failing('issues/35', t => {
+test('issues/35', t => {
   const input = {name: 'bob', image: undefined, cat: null}
   const output = {name: 'bob', image: 'foo.jpg', cat: 'nikko'}
   const expected_patch: Operation[] = [
-    {op: 'replace', path: '/image', value: 'foo.jpg'},
+    {op: 'add', path: '/image', value: 'foo.jpg'},
     {op: 'replace', path: '/cat', value: 'nikko'},
   ]
   checkRoundtrip(t, input, output, expected_patch)
