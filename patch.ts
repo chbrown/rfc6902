@@ -1,15 +1,22 @@
 import {Pointer} from './pointer'
 import {compare} from './equal'
 import {MissingError, TestError} from './errors'
+import {AddOperation,
+        RemoveOperation,
+        ReplaceOperation,
+        MoveOperation,
+        CopyOperation,
+        TestOperation} from './diff'
 
-function _add(object, key, value) {
+function _add(object: any, key: string, value: any): void {
   if (Array.isArray(object)) {
     // `key` must be an index
     if (key == '-') {
       object.push(value)
     }
     else {
-      object.splice(key, 0, value)
+      const index = parseInt(key, 10)
+      object.splice(index, 0, value)
     }
   }
   else {
@@ -17,10 +24,11 @@ function _add(object, key, value) {
   }
 }
 
-function _remove(object, key) {
+function _remove(object: any, key: string): void {
   if (Array.isArray(object)) {
     // '-' syntax doesn't make sense when removing
-    object.splice(key, 1)
+    const index = parseInt(key, 10)
+    object.splice(index, 1)
   }
   else {
     // not sure what the proper behavior is when path = ''
@@ -36,7 +44,7 @@ function _remove(object, key) {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
-export function add(object, operation) {
+export function add(object: any, operation: AddOperation): MissingError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
   if (endpoint.parent === undefined) {
@@ -50,7 +58,7 @@ export function add(object, operation) {
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
-export function remove(object, operation) {
+export function remove(object: any, operation: RemoveOperation): MissingError | null {
   // endpoint has parent, key, and value properties
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) {
@@ -73,7 +81,7 @@ export function remove(object, operation) {
 
 Even more simply, it's like the add operation with an existence check.
 */
-export function replace(object, operation) {
+export function replace(object: any, operation: ReplaceOperation): MissingError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) return new MissingError(operation.path)
 
@@ -96,7 +104,7 @@ export function replace(object, operation) {
 
 TODO: throw if the check described in the previous paragraph fails.
 */
-export function move(object, operation) {
+export function move(object: any, operation: MoveOperation): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) return new MissingError(operation.from)
 
@@ -121,7 +129,7 @@ export function move(object, operation) {
 
 Alternatively, it's like 'move' without the 'remove'.
 */
-export function copy(object, operation) {
+export function copy(object: any, operation: CopyOperation): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) return new MissingError(operation.from)
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
@@ -140,7 +148,7 @@ export function copy(object, operation) {
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
-export function test(object, operation) {
+export function test(object: any, operation: TestOperation): TestError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   const result = compare(endpoint.value, operation.value)
   if (!result) return new TestError(endpoint.value, operation.value)
