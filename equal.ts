@@ -1,22 +1,17 @@
 /**
-zip(a, b) assumes that a.length === b.length.
+compareArrays(left, right) assumes that `left` and `right` are both Array-like.
 */
-function zip<A, B>(a: A[], b: B[]): Array<[A, B]> {
-  const zipped: Array<[A, B]> = []
-  for (let i = 0, l = a.length; i < l; i++) {
-    zipped.push([a[i], b[i]])
-  }
-  return zipped
-}
-
-/**
-compareArrays(left, right) assumes that `left` and `right` are both Arrays.
-*/
-function compareArrays<L, R>(left: L[], right: R[]): boolean {
-  if (left.length !== right.length) {
+function compareArrays(left: ArrayLike<any>, right: ArrayLike<any>): boolean {
+  const length = left.length
+  if (length !== right.length) {
     return false
   }
-  return zip(left, right).every(pair => compare(pair[0], pair[1]))
+  for (let i = 0; i < length; i++) {
+    if (!compare(left[i], right[i])) {
+      return false
+    }
+  }
+  return true
 }
 
 /**
