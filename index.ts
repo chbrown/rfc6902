@@ -27,7 +27,7 @@ export function applyPatch(object: any, patch: Operation[]) {
 }
 
 function wrapVoidableDiff(diff: VoidableDiff): Diff {
-  function wrappedDiff(input: any, output: any, ptr: Pointer) {
+  function wrappedDiff(input: any, output: any, ptr: Pointer): Operation[] {
     const custom_patch = diff(input, output, ptr)
     // ensure an array is always returned
     return Array.isArray(custom_patch) ? custom_patch : diffAny(input, output, ptr, wrappedDiff)
@@ -54,7 +54,11 @@ export function createPatch(input: any, output: any, diff?: VoidableDiff): Opera
   return (diff ? wrapVoidableDiff(diff) : diffAny)(input, output, ptr)
 }
 
-function createTest(input: any, path: string): TestOperation {
+/**
+Create a test operation based on `input`'s current evaluation of the JSON
+Pointer `path`; if such a pointer cannot be resolved, returns undefined.
+*/
+function createTest(input: any, path: string): TestOperation | undefined {
   const endpoint = Pointer.fromJSON(path).evaluate(input)
   if (endpoint !== undefined) {
     return {op: 'test', path, value: endpoint.value}
