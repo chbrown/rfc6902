@@ -51,10 +51,14 @@ subtract(a, b) returns the keys in `a` that are not in `b`.
 export function subtract<A, B>(a: A, b: B): string[] {
   const obj: {[index: string]: number} = {}
   for (const add_key in a) {
-    obj[add_key] = 1
+    if (a.hasOwnProperty(add_key)) {
+      obj[add_key] = 1
+    }
   }
   for (const del_key in b) {
-    delete obj[del_key]
+    if (b.hasOwnProperty(del_key)) {
+      delete obj[del_key]
+    }
   }
   return Object.keys(obj)
 }
@@ -67,7 +71,9 @@ export function intersection<T>(objects: T[]): string[] {
   const key_counts: {[index: string]: number} = {}
   objects.forEach(object => {
     for (const key in object) {
-      key_counts[key] = (key_counts[key as string] || 0) + 1
+      if (object.hasOwnProperty(key)) {
+        key_counts[key] = (key_counts[key as string] || 0) + 1
+      }
     }
   })
   // but then, extra requirement: delete less commonly-seen keys
