@@ -2,6 +2,7 @@ import test, {ExecutionContext} from 'ava'
 
 import {applyPatch, createPatch} from '../index'
 import {diffValues, Operation} from '../diff'
+import {Pointer} from '../pointer'
 
 import {clone} from './_index'
 
@@ -39,7 +40,7 @@ test('issues/4', t => {
 })
 
 test('issues/5', t => {
-  const input = []
+  const input: string[] = []
   const output = ['A', 'B']
   const expected_patch: Operation[] = [
     {op: 'add', path: '/-', value: 'A'},
@@ -74,7 +75,7 @@ test('issues/29', t => {
   in the current pointer is the key "stop_recursing", such that that key's
   values are compared as primitives rather than objects/arrays.
   */
-  function customDiff(input, output, ptr) {
+  function customDiff(input: any, output: any, ptr: Pointer) {
     if (ptr.tokens[ptr.tokens.length - 1] === 'stop_recursing') {
       // do not compare arrays, replace instead
       return diffValues(input, output, ptr)
