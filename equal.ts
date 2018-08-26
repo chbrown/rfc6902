@@ -28,10 +28,21 @@ Evaluate `left === right`, treating `left` and `right` as property maps.
 function compareObjects(left: object, right: object): boolean {
   const left_keys = Object.keys(left)
   const right_keys = Object.keys(right)
-  if (!compareArrays(left_keys, right_keys)) {
+  const length = left_keys.length
+  // quick exit if the number of keys don't match up
+  if (length !== right_keys.length) {
     return false
   }
-  return left_keys.every(key => compare(left[key], right[key]))
+  // we don't know for sure that Set(left_keys) is equal to Set(right_keys),
+  // much less that their values in left and right are equal, but if right
+  // contains each key in left, we know it can't have any additional keys
+  for (let i = 0; i < length; i++) {
+    const key = left_keys[i]
+    if (!right.hasOwnProperty(key) || !compare(left[key], right[key])) {
+      return false
+    }
+  }
+  return true
 }
 
 /**
