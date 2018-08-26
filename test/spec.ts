@@ -5,15 +5,22 @@ import {readFileSync} from 'fs'
 import * as yaml from 'js-yaml'
 
 import {applyPatch, createPatch} from '../index'
+import {Operation} from '../diff'
 import {Pointer} from '../pointer'
 
 import {clone} from './_index'
 
-const spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'})
-const spec_data_parsed = yaml.load(spec_data)
-const spec_patch_results = Object.keys(spec_data_parsed).reduce((results, patch_result_key) => {
-  return results.concat(spec_data_parsed[patch_result_key])
-}, [])
+interface Spec {
+  name: string
+  input: any
+  patch: Operation[]
+  output: any
+  results: (string | null)[],
+  diffable: boolean
+}
+
+const spec_data: Spec[] = yaml.load(readFileSync(join(__dirname, 'spec.yaml'),
+                                                 {encoding: 'utf8'}))
 
 test('JSON Pointer - rfc-examples', t => {
   // > For example, given the JSON document
@@ -94,37 +101,37 @@ test('JSON Pointer - package example', t => {
 })
 
 test('Specification format', t => {
-  t.deepEqual(spec_patch_results.length, 19, 'should have 19 items')
+  t.deepEqual(spec_data.length, 19, 'should have 19 items')
   // use sorted values and sort() to emulate set equality
   const props = ['diffable', 'input', 'name', 'output', 'patch', 'results']
-  spec_patch_results.forEach(spec_patch_result => {
-    t.deepEqual(Object.keys(spec_patch_result).sort(), props, `"${spec_patch_result.name}" should have items with specific properties`)
+  spec_data.forEach(spec => {
+    t.deepEqual(Object.keys(spec).sort(), props, `"${spec.name}" should have items with specific properties`)
   })
 })
 
 // take the input, apply the patch, and check the actual result against the
 // expected output
-spec_patch_results.forEach(spec_patch_result => {
-  test(`patch ${spec_patch_result.name}`, t => {
+spec_data.forEach(spec => {
+  test(`patch ${spec.name}`, t => {
     // patch operations are applied to object in-place
-    const actual = clone(spec_patch_result.input)
-    const expected = spec_patch_result.output
-    const results = applyPatch(actual, spec_patch_result.patch)
+    const actual = clone(spec.input)
+    const expected = spec.output
+    const results = applyPatch(actual, spec.patch)
     t.deepEqual(actual, expected, `should equal expected output after applying patches`)
     // since errors are object instances, reduce them to strings to match
     // the spec's results, which has the type `Array<string | null>`
     const results_names = results.map(error => error ? error.name : error)
-    t.deepEqual(results_names, spec_patch_result.results, `should produce expected results`)
+    t.deepEqual(results_names, spec.results, `should produce expected results`)
   })
 })
 
-spec_patch_results.filter(item => item.diffable).forEach(spec_patch_result => {
-  test(`diff ${spec_patch_result.name}`, t => {
+spec_data.filter(spec => spec.diffable).forEach(spec => {
+  test(`diff ${spec.name}`, t => {
     // we read this separately because patch is destructive and it's easier just to start with a blank slate
     // ignore spec items that are marked as not diffable
     // perform diff (create patch = list of operations) and check result against non-test patches in spec
-    const actual = createPatch(spec_patch_result.input, spec_patch_result.output)
-    const expected = spec_patch_result.patch.filter(operation => operation.op !== 'test')
+    const actual = createPatch(spec.input, spec.output)
+    const expected = spec.patch.filter(operation => operation.op !== 'test')
     t.deepEqual(actual, expected, `should produce diff equal to spec patch`)
   })
 })
