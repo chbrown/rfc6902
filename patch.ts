@@ -172,8 +172,8 @@ export function test(object: any, operation: TestOperation): TestError | null {
 }
 
 export class InvalidOperationError extends Error {
-  constructor(public op: string) {
-    super(`Invalid operation: ${op}`)
+  constructor(public operation: Operation) {
+    super(`Invalid operation: ${operation.op}`)
     this.name = 'InvalidOperationError'
   }
 }
@@ -194,5 +194,5 @@ export function apply(object: any, operation: Operation): MissingError | Invalid
     case 'copy':    return copy(object, operation)
     case 'test':    return test(object, operation)
   }
-  return new InvalidOperationError(operation.op)
+  return new InvalidOperationError(operation)
 }
