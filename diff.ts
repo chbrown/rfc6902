@@ -46,44 +46,59 @@ export type Diff = (input: any, output: any, ptr: Pointer) => Operation[]
 export type VoidableDiff = (input: any, output: any, ptr: Pointer) => Operation[] | void
 
 /**
-subtract(a, b) returns the keys in `a` that are not in `b`.
+List the keys in `minuend` that are not in `subtrahend`.
+
+@param minuend Object of interest
+@param subtrahend Object of comparison
+@returns Array of keys that are in ("own-properties" of) `minuend` but not in `subtrahend`.
 */
-export function subtract<A, B>(a: A, b: B): string[] {
+export function subtract(minuend: object, subtrahend: object): string[] {
+  // initialize empty object; we only care about the keys, the values can be anything
   const obj: {[index: string]: number} = {}
-  for (const add_key in a) {
-    if (a.hasOwnProperty(add_key)) {
+  // build up obj with all the properties of minuend
+  for (const add_key in minuend) {
+    if (minuend.hasOwnProperty(add_key)) {
       obj[add_key] = 1
     }
   }
-  for (const del_key in b) {
-    if (b.hasOwnProperty(del_key)) {
+  // now delete all the properties of subtrahend from obj
+  // (deleting a missing key has no effect)
+  for (const del_key in subtrahend) {
+    if (subtrahend.hasOwnProperty(del_key)) {
       delete obj[del_key]
     }
   }
+  // finally, extract whatever keys remain in obj
   return Object.keys(obj)
 }
 
 /**
-intersection(objects) returns the keys that shared by all given `objects`.
+List the keys that shared by all `objects`.
+
+@param objects Array of objects to compare
+@returns Array of keys that are in ("own-properties" of) every object in `objects`.
 */
-export function intersection<T>(objects: T[]): string[] {
-  // initialize like union()
-  const key_counts: {[index: string]: number} = {}
-  objects.forEach(object => {
+export function intersection(objects: ArrayLike<object>): string[] {
+  const length = objects.length
+  // prepare empty counter to keep track of how many objects each key occurred in
+  const counter: {[index: string]: number} = {}
+  // go through each object and increment the counter for each key in that object
+  for (let i = 0; i < length; i++) {
+    const object = objects[i]
     for (const key in object) {
       if (object.hasOwnProperty(key)) {
-        key_counts[key] = (key_counts[key as string] || 0) + 1
+        counter[key] = (counter[key] || 0) + 1
       }
     }
-  })
-  // but then, extra requirement: delete less commonly-seen keys
-  const threshold = objects.length
-  for (const key in key_counts) {
-    if (key_counts[key] < threshold) {
-      delete key_counts[key]
+  }
+  // now delete all keys from the counter that were not seen in every object
+  for (const key in counter) {
+    if (counter[key] < length) {
+      delete counter[key]
     }
   }
-  return Object.keys(key_counts)
+  // finally, extract whatever keys remain in the counter
+  return Object.keys(counter)
 }
 
 export function objectType(object: any): string {
