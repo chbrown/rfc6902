@@ -2,9 +2,7 @@ import test from 'ava'
 
 import {applyPatch, createPatch} from '../index'
 
-function clone(object) {
-  return JSON.parse(JSON.stringify(object))
-}
+import {clone} from './_index'
 
 const pairs = [
   [

@@ -7,15 +7,13 @@ import * as yaml from 'js-yaml'
 import {applyPatch, createPatch} from '../index'
 import {Pointer} from '../pointer'
 
+import {clone} from './_index'
+
 const spec_data = readFileSync(join(__dirname, 'spec.yaml'), {encoding: 'utf8'})
 const spec_data_parsed = yaml.load(spec_data)
 const spec_patch_results = Object.keys(spec_data_parsed).reduce((results, patch_result_key) => {
   return results.concat(spec_data_parsed[patch_result_key])
 }, [])
-
-function clone(object) {
-  return JSON.parse(JSON.stringify(object))
-}
 
 test('JSON Pointer - rfc-examples', t => {
   // > For example, given the JSON document

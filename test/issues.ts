@@ -3,9 +3,7 @@ import test, {ExecutionContext} from 'ava'
 import {applyPatch, createPatch} from '../index'
 import {diffValues, Operation} from '../diff'
 
-function clone(object) {
-  return JSON.parse(JSON.stringify(object))
-}
+import {clone} from './_index'
 
 function checkRoundtrip(t: ExecutionContext,
                         input: any,
