@@ -1,5 +1,9 @@
 /**
-compareArrays(left, right) assumes that `left` and `right` are both Array-like.
+Evaluate `left === right`, treating `left` and `right` as ordered lists.
+
+@returns true iff `left` and `right` have identical lengths, and every element
+         of `left` is equal to the corresponding element of `right`. Equality is
+         determined recursivly, via `compare`.
 */
 function compareArrays(left: ArrayLike<any>, right: ArrayLike<any>): boolean {
   const length = left.length
@@ -15,9 +19,13 @@ function compareArrays(left: ArrayLike<any>, right: ArrayLike<any>): boolean {
 }
 
 /**
-compareObjects(left, right) assumes that `left` and `right` are both Objects.
+Evaluate `left === right`, treating `left` and `right` as property maps.
+
+@returns true iff every property in `left` has a value equal to the value of the
+         corresponding property in `right`, and vice-versa, stopping as soon as
+         possible. Equality is determined recursivly, via `compare`.
 */
-function compareObjects<L, R>(left: L, right: R): boolean {
+function compareObjects(left: object, right: object): boolean {
   const left_keys = Object.keys(left)
   const right_keys = Object.keys(right)
   if (!compareArrays(left_keys, right_keys)) {
