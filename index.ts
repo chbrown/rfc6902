@@ -1,7 +1,6 @@
-import {InvalidOperationError} from './errors'
 import {Pointer} from './pointer'
 
-import * as operationFunctions from './patch'
+import {apply} from './patch'
 import {Operation, TestOperation, isDestructive, Diff, VoidableDiff, diffAny} from './diff'
 
 export {Operation, TestOperation}
@@ -17,22 +16,14 @@ Apply a 'application/json-patch+json'-type patch to an object.
 > "remove", "replace", "move", "copy", or "test"; other values are
 > errors.
 
-This method currently operates on the target object in-place.
+This method mutates the target object in-place.
 
-Returns list of results, one for each operation.
-  - `null` indicated success.
-  - otherwise, the result will be an instance of one of the Error classe
-    defined in errors.js.
+@returns list of results, one for each operation: `null` indicated success,
+         otherwise, the result will be an instance of one of the Error classes:
+         MissingError, InvalidOperationError, or TestError.
 */
-export function applyPatch(object, patch) {
-  return patch.map(operation => {
-    const operationFunction = operationFunctions[operation.op]
-    // speedy exit if we don't recognize the operation name
-    if (operationFunction === undefined) {
-      return new InvalidOperationError(operation.op)
-    }
-    return operationFunction(object, operation)
-  })
+export function applyPatch(object: any, patch: Operation[]) {
+  return patch.map(operation => apply(object, operation))
 }
 
 function wrapVoidableDiff(diff: VoidableDiff): Diff {

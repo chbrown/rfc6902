@@ -1,11 +1,13 @@
 import {Pointer} from './pointer'
 import {compare} from './equal'
+import {InvalidOperationError} from './errors'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
         MoveOperation,
         CopyOperation,
-        TestOperation} from './diff'
+        TestOperation,
+        Operation} from './diff'
 
 export class MissingError extends Error {
   constructor(public path: string) {
@@ -168,4 +170,23 @@ export function test(object: any, operation: TestOperation): TestError | null {
   const result = compare(endpoint.value, operation.value)
   if (!result) return new TestError(endpoint.value, operation.value)
   return null
+}
+
+/**
+Switch on `operation.op`, applying the corresponding patch function for each
+case to `object`.
+*/
+export function apply(object: any, operation: Operation): MissingError | InvalidOperationError | TestError | null {
+  // not sure why TypeScript can't infer typesafety of:
+  //   {add, remove, replace, move, copy, test}[operation.op](object, operation)
+  // (seems like a bug)
+  switch (operation.op) {
+    case 'add':     return add(object, operation)
+    case 'remove':  return remove(object, operation)
+    case 'replace': return replace(object, operation)
+    case 'move':    return move(object, operation)
+    case 'copy':    return copy(object, operation)
+    case 'test':    return test(object, operation)
+  }
+  return new InvalidOperationError(operation.op)
 }
