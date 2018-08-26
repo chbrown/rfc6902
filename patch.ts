@@ -1,6 +1,5 @@
 import {Pointer} from './pointer'
 import {compare} from './equal'
-import {InvalidOperationError} from './errors'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
@@ -170,6 +169,13 @@ export function test(object: any, operation: TestOperation): TestError | null {
   const result = compare(endpoint.value, operation.value)
   if (!result) return new TestError(endpoint.value, operation.value)
   return null
+}
+
+export class InvalidOperationError extends Error {
+  constructor(public op: string) {
+    super(`Invalid operation: ${op}`)
+    this.name = 'InvalidOperationError'
+  }
 }
 
 /**
