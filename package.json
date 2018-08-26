@@ -17,13 +17,13 @@
   "license": "MIT",
   "devDependencies": {
     "@types/js-yaml": "^3.11.2",
-    "@types/node": "^10.5.3",
-    "ava": "1.0.0-beta.6",
+    "@types/node": "^10.9.2",
+    "ava": "1.0.0-beta.7",
     "coveralls": "^3.0.2",
     "js-yaml": "3.12.0",
     "nyc": "12.0.2",
-    "rollup": "^0.63.4",
-    "typescript": "^2.9.2"
+    "rollup": "^0.65.0",
+    "typescript": "^3.0.1"
   },
   "scripts": {
     "prepare": "tsc -d",
