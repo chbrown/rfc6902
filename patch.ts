@@ -1,12 +1,27 @@
 import {Pointer} from './pointer'
 import {compare} from './equal'
-import {MissingError, TestError} from './errors'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
         MoveOperation,
         CopyOperation,
         TestOperation} from './diff'
+
+export class MissingError extends Error {
+  constructor(public path: string) {
+    super(`Value required at path: ${path}`)
+    this.name = 'MissingError'
+  }
+}
+
+export class TestError extends Error {
+  constructor(public actual: any, public expected: any) {
+    super(`Test failed: ${actual} != ${expected}`)
+    this.name = 'TestError'
+    this.actual = actual
+    this.expected = expected
+  }
+}
 
 function _add(object: any, key: string, value: any): void {
   if (Array.isArray(object)) {
