@@ -58,20 +58,21 @@ export class Pointer {
   }
   /**
   Returns an object with 'parent', 'key', and 'value' properties.
-  In the special case that pointer = "", parent and key will be null, and `value = obj`
-  Otherwise, parent will be the such that `parent[key] == value`
+  In the special case that this Pointer's path == "",
+  this object will be {parent: null, key: '', value: object}.
+  Otherwise, parent and key will have the property such that parent[key] == value.
   */
   evaluate(object: any): PointerEvaluation {
-    let value: any = object
     let parent: any = null
-    let token: string = null
+    let key = ''
+    let value = object
     for (let i = 1, l = this.tokens.length; i < l; i++) {
       parent = value
-      token = this.tokens[i]
+      key = this.tokens[i]
       // not sure if this the best way to handle non-existant paths...
-      value = (parent || {})[token]
+      value = (parent || {})[key]
     }
-    return {parent, key: token, value}
+    return {parent, key, value}
   }
   get(object: any): any {
     return this.evaluate(object).value
