@@ -99,8 +99,9 @@ Even more simply, it's like the add operation with an existence check.
 */
 export function replace(object: any, operation: ReplaceOperation): MissingError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.value === undefined) return new MissingError(operation.path)
-
+  if (endpoint.value === undefined) {
+    return new MissingError(operation.path)
+  }
   endpoint.parent[endpoint.key] = operation.value
   return null
 }
@@ -122,11 +123,13 @@ TODO: throw if the check described in the previous paragraph fails.
 */
 export function move(object: any, operation: MoveOperation): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
-  if (from_endpoint.value === undefined) return new MissingError(operation.from)
-
+  if (from_endpoint.value === undefined) {
+    return new MissingError(operation.from)
+  }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.parent === undefined) return new MissingError(operation.path)
-
+  if (endpoint.parent === undefined) {
+    return new MissingError(operation.path)
+  }
   _remove(from_endpoint.parent, from_endpoint.key)
   _add(endpoint.parent, endpoint.key, from_endpoint.value)
   return null
@@ -147,10 +150,13 @@ Alternatively, it's like 'move' without the 'remove'.
 */
 export function copy(object: any, operation: CopyOperation): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
-  if (from_endpoint.value === undefined) return new MissingError(operation.from)
+  if (from_endpoint.value === undefined) {
+    return new MissingError(operation.from)
+  }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.parent === undefined) return new MissingError(operation.path)
-
+  if (endpoint.parent === undefined) {
+    return new MissingError(operation.path)
+  }
   _remove(from_endpoint.parent, from_endpoint.key)
   _add(endpoint.parent, endpoint.key, from_endpoint.value)
   return null
@@ -167,7 +173,9 @@ export function copy(object: any, operation: CopyOperation): MissingError | null
 export function test(object: any, operation: TestOperation): TestError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   const result = compare(endpoint.value, operation.value)
-  if (!result) return new TestError(endpoint.value, operation.value)
+  if (!result) {
+    return new TestError(endpoint.value, operation.value)
+  }
   return null
 }
 
