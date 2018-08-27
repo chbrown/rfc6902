@@ -157,3 +157,15 @@ test('issues/35', t => {
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
+
+test.failing('issues/36', t => {
+  const input = [undefined, 'B']
+  // Alternatively:
+  // const input = ['A', 'B']
+  // delete input[0]
+  const output = ['A', 'B']
+  const expected_patch: Operation[] = [
+    {op: 'add', path: '/0', value: 'A'},
+  ]
+  checkRoundtrip(t, input, output, expected_patch)
+})
