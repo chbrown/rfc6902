@@ -143,7 +143,8 @@ interface DynamicAlternative {
 }
 
 /**
-Array-diffing smarter (levenshtein-like) diffing here
+Calculate the shortest sequence of operations to get from `input` to `output`,
+using a dynamic programming implementation of the Levenshtein distance algorithm.
 
 To get from the input ABC to the output AZ we could just delete all the input
 and say "insert A, insert Z" and be done with it. That's what we do if the
@@ -162,9 +163,12 @@ input A |  1  [0]  1
 3) remove B (+1)
 4) replace C with Z (+1)
 
-if input (source) is empty, they'll all be in the top row, just a bunch of
-additions. If the output is empty, everything will be in the left column, as a
-bunch of deletions.
+If the `input` (source) is empty, they'll all be in the top row, resulting in an
+array of 'add' operations.
+If the `output` (target) is empty, everything will be in the left column,
+resulting in an array of 'remove' operations.
+
+@returns A list of add/remove/replace operations.
 */
 export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff = diffAny): Operation[] {
   // set up cost matrix (very simple initialization: just a map)
@@ -172,14 +176,14 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     '0,0': {operations: [], cost: 0},
   }
   /**
-  input[i's] -> output[j's]
+  Calculate the cheapest sequence of operations required to get from
+  input.slice(0, i) to output.slice(0, j).
+  There may be other valid sequences with the same cost, but none cheaper.
 
-  Given the layout above, i is the row, j is the col
-
-  returns a list of Operations needed to get to from input.slice(0, i) to
-  output.slice(0, j), the each marked with the total cost of getting there.
-  `cost` is a non-negative integer.
-  Recursive.
+  @param i The row in the layout above
+  @param j The column in the layout above
+  @returns An object containing a list of operations, along with the total cost
+           of applying them (+1 for each add/remove/replace operation)
   */
   function dist(i: number, j: number): DynamicAlternative {
     // memoized
