@@ -138,6 +138,16 @@ test.failing('issues/32 problem', t => {
   t.deepEqual(patch_results, [null])
 })
 
+test('issues/34', t => {
+  const input = [3, 4]
+  const output = [3, 4]
+  delete output[0]
+  const expected_patch: Operation[] = [
+    {op: 'replace', path: '/0', value: undefined},
+  ]
+  checkRoundtrip(t, input, output, expected_patch)
+})
+
 test('issues/35', t => {
   const input = {name: 'bob', image: undefined, cat: null}
   const output = {name: 'bob', image: 'foo.jpg', cat: 'nikko'}
