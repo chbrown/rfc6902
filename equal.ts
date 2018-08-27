@@ -85,12 +85,14 @@ export function compare(left: any, right: any): boolean {
   if (left === right) {
     return true
   }
+  const left_type = objectType(left)
+  const right_type = objectType(right)
   // check arrays
-  if (Array.isArray(left) && Array.isArray(right)) {
+  if (left_type == 'array' && right_type == 'array') {
     return compareArrays(left, right)
   }
   // check objects
-  if (Object(left) === left && Object(right) === right) {
+  if (left_type == 'object' && right_type == 'object') {
     return compareObjects(left, right)
   }
   // mismatched arrays & objects, etc., are always inequal
