@@ -1,4 +1,4 @@
-import {compare} from './equal'
+import {compare, objectType} from './equal'
 import {Pointer} from './pointer' // we only need this for type inference
 
 /**
@@ -105,19 +105,6 @@ export function intersection(objects: ArrayLike<object>): string[] {
   }
   // finally, extract whatever keys remain in the counter
   return Object.keys(counter)
-}
-
-export function objectType(object: any) {
-  if (object === undefined) {
-    return 'undefined'
-  }
-  if (object === null) {
-    return 'null'
-  }
-  if (Array.isArray(object)) {
-    return 'array'
-  }
-  return typeof object
 }
 
 interface ArrayAdd     { op: 'add',     index: number, value: any }
