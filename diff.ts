@@ -107,7 +107,7 @@ export function intersection(objects: ArrayLike<object>): string[] {
   return Object.keys(counter)
 }
 
-export function objectType(object: any): string {
+export function objectType(object: any) {
   if (object === undefined) {
     return 'undefined'
   }
