@@ -142,6 +142,14 @@ interface DynamicAlternative {
   cost: number
 }
 
+function appendArrayOperation(base: DynamicAlternative, operation: ArrayOperation): DynamicAlternative {
+  return {
+    // the new operation must be pushed on the end
+    operations: base.operations.concat(operation),
+    cost: base.cost + 1,
+  }
+}
+
 /**
 Calculate the shortest sequence of operations to get from `input` to `output`,
 using a dynamic programming implementation of the Levenshtein distance algorithm.
@@ -198,44 +206,37 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
         const alternatives: DynamicAlternative[] = []
         if (i > 0) {
           // NOT topmost row
-          const remove_alternative = dist(i - 1, j)
-          alternatives.push({
-            // the new operation must be pushed on the end
-            operations: remove_alternative.operations.concat({
-              op: 'remove',
-              index: i - 1,
-            }),
-            cost: remove_alternative.cost + 1,
-          })
+          const remove_base = dist(i - 1, j)
+          const remove_operation: ArrayRemove = {
+            op: 'remove',
+            index: i - 1,
+          }
+          alternatives.push(appendArrayOperation(remove_base, remove_operation))
         }
         if (j > 0) {
           // NOT leftmost column
-          const add_alternative = dist(i, j - 1)
-          alternatives.push({
-            operations: add_alternative.operations.concat({
-              op: 'add',
-              index: i - 1,
-              value: output[j - 1],
-            }),
-            cost: add_alternative.cost + 1,
-          })
+          const add_base = dist(i, j - 1)
+          const add_operation: ArrayAdd = {
+            op: 'add',
+            index: i - 1,
+            value: output[j - 1],
+          }
+          alternatives.push(appendArrayOperation(add_base, add_operation))
         }
         if (i > 0 && j > 0) {
           // TABLE MIDDLE
           // supposing we replaced it, compute the rest of the costs:
-          const replace_alternative = dist(i - 1, j - 1)
+          const replace_base = dist(i - 1, j - 1)
           // okay, the general plan is to replace it, but we can be smarter,
           // recursing into the structure and replacing only part of it if
           // possible, but to do so we'll need the original value
-          alternatives.push({
-            operations: replace_alternative.operations.concat({
-              op: 'replace',
-              index: i - 1,
-              original: input[i - 1],
-              value: output[j - 1],
-            }),
-            cost: replace_alternative.cost + 1,
-          })
+          const replace_operation: ArrayReplace = {
+            op: 'replace',
+            index: i - 1,
+            original: input[i - 1],
+            value: output[j - 1],
+          }
+          alternatives.push(appendArrayOperation(replace_base, replace_operation))
         }
         // the only other case, i === 0 && j === 0, has already been memoized
 
