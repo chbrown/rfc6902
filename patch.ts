@@ -99,6 +99,9 @@ Even more simply, it's like the add operation with an existence check.
 */
 export function replace(object: any, operation: ReplaceOperation): MissingError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  if (endpoint.parent === null) {
+    return new MissingError(operation.path)
+  }
   if (endpoint.value === undefined) {
     return new MissingError(operation.path)
   }
