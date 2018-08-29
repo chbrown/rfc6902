@@ -4,7 +4,7 @@ import {applyPatch, createPatch} from '../index'
 import {diffValues, Operation} from '../diff'
 import {Pointer} from '../pointer'
 
-import {clone} from './_index'
+import {clone, resultName} from './_index'
 
 function checkRoundtrip(t: ExecutionContext,
                         input: any,
@@ -115,27 +115,10 @@ test('issues/32', t => {
   ]
   const actual_patch = createPatch(input, output)
   t.deepEqual(actual_patch, expected_patch, 'should produce patch equal to expectation')
-})
-
-test.failing('issues/32 problem', t => {
-  const input = 'a'
-  const output = 'b'
-  const expected_patch: Operation[] = [
-    {op: 'replace', path: '', value: 'b'},
-  ]
-  const actual_patch = createPatch(input, output)
-  // applyPatch fails with error, see #32
-  //
-  // TypeError: Cannot set property 'null' of null
-  // at replace (patch.js:9:2939)
-  // at index.js:9:967
-  // at Array.map (<anonymous>)
-  // at Object.applyPatch (index.js:9:510)
-  // at Context.<anonymous> (tests/issues.js:153:37)
   const actual_output = clone(input)
-  const patch_results = applyPatch(actual_output, actual_patch)
-  t.deepEqual(actual_output, output, 'should apply patch to arrive at output')
-  t.deepEqual(patch_results, [null])
+  const results = applyPatch(input, actual_patch)
+  t.deepEqual(actual_output, 'a', 'should not change input')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
 })
 
 test('issues/33', t => {
