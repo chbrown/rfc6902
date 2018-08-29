@@ -1,3 +1,4 @@
 *.js
 *.d.ts
 coverage/
+!dist/*.js
