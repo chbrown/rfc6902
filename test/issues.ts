@@ -180,3 +180,13 @@ test.failing('issues/36', t => {
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
+
+test('issues/37', t => {
+  const value = {id: 'chbrown'}
+  const patch_results = applyPatch(value, [
+    {op: 'copy', from: '/id', path: '/name'},
+  ])
+  const expected_value = {id: 'chbrown', name: 'chbrown'}
+  t.deepEqual(value, expected_value, 'should apply patch to arrive at output')
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+})
