@@ -2,9 +2,7 @@ import test from 'ava'
 
 import {applyPatch} from '../index'
 
-function resultName<T extends {name?: string}>(result: T): string | T {
-  return result ? result.name : result
-}
+import {resultName} from './_index'
 
 test('broken add', t => {
   const user = {id: 'chbrown'}

@@ -9,3 +9,7 @@ Brute-force clone object by passing it through a JSON stringify+parse roundtrip.
 export function clone<T>(object: T): T {
   return JSON.parse(JSON.stringify(object))
 }
+
+export function resultName<T extends {name?: string}>(result: T): string | T {
+  return result ? result.name : result
+}
