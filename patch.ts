@@ -157,7 +157,6 @@ export function copy(object: any, operation: CopyOperation): MissingError | null
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path)
   }
-  _remove(from_endpoint.parent, from_endpoint.key)
   _add(endpoint.parent, endpoint.key, from_endpoint.value)
   return null
 }
