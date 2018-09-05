@@ -9,10 +9,7 @@
     "rfc6902"
   ],
   "homepage": "https://github.com/chbrown/rfc6902",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chbrown/rfc6902.git"
-  },
+  "repository": "github:chbrown/rfc6902",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "devDependencies": {
