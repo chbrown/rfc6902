@@ -1,4 +1,5 @@
 import {Pointer} from './pointer'
+import {clone} from './util'
 import {compare} from './equal'
 import {AddOperation,
         RemoveOperation,
@@ -160,7 +161,7 @@ export function copy(object: any, operation: CopyOperation): MissingError | null
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path)
   }
-  _add(endpoint.parent, endpoint.key, from_endpoint.value)
+  _add(endpoint.parent, endpoint.key, clone(from_endpoint.value))
   return null
 }
 
