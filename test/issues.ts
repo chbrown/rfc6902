@@ -173,3 +173,24 @@ test('issues/37', t => {
   t.deepEqual(value, expected_value, 'should apply patch to arrive at output')
   t.true(patch_results.every(result => result == null), 'should apply patch successfully')
 })
+
+test('issues/38', t => {
+  const value = {
+    current: {timestamp: 23},
+    history: [],
+  }
+  const patch_results = applyPatch(value, [
+    {op: 'copy',    from: '/current', path: '/history/-'},
+    {op: 'replace', path: '/current/timestamp', value: 24},
+    {op: 'copy',    from: '/current', path: '/history/-'},
+  ])
+  const expected_value = {
+    current: {timestamp: 24},
+    history: [
+      {timestamp: 23},
+      {timestamp: 24},
+    ],
+  }
+  t.deepEqual(value, expected_value, 'should apply patch to arrive at output')
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+})
