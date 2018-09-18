@@ -103,7 +103,13 @@ export function replace(object: any, operation: ReplaceOperation): MissingError 
   if (endpoint.parent === null) {
     return new MissingError(operation.path)
   }
-  if (endpoint.value === undefined) {
+  // this existence check treats arrays as a special case
+  if (Array.isArray(endpoint.parent)) {
+    if (parseInt(endpoint.key, 10) >= endpoint.parent.length) {
+      return new MissingError(operation.path)
+    }
+  }
+  else if (endpoint.value === undefined) {
     return new MissingError(operation.path)
   }
   endpoint.parent[endpoint.key] = operation.value
