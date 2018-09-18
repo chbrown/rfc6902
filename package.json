@@ -23,11 +23,11 @@
     "typescript": "3.0.3"
   },
   "scripts": {
-    "prepare": "tsc -d",
+    "prepare": "tsc",
     "pretest": "tsc",
     "test": "nyc ava",
     "posttest": "nyc report --reporter=text-lcov | coveralls || true",
     "dist": "tsc -t ES2015 -m es2015 && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
-    "clean": "tsc -d --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
+    "clean": "tsc --listEmittedFiles | sed 's/^TSFILE: //' | xargs rm -v"
   }
 }
