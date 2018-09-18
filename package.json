@@ -1,6 +1,6 @@
 {
   "name": "rfc6902-gh-pages",
-  "version": "1.0.1",
+  "version": "3.0.0",
   "description": "Demo of RFC6902 (https://github.com/chbrown/rfc6902)",
   "homepage": "https://github.com/chbrown/rfc6902/tree/gh-pages",
   "repository": "git://github.com/chbrown/rfc6902.git#gh-pages",
@@ -10,7 +10,7 @@
     "angular": "1.4.3",
     "flow-copy": "0.1.2",
     "ngstorage": "0.3.8",
-    "rfc6902": "1.2.2"
+    "rfc6902": "3.0.0"
   },
   "devDependencies": {
     "babel": "5.8.21",
