@@ -21,5 +21,12 @@
     "less": "3.8.1",
     "watchify": "3.3.1",
     "watsh": "0.1.0"
+  },
+  "scripts": {
+    "css": "lessc site.less | cleancss --keep-line-breaks --skip-advanced -o site.css",
+    "bundle": "browserify app.js -t babelify -t browserify-ngannotate -o bundle.js",
+    "bundle-min": "closure-compiler --angular_pass --language_in ECMASCRIPT5 --warning_level QUIET bundle.js > bundle.min.js",
+    "prepare": "npm run bundle && npm run bundle-min && npm run css",
+    "start": "watchify app.js -t babelify -t browserify-ngannotate -o bundle.js -v"
   }
 }
