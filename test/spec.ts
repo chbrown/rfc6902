@@ -7,8 +7,7 @@ import * as yaml from 'js-yaml'
 import {applyPatch, createPatch} from '../index'
 import {Operation} from '../diff'
 import {Pointer} from '../pointer'
-
-import {clone} from './_index'
+import {clone} from '../util'
 
 interface Spec {
   name: string

@@ -1,8 +1,7 @@
 import test from 'ava'
 
 import {applyPatch, createPatch} from '../index'
-
-import {clone} from './_index'
+import {clone} from '../util'
 
 const pairs = [
   [

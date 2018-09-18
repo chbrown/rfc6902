@@ -3,8 +3,9 @@ import test, {ExecutionContext} from 'ava'
 import {applyPatch, createPatch} from '../index'
 import {diffValues, Operation} from '../diff'
 import {Pointer} from '../pointer'
+import {clone} from '../util'
 
-import {clone, resultName} from './_index'
+import {resultName} from './_index'
 
 function checkRoundtrip(t: ExecutionContext,
                         input: any,
