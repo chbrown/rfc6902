@@ -18,7 +18,7 @@
     "browserify": "11.0.1",
     "browserify-ngannotate": "1.0.1",
     "clean-css": "3.3.9",
-    "less": "2.5.1",
+    "less": "3.8.1",
     "watchify": "3.3.1",
     "watsh": "0.1.0"
   }
