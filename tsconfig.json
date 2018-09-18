@@ -3,5 +3,8 @@
     "declaration": true,
     "module": "commonjs",
     "target": "ES5"
-  }
+  },
+  "exclude": [
+    "test"
+  ]
 }
