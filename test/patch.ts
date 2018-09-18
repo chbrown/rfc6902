@@ -31,6 +31,16 @@ test('broken replace', t => {
   t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
 })
 
+test('broken replace (array)', t => {
+  const users = [{id: 'chbrown'}]
+  const results = applyPatch(users, [
+    {op: 'replace', path: '/1', value: {id: 'chbrown2'}},
+  ])
+  // cf. issues/36
+  t.deepEqual(users, [{id: 'chbrown'}], 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
 test('broken move (from)', t => {
   const user = {id: 'chbrown'}
   const results = applyPatch(user, [
