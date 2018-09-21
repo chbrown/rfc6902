@@ -1,6 +1,8 @@
 import {compare, objectType} from './equal'
 import {Pointer} from './pointer' // we only need this for type inference
 
+const hasOwnProperty = Object.prototype.hasOwnProperty
+
 /**
 All diff* functions should return a list of operations, often empty.
 
@@ -61,14 +63,14 @@ export function subtract(minuend: object, subtrahend: object): string[] {
   const obj: {[index: string]: number} = {}
   // build up obj with all the properties of minuend
   for (const add_key in minuend) {
-    if (minuend.hasOwnProperty(add_key) && minuend[add_key] !== undefined) {
+    if (hasOwnProperty.call(minuend, add_key) && minuend[add_key] !== undefined) {
       obj[add_key] = 1
     }
   }
   // now delete all the properties of subtrahend from obj
   // (deleting a missing key has no effect)
   for (const del_key in subtrahend) {
-    if (subtrahend.hasOwnProperty(del_key) && subtrahend[del_key] !== undefined) {
+    if (hasOwnProperty.call(subtrahend, del_key) && subtrahend[del_key] !== undefined) {
       delete obj[del_key]
     }
   }
@@ -92,7 +94,7 @@ export function intersection(objects: ArrayLike<object>): string[] {
   for (let i = 0; i < length; i++) {
     const object = objects[i]
     for (const key in object) {
-      if (object.hasOwnProperty(key) && object[key] !== undefined) {
+      if (hasOwnProperty.call(object, key) && object[key] !== undefined) {
         counter[key] = (counter[key] || 0) + 1
       }
     }
