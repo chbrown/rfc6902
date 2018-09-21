@@ -1,3 +1,5 @@
+const hasOwnProperty = Object.prototype.hasOwnProperty
+
 export function objectType(object: any) {
   if (object === undefined) {
     return 'undefined'
@@ -51,7 +53,7 @@ function compareObjects(left: object, right: object): boolean {
   // contains each key in left, we know it can't have any additional keys
   for (let i = 0; i < length; i++) {
     const key = left_keys[i]
-    if (!right.hasOwnProperty(key) || !compare(left[key], right[key])) {
+    if (!hasOwnProperty.call(right, key) || !compare(left[key], right[key])) {
       return false
     }
   }
