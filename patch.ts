@@ -67,7 +67,7 @@ export function add(object: any, operation: AddOperation): MissingError | null {
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path)
   }
-  _add(endpoint.parent, endpoint.key, operation.value)
+  _add(endpoint.parent, endpoint.key, clone(operation.value))
   return null
 }
 
