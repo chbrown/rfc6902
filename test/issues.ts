@@ -193,3 +193,18 @@ test('issues/38', t => {
   t.deepEqual(value, expected_value, 'should apply patch to arrive at output')
   t.true(patch_results.every(result => result == null), 'should apply patch successfully')
 })
+
+test('issues/44', t => {
+  const value = {}
+  const author = {firstName: 'Chris'}
+  const patch_results = applyPatch(value, [
+    {op: 'add', path: '/author', value: author},
+    {op: 'add', path: '/author/lastName', value: 'Brown'},
+  ])
+  const expected_value = {
+    author: {firstName: 'Chris', lastName: 'Brown'},
+  }
+  t.deepEqual(value, expected_value, 'should apply patch to arrive at output')
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+  t.deepEqual(author, {firstName: 'Chris'}, 'patch reference should not be changed')
+})
