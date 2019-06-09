@@ -15,7 +15,7 @@
   "devDependencies": {
     "@types/js-yaml": "3.12.1",
     "@types/node": "11.13.4",
-    "ava": "1.4.1",
+    "ava": "2.0.0",
     "coveralls": "3.0.3",
     "js-yaml": "3.13.1",
     "nyc": "13.3.0",
