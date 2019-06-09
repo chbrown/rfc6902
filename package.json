@@ -16,7 +16,7 @@
     "@types/js-yaml": "3.12.1",
     "@types/node": "11.13.4",
     "ava": "1.4.1",
-    "coveralls": "3.0.3",
+    "coveralls": "3.0.4",
     "js-yaml": "3.13.1",
     "nyc": "13.3.0",
     "rollup": "1.9.3",
