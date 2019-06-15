@@ -151,6 +151,21 @@ E.g., consider the NPM registry:
 * All double quotation marks, reverse slashes, and control characters _must_ escaped, since a JSON Pointer is a JSON string.
 * A pointer that refers to a non-existent value counts as an error, too. But not necessarily as fatal as a syntax error.
 
+### Example
+
+This project implements JSON Pointer functionality in `rfc6902/pointer`. E.g.:
+
+```js
+const {Pointer} = require('rfc6902/pointer')
+const repository = {
+  contributors: ['chbrown', 'diachedelic', 'nathanrobinson', 'kbiedrzycki', 'stefanmaric']
+}
+const pointer = Pointer.fromJSON('/contributors/0')
+//=> Pointer { tokens: [ '', 'contributors', '0' ] }
+pointer.get(repository)
+//=> 'chbrown'
+```
+
 
 ## JSON Patch (RFC6902)
 
