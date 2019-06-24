@@ -20,7 +20,7 @@
     "js-yaml": "3.13.1",
     "nyc": "^14.1.1",
     "rollup": "^1.15.5",
-    "typescript": "3.5.2"
+    "typescript": "^3.5.2"
   },
   "scripts": {
     "prepare": "tsc",
