@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.rfc6902 = {})));
-}(this, (function (exports) { 'use strict';
+  (global = global || self, factory(global.rfc6902 = {}));
+}(this, function (exports) { 'use strict';
 
   /**
   Unescape token part of a JSON Pointer string
@@ -142,6 +142,7 @@
       return objectTarget;
   }
 
+  const hasOwnProperty$1 = Object.prototype.hasOwnProperty;
   function objectType(object) {
       if (object === undefined) {
           return 'undefined';
@@ -193,7 +194,7 @@
       // contains each key in left, we know it can't have any additional keys
       for (let i = 0; i < length; i++) {
           const key = left_keys[i];
-          if (!right.hasOwnProperty(key) || !compare(left[key], right[key])) {
+          if (!hasOwnProperty$1.call(right, key) || !compare(left[key], right[key])) {
               return false;
           }
       }
@@ -297,7 +298,7 @@
       if (endpoint.parent === undefined) {
           return new MissingError(operation.path);
       }
-      _add(endpoint.parent, endpoint.key, operation.value);
+      _add(endpoint.parent, endpoint.key, clone(operation.value));
       return null;
   }
   /**
@@ -438,6 +439,7 @@
       return new InvalidOperationError(operation);
   }
 
+  const hasOwnProperty$2 = Object.prototype.hasOwnProperty;
   function isDestructive({ op }) {
       return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move';
   }
@@ -457,14 +459,14 @@
       const obj = {};
       // build up obj with all the properties of minuend
       for (const add_key in minuend) {
-          if (minuend.hasOwnProperty(add_key) && minuend[add_key] !== undefined) {
+          if (hasOwnProperty$2.call(minuend, add_key) && minuend[add_key] !== undefined) {
               obj[add_key] = 1;
           }
       }
       // now delete all the properties of subtrahend from obj
       // (deleting a missing key has no effect)
       for (const del_key in subtrahend) {
-          if (subtrahend.hasOwnProperty(del_key) && subtrahend[del_key] !== undefined) {
+          if (hasOwnProperty$2.call(subtrahend, del_key) && subtrahend[del_key] !== undefined) {
               delete obj[del_key];
           }
       }
@@ -487,7 +489,7 @@
       for (let i = 0; i < length; i++) {
           const object = objects[i];
           for (const key in object) {
-              if (object.hasOwnProperty(key) && object[key] !== undefined) {
+              if (hasOwnProperty$2.call(object, key) && object[key] !== undefined) {
                   counter[key] = (counter[key] || 0) + 1;
               }
           }
@@ -768,4 +770,4 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
