@@ -2,6 +2,5 @@
 !*.d.ts
 .travis.yml
 tsconfig.json
-dist/
 test/
 coverage/
