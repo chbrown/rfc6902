@@ -45,6 +45,11 @@ export function isDestructive({op}: Operation): boolean {
 }
 
 export type Diff = (input: any, output: any, ptr: Pointer) => Operation[]
+/**
+VoidableDiff exists to allow the user to provide a partial diff(...) function,
+falling back to the built-in diffAny(...) function if the user-provided function
+returns void.
+*/
 export type VoidableDiff = (input: any, output: any, ptr: Pointer) => Operation[] | void
 
 /**

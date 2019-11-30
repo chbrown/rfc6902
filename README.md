@@ -69,7 +69,7 @@ If all operations were successful, each item in the returned list will be `null`
 If any of them failed, the corresponding item in the returned list will be an Error instance
 with descriptive `.name` and `.message` properties.
 
-### `createPatch(input: any, output: any): Operation[]`
+### `createPatch(input: any, output: any, diff?: VoidableDiff): Operation[]`
 
 Returns a list of operations (a JSON Patch) of the required operations to make `input` equal to `output`.
 In most cases, there is more than one way to transform an object into another.
@@ -78,6 +78,19 @@ but does not always provide the optimal list of patches.
 It uses a simple Levenshtein-type implementation with Arrays,
 but it doesn't try for anything much smarter than that,
 so it's limited to `remove`, `add`, and `replace` operations.
+
+The optional `diff` argument allows the user to specify a partial function
+that's called before the built-in `diffAny` function.
+For example, to avoid recursing into instances of a custom class, say, `MyObject`:
+```js
+function myDiff(input: any, output: any, ptr: Pointer) {
+  if ((input instanceof MyObject || output instanceof MyObject) && input != output) {
+    return [{op: 'replace', path: ptr.toString(), value: output}]
+  }
+}
+const my_patch = createPatch(input, output, myDiff)
+```
+This will short-circuit on encountering an instance of `MyObject`, but otherwise recurse as usual.
 
 ### `Operation`
 
