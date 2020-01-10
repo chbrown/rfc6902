@@ -14,7 +14,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/js-yaml": "3.12.1",
-    "@types/node": "^12.0.8",
+    "@types/node": "^13.1.6",
     "ava": "^2.1.0",
     "coveralls": "^3.0.4",
     "js-yaml": "3.13.1",
