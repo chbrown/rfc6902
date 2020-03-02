@@ -1,7 +1,7 @@
 import test, {ExecutionContext} from 'ava'
 
 import {applyPatch, createPatch} from '../index'
-import {diffValues, Operation} from '../diff'
+import {diffValues, Operation, VoidableDiff} from '../diff'
 import {Pointer} from '../pointer'
 import {clone} from '../util'
 
@@ -11,7 +11,8 @@ function checkRoundtrip(t: ExecutionContext,
                         input: any,
                         output: any,
                         expected_patch: Operation[],
-                        actual_patch: Operation[] = createPatch(input, output)) {
+                        diff?: VoidableDiff,
+                        actual_patch: Operation[] = createPatch(input, output, diff)) {
   t.deepEqual(actual_patch, expected_patch, 'should produce patch equal to expectation')
   const actual_output = clone(input)
   const patch_results = applyPatch(actual_output, actual_patch)
@@ -76,7 +77,7 @@ test('issues/29', t => {
   in the current pointer is the key "stop_recursing", such that that key's
   values are compared as primitives rather than objects/arrays.
   */
-  function customDiff(input: any, output: any, ptr: Pointer) {
+  const customDiff: VoidableDiff = (input: any, output: any, ptr: Pointer) => {
     if (ptr.tokens[ptr.tokens.length - 1] === 'stop_recursing') {
       // do not compare arrays, replace instead
       return diffValues(input, output, ptr)
@@ -96,7 +97,7 @@ test('issues/29', t => {
     {op: 'replace', path: '/stop_recursing', value: ['a']},
   ]
   const actual_patch = createPatch(input, output, customDiff)
-  checkRoundtrip(t, input, output, expected_patch, actual_patch)
+  checkRoundtrip(t, input, output, expected_patch, null, actual_patch)
 
   const nested_input = {root: input}
   const nested_output = {root: output}
@@ -105,7 +106,7 @@ test('issues/29', t => {
     {op: 'replace', path: '/root/stop_recursing', value: ['a']},
   ]
   const nested_actual_patch = createPatch(nested_input, nested_output, customDiff)
-  checkRoundtrip(t, nested_input, nested_output, nested_expected_patch, nested_actual_patch)
+  checkRoundtrip(t, nested_input, nested_output, nested_expected_patch, null, nested_actual_patch)
 })
 
 test('issues/32', t => {
