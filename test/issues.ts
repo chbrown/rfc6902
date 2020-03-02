@@ -71,6 +71,20 @@ test('issues/12', t => {
   checkRoundtrip(t, input, output, expected_patch)
 })
 
+test('issues/15', t => {
+  const customDiff: VoidableDiff = (input: any, output: any, ptr: Pointer) => {
+    if (input instanceof Date && output instanceof Date && input.valueOf() != output.valueOf()) {
+      return [{op: 'replace', path: ptr.toString(), value: output}]
+    }
+  }
+  const input = {date: new Date(0)}
+  const output = {date: new Date(1)}
+  const expected_patch: Operation[] = [
+    {op: 'replace', path: '/date', value: new Date(1)},
+  ]
+  checkRoundtrip(t, input, output, expected_patch, customDiff)
+})
+
 test('issues/29', t => {
   /**
   Custom diff function that short-circuits recursion when the last token
