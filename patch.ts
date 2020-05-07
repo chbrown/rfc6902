@@ -20,8 +20,6 @@ export class TestError extends Error {
   constructor(public actual: any, public expected: any) {
     super(`Test failed: ${actual} != ${expected}`)
     this.name = 'TestError'
-    this.actual = actual
-    this.expected = expected
   }
 }
 
