@@ -1,7 +1,7 @@
 import test, {ExecutionContext} from 'ava'
 
 import {applyPatch, createPatch} from '../index'
-import {diffValues, Operation, VoidableDiff} from '../diff'
+import {Operation, VoidableDiff} from '../diff'
 import {Pointer} from '../pointer'
 import {clone} from '../util'
 
@@ -108,7 +108,7 @@ test('issues/29', t => {
   const customDiff: VoidableDiff = (input: any, output: any, ptr: Pointer) => {
     if (ptr.tokens[ptr.tokens.length - 1] === 'stop_recursing') {
       // do not compare arrays, replace instead
-      return diffValues(input, output, ptr)
+      return [{op: 'replace', path: ptr.toString(), value: output}]
     }
   }
 
