@@ -30,7 +30,7 @@ export function clone<T extends any>(source: T): T {
   // x.constructor == Array is the fastest way to check if x is an Array
   if (source.constructor == Array) {
     // construction via imperative for-loop is faster than source.map(arrayVsObject)
-    const length = source.length
+    const length = (source as Array<any>).length
     // setting the Array length during construction is faster than just `[]` or `new Array()`
     const arrayTarget: any = new Array(length)
     for (let i = 0; i < length; i++) {
