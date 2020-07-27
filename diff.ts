@@ -294,14 +294,16 @@ export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = 
   return operations
 }
 
-export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
-  if (!compare(input, output)) {
-    return [{op: 'replace', path: ptr.toString(), value: output}]
-  }
-  return []
-}
-
+/**
+`diffAny()` returns an empty array if `input` and `output` are materially equal
+(i.e., would produce equivalent JSON); otherwise it produces an array of patches
+that would transform `input` into `output`.
+*/
 export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
+  // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
+  if (input === output) {
+    return []
+  }
   const input_type = objectType(input)
   const output_type = objectType(output)
   if (input_type == 'array' && output_type == 'array') {
@@ -310,7 +312,9 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   if (input_type == 'object' && output_type == 'object') {
     return diffObjects(input, output, ptr, diff)
   }
-  // only pairs of arrays and objects can go down a path to produce a smaller
-  // diff; everything else must be wholesale replaced if inequal
-  return diffValues(input, output, ptr)
+  // at this point we know that input and output are materially different;
+  // could be array -> object, object -> array, boolean -> undefined,
+  // number -> string, or some other combination, but nothing that can be split
+  // up into multiple patches: so `output` must replace `input` wholesale.
+  return [{op: 'replace', path: ptr.toString(), value: output}]
 }
