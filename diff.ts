@@ -1,4 +1,3 @@
-import {compare} from './equal'
 import {Pointer} from './pointer' // we only need this for type inference
 import {hasOwnProperty, objectType} from './util'
 
@@ -191,7 +190,8 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     const memo_key = `${i},${j}`
     let memoized = memo[memo_key]
     if (memoized === undefined) {
-      if (i > 0 && j > 0 && compare(input[i - 1], output[j - 1])) {
+      // TODO: this !diff(...).length usage could/should be lazy
+      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], new Pointer()).length) {
         // equal (no operations => no cost)
         memoized = dist(i - 1, j - 1)
       }
@@ -298,6 +298,24 @@ export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = 
 `diffAny()` returns an empty array if `input` and `output` are materially equal
 (i.e., would produce equivalent JSON); otherwise it produces an array of patches
 that would transform `input` into `output`.
+
+> Here, "equal" means that the value at the target location and the
+> value conveyed by "value" are of the same JSON type, and that they
+> are considered equal by the following rules for that type:
+> o  strings: are considered equal if they contain the same number of
+>    Unicode characters and their code points are byte-by-byte equal.
+> o  numbers: are considered equal if their values are numerically
+>    equal.
+> o  arrays: are considered equal if they contain the same number of
+>    values, and if each value can be considered equal to the value at
+>    the corresponding position in the other array, using this list of
+>    type-specific rules.
+> o  objects: are considered equal if they contain the same number of
+>    members, and if each member can be considered equal to a member in
+>    the other object, by comparing their keys (as strings) and their
+>    values (using this list of type-specific rules).
+> o  literals (false, true, and null): are considered equal if they are
+>    the same.
 */
 export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
   // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)

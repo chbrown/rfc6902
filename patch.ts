@@ -1,13 +1,13 @@
 import {Pointer} from './pointer'
 import {clone} from './util'
-import {compare} from './equal'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
         MoveOperation,
         CopyOperation,
         TestOperation,
-        Operation} from './diff'
+        Operation,
+        diffAny} from './diff'
 
 export class MissingError extends Error {
   constructor(public path: string) {
@@ -179,8 +179,8 @@ export function copy(object: any, operation: CopyOperation): MissingError | null
 */
 export function test(object: any, operation: TestOperation): TestError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  const result = compare(endpoint.value, operation.value)
-  if (!result) {
+  // TODO: this diffAny(...).length usage could/should be lazy
+  if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
     return new TestError(endpoint.value, operation.value)
   }
   return null
