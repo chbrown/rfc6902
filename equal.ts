@@ -1,4 +1,4 @@
-const hasOwnProperty = Object.prototype.hasOwnProperty
+import {hasOwnProperty} from './util'
 
 export function objectType(object: any) {
   if (object === undefined) {

@@ -1,7 +1,6 @@
 import {compare, objectType} from './equal'
 import {Pointer} from './pointer' // we only need this for type inference
-
-const hasOwnProperty = Object.prototype.hasOwnProperty
+import {hasOwnProperty} from './util'
 
 /**
 All diff* functions should return a list of operations, often empty.
