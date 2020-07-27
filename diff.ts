@@ -1,6 +1,6 @@
-import {compare, objectType} from './equal'
+import {compare} from './equal'
 import {Pointer} from './pointer' // we only need this for type inference
-import {hasOwnProperty} from './util'
+import {hasOwnProperty, objectType} from './util'
 
 /**
 All diff* functions should return a list of operations, often empty.
