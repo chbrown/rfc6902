@@ -13,6 +13,12 @@ export function objectType(object: any) {
   return typeof object
 }
 
+function isNonPrimitive(value: any): value is object {
+  // loose-equality checking for null is faster than strict checking for each of null/undefined/true/false
+  // checking null first, then calling typeof, is faster than vice-versa
+  return value != null && typeof value == 'object'
+}
+
 /**
 Recursively copy a value.
 
@@ -21,9 +27,7 @@ Recursively copy a value.
          reconstructed from their constituent elements
 */
 export function clone<T extends any>(source: T): T {
-  // loose-equality checking for null is faster than strict checking for each of null/undefined/true/false
-  // checking null first, then calling typeof, is faster than vice-versa
-  if (source == null || typeof source != 'object') {
+  if (!isNonPrimitive(source)) {
     // short-circuiting is faster than a single return
     return source
   }
