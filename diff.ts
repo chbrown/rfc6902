@@ -61,7 +61,7 @@ semantics, where JSON object serialization drops keys with undefined values.
 @param subtrahend Object of comparison
 @returns Array of keys that are in `minuend` but not in `subtrahend`.
 */
-export function subtract(minuend: object, subtrahend: object): string[] {
+export function subtract(minuend: {[index: string]: any}, subtrahend: {[index: string]: any}): string[] {
   // initialize empty object; we only care about the keys, the values can be anything
   const obj: {[index: string]: number} = {}
   // build up obj with all the properties of minuend
@@ -89,7 +89,7 @@ The semantics of what constitutes a "key" is described in {@link subtract}.
 @param objects Array of objects to compare
 @returns Array of keys that are in ("own-properties" of) every object in `objects`.
 */
-export function intersection(objects: ArrayLike<object>): string[] {
+export function intersection(objects: ArrayLike<{[index: string]: any}>): string[] {
   const length = objects.length
   // prepare empty counter to keep track of how many objects each key occurred in
   const counter: {[index: string]: number} = {}

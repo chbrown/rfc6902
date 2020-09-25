@@ -2,7 +2,8 @@
   "compilerOptions": {
     "declaration": true,
     "module": "commonjs",
-    "target": "ES5"
+    "target": "ES5",
+    "strict": true
   },
   "exclude": [
     "test"
