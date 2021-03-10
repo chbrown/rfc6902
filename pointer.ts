@@ -69,7 +69,7 @@ export class Pointer {
     for (let i = 1, l = this.tokens.length; i < l; i++) {
       parent = value
       key = this.tokens[i]
-      if (key == '__proto__' || key == 'constructor' || key == 'prototype')
+      if (['__proto__', 'constructor', 'prototype'].includes(key))
         continue;
       // not sure if this the best way to handle non-existant paths...
       value = (parent || {})[key]
