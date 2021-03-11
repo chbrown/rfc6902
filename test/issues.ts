@@ -237,3 +237,12 @@ test('issues/44', t => {
   t.true(patch_results.every(result => result == null), 'should apply patch successfully')
   t.deepEqual(author, {firstName: 'Chris'}, 'patch reference should not be changed')
 })
+
+test('issues/78', t => {
+  const user = {firstName: 'Chris'}
+  const patch_results = applyPatch(user, [
+    {op: 'add', path: '/createdAt', value: new Date('2010-08-10T22:10:48Z')},
+  ])
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+  t.deepEqual(user['createdAt'].getTime(), 1281478248000, 'should add Date recoverably')
+})
