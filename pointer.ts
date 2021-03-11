@@ -72,7 +72,7 @@ export class Pointer {
       if (['__proto__', 'constructor', 'prototype'].includes(key))
         continue;
       // not sure if this the best way to handle non-existant paths...
-      value = (parent || {})[key]
+      value = parent?.[key]
     }
     return {parent, key, value}
   }
