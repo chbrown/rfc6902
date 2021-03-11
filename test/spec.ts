@@ -18,8 +18,8 @@ interface Spec {
   diffable: boolean
 }
 
-const spec_data: Spec[] = yaml.load(readFileSync(join(__dirname, 'spec.yaml'),
-                                                 {encoding: 'utf8'}))
+const spec_data = yaml.load(readFileSync(join(__dirname, 'spec.yaml'),
+                                         {encoding: 'utf8'})) as Spec[]
 
 test('JSON Pointer - rfc-examples', t => {
   // > For example, given the JSON document
