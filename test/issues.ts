@@ -238,6 +238,15 @@ test('issues/44', t => {
   t.deepEqual(author, {firstName: 'Chris'}, 'patch reference should not be changed')
 })
 
+test('issues/76', t => {
+  t.true(({} as any).polluted === undefined, 'Object prototype should not be polluted')
+  const value = {}
+  applyPatch(value, [
+    {op: 'add', path: '/__proto__/polluted', value: 'Hello!'}
+  ])
+  t.true(({} as any).polluted === undefined, 'Object prototype should still not be polluted')
+})
+
 test('issues/78', t => {
   const user = {firstName: 'Chris'}
   const patch_results = applyPatch(user, [
