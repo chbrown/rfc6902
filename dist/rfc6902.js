@@ -124,7 +124,7 @@
   /**
   Recursively copy a value.
 
-  @param source - should be a JavaScript primitive, Array, or (plain old) Object.
+  @param source - should be a JavaScript primitive, Array, Date, or (plain old) Object.
   @returns copy of source where every Array and Object have been recursively
            reconstructed from their constituent elements
   */
@@ -143,6 +143,11 @@
               arrayTarget[i] = clone(source[i]);
           }
           return arrayTarget;
+      }
+      // Date
+      if (source.constructor == Date) {
+          const dateTarget = new Date(+source);
+          return dateTarget;
       }
       // Object
       const objectTarget = {};
