@@ -128,7 +128,7 @@ test('simple patch with replace', t => {
   const obj = {itemCodes: ['123', '456', '789']}
 
   // > and the following patch
-  const patch: ReplaceOperation[] = [{op: 'replace', path: '/itemCodes/1', value: 'abc'}]
+  const patch: ReplaceOperation[] = [{op: 'replace', path: '/itemCodes/1', value: 'abc', original: '456'}]
 
   // > should generate the following test
   const expected: TestOperation[] = [{op: 'test', path: '/itemCodes/1', value: '456'}]
