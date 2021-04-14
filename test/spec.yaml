@@ -43,7 +43,7 @@
   input:
     {"baz": "qux", "foo": "bar"}
   patch:
-    - {op: "replace", path: "/baz", value: "boo"}
+    - {op: "replace", path: "/baz", value: "boo", original: "qux"}
   output:
     {"baz": "boo", "foo": "bar"}
   results: [null]
@@ -250,6 +250,6 @@
   output:
     repositories: {}
   patch:
-    - {op: "replace", path: "/repositories", value: {}}
+    - {op: "replace", path: "/repositories", value: {}, original: ["amulet", "flickr-with-uploads"]}
   results: [null]
   diffable: true

@@ -55,7 +55,7 @@ test('issues/9', t => {
   const input = [{A: 1, B: 2}, {C: 3}]
   const output = [{A: 1, B: 20}, {C: 3}]
   const expected_patch: Operation[] = [
-    {op: 'replace', path: '/0/B', value: 20},
+    {op: 'replace', path: '/0/B', value: 20, original: 2},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
@@ -141,7 +141,7 @@ test('issues/32', t => {
   const input = 'a'
   const output = 'b'
   const expected_patch: Operation[] = [
-    {op: 'replace', path: '', value: 'b'},
+    {op: 'replace', path: '', value: 'b', original: 'a'},
   ]
   const actual_patch = createPatch(input, output)
   t.deepEqual(actual_patch, expected_patch, 'should produce patch equal to expectation')
@@ -155,10 +155,10 @@ test('issues/33', t => {
   const object = {root: {0: 4}}
   const array = {root: [4]}
   checkRoundtrip(t, object, array, [
-    {op: 'replace', path: '/root', value: [4]},
+    {op: 'replace', path: '/root', value: [4], original: {0: 4}},
   ])
   checkRoundtrip(t, array, object, [
-    {op: 'replace', path: '/root', value: {0: 4}},
+    {op: 'replace', path: '/root', value: {0: 4}, original: [4]},
   ])
 })
 
@@ -167,7 +167,7 @@ test('issues/34', t => {
   const output = [3, 4]
   delete output[0]
   const expected_patch: Operation[] = [
-    {op: 'replace', path: '/0', value: undefined},
+    {op: 'replace', path: '/0', value: undefined, original: 3},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
@@ -177,7 +177,7 @@ test('issues/35', t => {
   const output = {name: 'bob', image: 'foo.jpg', cat: 'nikko'}
   const expected_patch: Operation[] = [
     {op: 'add', path: '/image', value: 'foo.jpg'},
-    {op: 'replace', path: '/cat', value: 'nikko'},
+    {op: 'replace', path: '/cat', value: 'nikko', original: null},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
@@ -187,7 +187,7 @@ test('issues/36', t => {
   const output = ['A', 'B']
   const expected_patch: Operation[] = [
     // could also be {op: 'add', ...} -- the spec isn't clear on what constitutes existence for arrays
-    {op: 'replace', path: '/0', value: 'A'},
+    {op: 'replace', path: '/0', value: 'A', original: undefined},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })

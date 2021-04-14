@@ -427,7 +427,7 @@
       // could be array -> object, object -> array, boolean -> undefined,
       // number -> string, or some other combination, but nothing that can be split
       // up into multiple patches: so `output` must replace `input` wholesale.
-      return [{ op: 'replace', path: ptr.toString(), value: output }];
+      return [{ op: 'replace', path: ptr.toString(), value: output, original: input }];
   }
 
   class MissingError extends Error {

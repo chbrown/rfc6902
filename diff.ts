@@ -24,12 +24,12 @@ Everything Else, which is pretty much just what JSON substantially
 differentiates between.
 */
 
-export interface AddOperation     { op: 'add',     path: string, value: any    }
-export interface RemoveOperation  { op: 'remove',  path: string                }
-export interface ReplaceOperation { op: 'replace', path: string, value: any    }
-export interface MoveOperation    { op: 'move',    from: string, path: string  }
-export interface CopyOperation    { op: 'copy',    from: string, path: string  }
-export interface TestOperation    { op: 'test',    path: string, value: any    }
+export interface AddOperation     { op: 'add',     path: string, value: any                  }
+export interface RemoveOperation  { op: 'remove',  path: string                              }
+export interface ReplaceOperation { op: 'replace', path: string, value: any, original?: any  }
+export interface MoveOperation    { op: 'move',    from: string, path: string                }
+export interface CopyOperation    { op: 'copy',    from: string, path: string                }
+export interface TestOperation    { op: 'test',    path: string, value: any                  }
 
 export type Operation = AddOperation |
                         RemoveOperation |
@@ -334,5 +334,5 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   // could be array -> object, object -> array, boolean -> undefined,
   // number -> string, or some other combination, but nothing that can be split
   // up into multiple patches: so `output` must replace `input` wholesale.
-  return [{op: 'replace', path: ptr.toString(), value: output}]
+  return [{op: 'replace', path: ptr.toString(), value: output, original: input}]
 }
