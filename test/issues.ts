@@ -25,8 +25,8 @@ test('issues/3', t => {
   const input = {arr: ['1', '2', '2']}
   const output = {arr: ['1']}
   const expected_patch: Operation[] = [
-    {op: 'remove', path: '/arr/1'},
-    {op: 'remove', path: '/arr/1'},
+    {op: 'remove', path: '/arr/1', original: '2'},
+    {op: 'remove', path: '/arr/1', original: '2'},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
@@ -36,7 +36,7 @@ test('issues/4', t => {
   const output = ['B', 'A']
   const expected_patch: Operation[] = [
     {op: 'add', path: '/0', value: 'B'},
-    {op: 'remove', path: '/2'},
+    {op: 'remove', path: '/2', original: 'B'},
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
@@ -121,7 +121,7 @@ test('issues/29', t => {
     stop_recursing: ['a'],
   }
   const expected_patch: Operation[] = [
-    {op: 'remove', path: '/normal/1'},
+    {op: 'remove', path: '/normal/1', original: 'b'},
     {op: 'replace', path: '/stop_recursing', value: ['a']},
   ]
   const actual_patch = createPatch(input, output, customDiff)
@@ -130,7 +130,7 @@ test('issues/29', t => {
   const nested_input = {root: input}
   const nested_output = {root: output}
   const nested_expected_patch: Operation[] = [
-    {op: 'remove', path: '/root/normal/1'},
+    {op: 'remove', path: '/root/normal/1', 'original': 'b'},
     {op: 'replace', path: '/root/stop_recursing', value: ['a']},
   ]
   const nested_actual_patch = createPatch(nested_input, nested_output, customDiff)

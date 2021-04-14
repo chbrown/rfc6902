@@ -25,7 +25,7 @@ differentiates between.
 */
 
 export interface AddOperation     { op: 'add',     path: string, value: any                  }
-export interface RemoveOperation  { op: 'remove',  path: string                              }
+export interface RemoveOperation  { op: 'remove',  path: string, original?: any              }
 export interface ReplaceOperation { op: 'replace', path: string, value: any, original?: any  }
 export interface MoveOperation    { op: 'move',    from: string, path: string                }
 export interface CopyOperation    { op: 'copy',    from: string, path: string                }
@@ -113,7 +113,7 @@ export function intersection(objects: ArrayLike<{[index: string]: any}>): string
 }
 
 interface ArrayAdd     { op: 'add',     index: number, value: any }
-interface ArrayRemove  { op: 'remove',  index: number }
+interface ArrayRemove  { op: 'remove',  index: number, original?: any }
 interface ArrayReplace { op: 'replace', index: number, original: any, value: any }
 /** These are not proper Operation objects, but will be converted into
 Operation objects eventually. {index} indicates the actual target position,
@@ -203,6 +203,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
           const remove_operation: ArrayRemove = {
             op: 'remove',
             index: i - 1,
+            original: input[i - 1],
           }
           alternatives.push(appendArrayOperation(remove_base, remove_operation))
         }
@@ -264,6 +265,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
       const operation = {
         op: array_operation.op,
         path: ptr.add(String(array_operation.index + padding)).toString(),
+        original: array_operation.original
       }
       // padding--
       return [operations.concat(operation), padding - 1]
@@ -281,7 +283,7 @@ export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = 
   // if a key is in input but not output -> remove it
   const operations: Operation[] = []
   subtract(input, output).forEach(key => {
-    operations.push({op: 'remove', path: ptr.add(key).toString()})
+    operations.push({op: 'remove', path: ptr.add(key).toString(), original: input[key]})
   })
   // if a key is in output but not input -> add it
   subtract(output, input).forEach(key => {

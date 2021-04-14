@@ -299,6 +299,7 @@
                       const remove_operation = {
                           op: 'remove',
                           index: i - 1,
+                          original: input[i - 1],
                       };
                       alternatives.push(appendArrayOperation(remove_base, remove_operation));
                   }
@@ -359,6 +360,7 @@
               const operation = {
                   op: array_operation.op,
                   path: ptr.add(String(array_operation.index + padding)).toString(),
+                  original: array_operation.original
               };
               // padding--
               return [operations.concat(operation), padding - 1];
@@ -375,7 +377,7 @@
       // if a key is in input but not output -> remove it
       const operations = [];
       subtract(input, output).forEach(key => {
-          operations.push({ op: 'remove', path: ptr.add(key).toString() });
+          operations.push({ op: 'remove', path: ptr.add(key).toString(), original: input[key] });
       });
       // if a key is in output but not input -> add it
       subtract(output, input).forEach(key => {

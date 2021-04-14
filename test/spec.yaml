@@ -23,7 +23,7 @@
   input:
     {"baz": "qux", "foo": "bar"}
   patch:
-    - {op: "remove", path: "/baz"}
+    - {op: "remove", path: "/baz", original: "qux"}
   output:
     {"foo": "bar"}
   results: [null]
@@ -33,7 +33,7 @@
   input:
     {"foo": [ "bar", "qux", "baz" ]}
   patch:
-    - {op: "remove", path: "/foo/1"}
+    - {op: "remove", path: "/foo/1", original: "qux"}
   output:
     {"foo": [ "bar", "baz" ]}
   results: [null]
