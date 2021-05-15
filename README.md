@@ -92,6 +92,26 @@ const my_patch = createPatch(input, output, myDiff)
 ```
 This will short-circuit on encountering an instance of `MyObject`, but otherwise recurse as usual.
 
+### `createTest(input: any, patch: Operation[]): Operation[]`
+
+Returns a list of `test` JSON Patch operations to verify that
+existing values in an object are identical to the those captured at some
+checkpoint (whenever this function is called).
+
+The resulting operations don't modify the object. You can use the resulting
+operations to validate that an object is in the expected state before applying a
+patch.
+
+Sample usage:
+
+```js
+const patch = rfc6902.createPatch({first: 'Chris', last: 'Brown'}, {first: 'Chris', last: 'Smith'});
+const tests = rfc6902.createTests({first: 'Chris', last: 'Brown'}, patch);
+const problems = rfc6902.applyPatch({first: 'Chris', last: 'Cook'}, tests).filter(i => i != null);
+console.log([problem]);
+// [ Error [TestError]: Test failed: Cook != Brown ]
+```
+
 ### `Operation`
 
 ```typescript
