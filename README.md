@@ -117,6 +117,31 @@ Different operations use different combinations of `from` / `value`;
 see [JSON Patch (RFC6902)](#json-patch-rfc6902) below.
 
 
+## Changelog
+
+I'm not going to copy & paste my relatively descriptive commit messages into groups here;
+rather, these are just the changes that merited major version bumps:
+
+### `3.x.x` → `4.0.0` (2020-07-27)
+
+* Potential performance regression due to consolidating separate `compare(a, b): boolean` and `diff(a, b): Operation[]` logic into basically defining `compare(a, b)` as `!diff(a, b).length` (i.e., `diff(a, b)` returns empty array).
+This simplifies the codebase and ensures underlying semantics do not diverge,
+but potentially does unnecessary work in computing a full diff when all we really care about is whether there is at least one difference.
+It also facilitates the user completely specifying custom diff functionality with just one `diff` function,
+as opposed to a `diff` and corresponding `compare`
+(and avoids the headache of having to propagate both of those around internally).
+
+### `2.x.x` → `3.0.0` (2018-09-17)
+
+* Corrects improper behavior in a few buggy edge cases,
+which might conceivably break consumers relying on incorrect behavior.
+(Tbh [that applies to most bugfixes](https://xkcd.com/1172/) but I felt there were enough to add up to incrementing the major version.)
+* Also moves around some of the internal API that was not intended to be used externally,
+but technically _was_ exported.
+If you're only importing the public API of `applyPatch`, `createPatch`, and `createTests` from `'rfc6902'`,
+nothing has changed.
+
+
 ## Implementation details
 
 ### Determinism
