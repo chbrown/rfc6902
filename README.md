@@ -11,28 +11,33 @@ for creating and consuming `application/json-patch+json` documents.
 Also offers "diff" functionality without using `Object.observe`.
 
 
+## Demo
+
+Simple [web app](https://chbrown.github.io/rfc6902/) using the browser-compiled version of the code.
+
+
 ## Quickstart
 
-#### Install locally:
+### Install locally
 
 ```sh
 npm install --save rfc6902
 ```
 
-#### Import in your script:
+### Import in your script
 
 ```js
 var rfc6902 = require('rfc6902')
 ```
 
-#### Calculate diff between two objects:
+### Calculate diff between two objects
 
 ```js
 rfc6902.createPatch({first: 'Chris'}, {first: 'Chris', last: 'Brown'})
 //⇒ [ { op: 'add', path: '/last', value: 'Brown' } ]
 ```
 
-#### Apply a patch to some object:
+### Apply a patch to some object
 
 ```js
 var users = [{first: 'Chris', last: 'Brown', age: 20}]
@@ -52,7 +57,7 @@ users
 ```
 
 
-# API
+## API
 
 In ES6 syntax:
 ```js
@@ -79,6 +84,9 @@ It uses a simple Levenshtein-type implementation with Arrays,
 but it doesn't try for anything much smarter than that,
 so it's limited to `remove`, `add`, and `replace` operations.
 
+<details>
+  <summary>Optional <code>diff</code> argument</summary>
+
 The optional `diff` argument allows the user to specify a partial function
 that's called before the built-in `diffAny` function.
 For example, to avoid recursing into instances of a custom class, say, `MyObject`:
@@ -91,6 +99,8 @@ function myDiff(input: any, output: any, ptr: Pointer) {
 const my_patch = createPatch(input, output, myDiff)
 ```
 This will short-circuit on encountering an instance of `MyObject`, but otherwise recurse as usual.
+
+</details>
 
 ### `Operation`
 
@@ -107,12 +117,9 @@ Different operations use different combinations of `from` / `value`;
 see [JSON Patch (RFC6902)](#json-patch-rfc6902) below.
 
 
-## Demo
+## Implementation details
 
-Simple [web app](https://chbrown.github.io/rfc6902) using the browser-compiled version of the code.
-
-
-## Determinism
+### Determinism
 
 If you've ever implemented Levenshtein's algorithm,
 or played tricks with `git rebase` to get a reasonable sequence of commits,
@@ -141,10 +148,7 @@ but it's more efficient than the strategy of wholesale replacing everything that
 Of course, this only applies to generating the patches.
 Applying them is deterministic and unambiguously specified by [RFC6902](http://tools.ietf.org/html/rfc6902).
 
-
-# Tutorial
-
-## JSON Pointer (RFC6901)
+### JSON Pointer (RFC6901)
 
 The [RFC](http://tools.ietf.org/html/rfc6901) is a quick and easy read, but here's the gist:
 
@@ -203,7 +207,7 @@ E.g., consider the NPM registry:
 4. `/flickr-with-uploads/keywords/1`: Array indices start at 0,
    so this selects the second item from the `keywords` array, namely, `"api"`.
 
-**Rules:**
+#### Rules:
 
 * A pointer, if it is not empty, must always start with a slash;
 otherwise, it is an "Invalid pointer syntax" error.
@@ -219,7 +223,7 @@ otherwise, it is an "Invalid pointer syntax" error.
 * A pointer that refers to a non-existent value counts as an error, too.
   But not necessarily as fatal as a syntax error.
 
-### Example
+#### Example
 
 This project implements JSON Pointer functionality in `rfc6902/pointer`; e.g.:
 
@@ -234,8 +238,7 @@ pointer.get(repository)
 //⇒ 'chbrown'
 ```
 
-
-## JSON Patch (RFC6902)
+### JSON Patch (RFC6902)
 
 The [RFC](http://tools.ietf.org/html/rfc6902) is only 18 pages long, but here are the basics:
 
@@ -277,5 +280,5 @@ A JSON Patch document is a JSON document such that:
 
 ## License
 
-Copyright 2014-2019 Christopher Brown.
-[MIT Licensed](https://chbrown.github.io/licenses/MIT/#2014-2019).
+Copyright 2014-2021 Christopher Brown.
+[MIT Licensed](https://chbrown.github.io/licenses/MIT/#2014-2021).
