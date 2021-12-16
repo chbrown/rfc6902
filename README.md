@@ -122,6 +122,15 @@ see [JSON Patch (RFC6902)](#json-patch-rfc6902) below.
 I'm not going to copy & paste my relatively descriptive commit messages into groups here;
 rather, these are just the changes that merited major version bumps:
 
+### `4.x.x` → `5.0.0` (2021-12-15)
+
+* Short-circuits JSON pointer traversal over the prototype-polluting tokens `__proto__`, `constructor`, and `prototype`. I.e., `/a/__proto__/b` and `/a/b` evaluate to the same thing.
+This is in violation of the spec,
+which makes no special provisions for this idiosyncrasy of the JavaScript language,
+but AFAIK there's no way to strictly comply with the spec in JavaScript.
+It would probably be more correct to throw an error in those cases,
+but this 'solution' feels less disruptive / more in line with workarounds implemented by other libraries.
+
 ### `3.x.x` → `4.0.0` (2020-07-27)
 
 * Potential performance regression due to consolidating separate `compare(a, b): boolean` and `diff(a, b): Operation[]` logic into basically defining `compare(a, b)` as `!diff(a, b).length` (i.e., `diff(a, b)` returns empty array).
