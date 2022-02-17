@@ -191,7 +191,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     let memoized = memo[memo_key]
     if (memoized === undefined) {
       // TODO: this !diff(...).length usage could/should be lazy
-      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], new Pointer()).length) {
+      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
         // equal (no operations => no cost)
         memoized = dist(i - 1, j - 1)
       }
