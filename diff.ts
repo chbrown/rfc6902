@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'util'
 import {Pointer} from './pointer' // we only need this for type inference
 import {hasOwnProperty, objectType} from './util'
 
@@ -127,19 +128,29 @@ function isArrayRemove(array_operation: ArrayOperation): array_operation is Arra
 }
 
 interface DynamicAlternative {
-  operations: ArrayOperation[]
+  /**
+   * track prev key position for less memory usage
+   */
+  prev: string | null
+  operation: ArrayOperation | null
   /**
   cost indicates the total cost of getting to this position.
   */
   cost: number
 }
 
-function appendArrayOperation(base: DynamicAlternative, operation: ArrayOperation): DynamicAlternative {
-  return {
-    // the new operation must be pushed on the end
-    operations: base.operations.concat(operation),
-    cost: base.cost + 1,
+function buildOperations(memo: Array<Array<DynamicAlternative>>, i: number, j: number) {
+  var memoized: DynamicAlternative = memo[i][j]
+  if (!memoized) {
+    throw new Error('invalid memo')
   }
+  let operations: ArrayOperation[] = []
+  while (memoized && memoized.prev && memoized.operation) {
+    operations.push(memoized.operation)
+    const index = memoized.prev.split(',')
+    memoized = memo[Number(index[0])][Number(index[1])]
+  }
+  return operations.reverse()
 }
 
 /**
@@ -171,10 +182,25 @@ resulting in an array of 'remove' operations.
 @returns A list of add/remove/replace operations.
 */
 export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff = diffAny): Operation[] {
+  if (diff === void 0) { diff = diffAny; }
   // set up cost matrix (very simple initialization: just a map)
-  const memo: {[index: string]: DynamicAlternative} = {
-    '0,0': {operations: [], cost: 0},
+  var input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
+  var output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
+  var input_end = input_length
+  var output_end = output_length
+  while (input_end > 0 && output_end > 0) { // accelerate same arrays
+    if (isDeepStrictEqual(input[input_end-1], output[output_end-1])) {
+      input_end--
+      output_end--
+    } else {
+      break
+    }
   }
+  const memo: Array<Array<DynamicAlternative>> = new Array(input_end + 1)
+  for (var i = 0; i <= input_end; i++) {
+    memo[i] = new Array(output_end + 1)
+  }
+  memo[0][0] = { prev: null, operation: null, cost: 0 }
   /**
   Calculate the cheapest sequence of operations required to get from
   input.slice(0, i) to output.slice(0, j).
@@ -185,69 +211,56 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   @returns An object containing a list of operations, along with the total cost
            of applying them (+1 for each add/remove/replace operation)
   */
-  function dist(i: number, j: number): DynamicAlternative {
-    // memoized
-    const memo_key = `${i},${j}`
-    let memoized = memo[memo_key]
-    if (memoized === undefined) {
-      // TODO: this !diff(...).length usage could/should be lazy
-      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
-        // equal (no operations => no cost)
-        memoized = dist(i - 1, j - 1)
-      }
-      else {
-        const alternatives: DynamicAlternative[] = []
-        if (i > 0) {
-          // NOT topmost row
-          const remove_base = dist(i - 1, j)
-          const remove_operation: ArrayRemove = {
-            op: 'remove',
-            index: i - 1,
-          }
-          alternatives.push(appendArrayOperation(remove_base, remove_operation))
-        }
-        if (j > 0) {
-          // NOT leftmost column
-          const add_base = dist(i, j - 1)
-          const add_operation: ArrayAdd = {
-            op: 'add',
-            index: i - 1,
-            value: output[j - 1],
-          }
-          alternatives.push(appendArrayOperation(add_base, add_operation))
-        }
-        if (i > 0 && j > 0) {
-          // TABLE MIDDLE
-          // supposing we replaced it, compute the rest of the costs:
-          const replace_base = dist(i - 1, j - 1)
-          // okay, the general plan is to replace it, but we can be smarter,
-          // recursing into the structure and replacing only part of it if
-          // possible, but to do so we'll need the original value
-          const replace_operation: ArrayReplace = {
-            op: 'replace',
-            index: i - 1,
-            original: input[i - 1],
-            value: output[j - 1],
-          }
-          alternatives.push(appendArrayOperation(replace_base, replace_operation))
-        }
-        // the only other case, i === 0 && j === 0, has already been memoized
-
-        // the meat of the algorithm:
-        // sort by cost to find the lowest one (might be several ties for lowest)
-        // [4, 6, 7, 1, 2].sort((a, b) => a - b) -> [ 1, 2, 4, 6, 7 ]
-        const best = alternatives.sort((a, b) => a.cost - b.cost)[0]
-        memoized = best
-      }
-      memo[memo_key] = memoized
-    }
-    return memoized
-  }
   // handle weird objects masquerading as Arrays that don't have proper length
   // properties by using 0 for everything but positive numbers
-  const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
-  const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
-  const array_operations = dist(input_length, output_length).operations
+  for (let i = 0; i <= input_end; i++) {
+    for (let j = 0; j <= output_end; j++) {
+      var memoized = memo[i][j]
+      if (memoized) continue
+      const add_prev_key = `${i},${j - 1}`
+      const remove_prev_key = `${i - 1},${j}`
+      const replace_prev_key = `${i - 1},${j - 1}`
+      var remove_operation: ArrayRemove = {
+        op: 'remove',
+        index: i - 1,
+      }
+      var add_operation: ArrayAdd = {
+        op: 'add',
+        index: i - 1,
+        value: output[j - 1],
+      }
+      
+      if (j === 0) {
+        memoized = { prev: remove_prev_key, operation: remove_operation, cost: memo[i - 1][j].cost + 1 }
+      } else if (i === 0) {
+        memoized = { prev: add_prev_key, operation: add_operation, cost: memo[i][j - 1].cost + 1 }
+      } else {
+        if (isDeepStrictEqual(input[i - 1], output[j - 1])) {
+          memoized = memo[i - 1][j - 1]
+        } else {
+          const remove_prev = memo[i - 1][j]
+          const add_prev = memo[i][j - 1]
+          const replace_prev = memo[i - 1][j - 1]
+          const min_cost = Math.min(replace_prev.cost, add_prev.cost, remove_prev.cost)
+          if (remove_prev.cost === min_cost) {
+            memoized = { prev: remove_prev_key, operation: remove_operation, cost: memo[i - 1][j].cost + 1 }
+          } else if (add_prev.cost === min_cost) {
+            memoized = { prev: add_prev_key, operation: add_operation, cost: memo[i][j - 1].cost + 1 }
+          } else {
+            var replace_operation: ArrayReplace = {
+              op: 'replace',
+              index: i - 1,
+              original: input[i - 1],
+              value: output[j - 1],
+            }
+            memoized = { prev: replace_prev_key, operation: replace_operation, cost: memo[i - 1][j - 1].cost + 1 }
+          }
+        }
+      }
+      memo[i][j] = memoized
+    }
+  }
+  var array_operations = buildOperations(memo, input_end, output_end)
   const [padded_operations] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
     if (isArrayAdd(array_operation)) {
       const padded_index = array_operation.index + 1 + padding
