@@ -1,6 +1,7 @@
 import test from 'ava'
 
 import {Pointer} from '../pointer'
+import {clone} from '../util'
 
 test('Pointer.fromJSON empty', t => {
   t.notThrows(() => {
@@ -29,6 +30,16 @@ test('Pointer#get array', t => {
 })
 test('Pointer#get object', t => {
   t.deepEqual(Pointer.fromJSON('/obj/b').get(example), 'B', 'should get object value')
+})
+test('Pointer#push', t => {
+  const pointer = Pointer.fromJSON('/obj')
+  pointer.push('a')
+  t.is(pointer.toString(), '/obj/a', 'should add token')
+})
+test('Pointer#get∘push', t => {
+  const pointer = Pointer.fromJSON('/obj')
+  pointer.push('a')
+  t.deepEqual(pointer.get(example), 'A', 'should get object value after adding token')
 })
 
 test('Pointer#set bool', t => {
@@ -75,4 +86,21 @@ test('Pointer#set object new', t => {
   const input: any = {obj: {a: 'A', b: 'B'}}
   Pointer.fromJSON('/obj/c').set(input, 'C')
   t.deepEqual(input.obj.c, 'C', 'should add object value in-place')
+})
+
+test('Pointer#set deep object new', t => {
+  const input: any = {obj: {subobj: {a: 'A', b: 'B'}}}
+  Pointer.fromJSON('/obj/subobj/c').set(input, 'C')
+  t.deepEqual(input.obj.subobj.c, 'C', 'should add deep object value in-place')
+})
+
+test('Pointer#set not found', t => {
+  const input: any = {obj: {a: 'A', b: 'B'}}
+  const original = clone(input)
+  Pointer.fromJSON('/notfound/c').set(input, 'C')
+  t.deepEqual(input, original, 'should not mutate object if parent not found')
+  Pointer.fromJSON('/obj/notfound/c').set(input, 'C')
+  t.deepEqual(input, original, 'should not mutate object if parent not found')
+  Pointer.fromJSON('/notfound/subobj/c').set(input, 'C')
+  t.deepEqual(input, original, 'should not mutate object if parent not found')
 })
