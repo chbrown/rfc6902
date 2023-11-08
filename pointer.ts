@@ -81,13 +81,9 @@ export class Pointer {
     return this.evaluate(object).value
   }
   set(object: any, value: any): void {
-    let cursor: any = object
-    for (let i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
-      // not sure if this the best way to handle non-existant paths...
-      cursor = (cursor || {})[token]
-    }
-    if (cursor) {
-      cursor[this.tokens[this.tokens.length - 1]] = value
+    const endpoint = this.evaluate(object)
+    if (endpoint.parent) {
+      endpoint.parent[endpoint.key] = value
     }
   }
   push(token: string): void {
