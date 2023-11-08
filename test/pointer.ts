@@ -2,6 +2,23 @@ import test from 'ava'
 
 import {Pointer} from '../pointer'
 
+test('Pointer.fromJSON empty', t => {
+  t.notThrows(() => {
+    Pointer.fromJSON('')
+  })
+})
+test('Pointer.fromJSON slash', t => {
+  t.notThrows(() => {
+    Pointer.fromJSON('/')
+  })
+})
+test('Pointer.fromJSON invalid', t => {
+  const error = t.throws(() => {
+    Pointer.fromJSON('a')
+  })
+  t.regex(error.message, /Invalid JSON Pointer/, 'thrown error should have descriptive message')
+})
+
 const example = {bool: false, arr: [10, 20, 30], obj: {a: 'A', b: 'B'}}
 
 test('Pointer#get bool', t => {
