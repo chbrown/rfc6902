@@ -1,4 +1,5 @@
 import {Pointer} from './pointer'
+export {Pointer}
 
 import {apply} from './patch'
 import {Operation, TestOperation, isDestructive, Diff, VoidableDiff, diffAny} from './diff'
