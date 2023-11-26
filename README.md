@@ -27,7 +27,7 @@ npm install --save rfc6902
 ### Import in your script
 
 ```js
-var rfc6902 = require('rfc6902')
+const rfc6902 = require('rfc6902')
 ```
 
 ### Calculate diff between two objects
@@ -40,7 +40,7 @@ rfc6902.createPatch({first: 'Chris'}, {first: 'Chris', last: 'Brown'})
 ### Apply a patch to some object
 
 ```js
-var users = [{first: 'Chris', last: 'Brown', age: 20}]
+const users = [{first: 'Chris', last: 'Brown', age: 20}]
 rfc6902.applyPatch(users, [
   {op: 'replace', path: '/0/age', value: 21},
   {op: 'add', path: '/-', value: {first: 'Raphael', age: 37}},
@@ -259,10 +259,10 @@ otherwise, it is an "Invalid pointer syntax" error.
 
 #### Example
 
-This project implements JSON Pointer functionality in `rfc6902/pointer`; e.g.:
+This project implements JSON Pointer functionality; e.g.:
 
 ```js
-const {Pointer} = require('rfc6902/pointer')
+const {Pointer} = require('rfc6902')
 const repository = {
   contributors: ['chbrown', 'diachedelic', 'nathanrobinson', 'kbiedrzycki', 'stefanmaric']
 }
