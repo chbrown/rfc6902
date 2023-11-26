@@ -49,6 +49,22 @@ test('Pointer#set array beyond', t => {
   t.deepEqual(input.arr[3], 40, 'should set array value in-place')
 })
 
+test('Pointer#set top-level', t => {
+  const input: any = {obj: {a: 'A', b: 'B'}}
+  const original = clone(input)
+  Pointer.fromJSON('').set(input, {other: {c: 'C'}})
+  t.deepEqual(input, original, 'should not mutate object for top-level pointer')
+  // You might think, well, why? Why shouldn't we do it and then have a test:
+  // t.deepEqual(input, {other: {c: 'C'}}, 'should replace whole object')
+  // And true, we could hack that by removing the current properties and setting the new ones,
+  // but that only works for the case of object-replacing-object;
+  // the following is just as valid (though clearly impossible)...
+  Pointer.fromJSON('').set(input, 'root')
+  t.deepEqual(input, original, 'should not mutate object for top-level pointer')
+  // ...and it'd be weird to have it work for one but not the other.
+  // See Issue #92 for more discussion of this limitation / behavior.
+})
+
 test('Pointer#set object existing', t => {
   const input = {obj: {a: 'A', b: 'B'}}
   Pointer.fromJSON('/obj/b').set(input, 'BBB')
