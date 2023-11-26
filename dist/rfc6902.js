@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.rfc6902 = {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
   /**
   Unescape token part of a JSON Pointer string
@@ -82,13 +82,9 @@
           return this.evaluate(object).value;
       }
       set(object, value) {
-          let cursor = object;
-          for (let i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
-              // not sure if this the best way to handle non-existant paths...
-              cursor = (cursor || {})[token];
-          }
-          if (cursor) {
-              cursor[this.tokens[this.tokens.length - 1]] = value;
+          const endpoint = this.evaluate(object);
+          if (endpoint.parent) {
+              endpoint.parent[endpoint.key] = value;
           }
       }
       push(token) {
@@ -709,10 +705,11 @@
       return tests;
   }
 
+  exports.Pointer = Pointer;
   exports.applyPatch = applyPatch;
   exports.createPatch = createPatch;
   exports.createTests = createTests;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
