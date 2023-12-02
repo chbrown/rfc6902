@@ -255,3 +255,15 @@ test('issues/78', t => {
   t.true(patch_results.every(result => result == null), 'should apply patch successfully')
   t.deepEqual(user['createdAt'].getTime(), 1281478248000, 'should add Date recoverably')
 })
+
+test('issues/97', t => {
+  const value = []
+  const document = {foo: ['baz']}
+  const patch_results = applyPatch(document, [
+    {op: 'replace', path: '/foo', value: value },
+    {op: 'add', path: '/foo/-', value: 'bar' },
+  ])
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+  t.deepEqual(document, {foo: ['bar']}, 'should alter document correctly')
+  t.true(value.length === 0); // array in patch object should not have been modified
+})

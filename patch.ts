@@ -110,7 +110,7 @@ export function replace(object: any, operation: ReplaceOperation): MissingError 
   else if (endpoint.value === undefined) {
     return new MissingError(operation.path)
   }
-  endpoint.parent[endpoint.key] = operation.value
+  endpoint.parent[endpoint.key] = clone(operation.value)
   return null
 }
 
