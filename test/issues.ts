@@ -255,3 +255,15 @@ test('issues/78', t => {
   t.true(patch_results.every(result => result == null), 'should apply patch successfully')
   t.deepEqual(user['createdAt'].getTime(), 1281478248000, 'should add Date recoverably')
 })
+
+test('issues/97', t => {
+  const commits = []
+  const user = {firstName: 'Chris', commits: ['80f1243']}
+  const patch_results = applyPatch(user, [
+    {op: 'replace', path: '/commits', value: commits},
+    {op: 'add', path: '/commits/-', value: '5d565c8'},
+  ])
+  t.true(patch_results.every(result => result == null), 'should apply patch successfully')
+  t.deepEqual(user, {firstName: 'Chris', commits: ['5d565c8']}, 'should alter user correctly')
+  t.is(commits.length, 0, 'original array should not be modified')
+})
