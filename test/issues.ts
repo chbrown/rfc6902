@@ -238,6 +238,27 @@ test('issues/44', t => {
   t.deepEqual(author, {firstName: 'Chris'}, 'patch reference should not be changed')
 })
 
+test('issues/72', t => {
+  const list1 = []
+  for (var i = 0; i < 2000; i++) {
+    list1.push([i, i * 2]);
+  }
+  const list2 = clone(list1)
+  const no_diff = createPatch(list1, list2)
+  t.deepEqual(no_diff, [], 'no diff')
+
+  list2.splice(100, 1, [100, 101, 102]);
+  list2.splice(200, 0, 'insert to the middle')
+  list2.push('push to the end')
+  const patch = createPatch(list1, list2)
+  t.deepEqual(patch, [
+    { op: 'replace', path: '/100/1', value: 101, },
+    { op: 'add', path: '/100/-', value: 102, },
+    { op: 'add', path: '/200', value: 'insert to the middle', },
+    { op: "add", path: "/-", value: "push to the end" }
+  ], 'should create patch successfully')
+})
+
 test('issues/76', t => {
   t.true(({} as any).polluted === undefined, 'Object prototype should not be polluted')
   const value = {}
