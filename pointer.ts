@@ -18,7 +18,7 @@ Here's my take:
 I say "lower order" because '/' needs escaping due to the JSON Pointer serialization technique.
 Whereas, '~' is escaped because escaping '/' uses the '~' character.
 */
-function unescape(token: string): string {
+export function unescapeToken(token: string): string {
   return token.replace(/~1/g, '/').replace(/~0/g, '~')
 }
 
@@ -28,9 +28,9 @@ function unescape(token: string): string {
 > needs to be encoded as '~1' when these characters appear in a
 > reference token.
 
-This is the exact inverse of `unescape()`, so the reverse replacements must take place in reverse order.
+This is the exact inverse of `unescapeToken()`, so the reverse replacements must take place in reverse order.
 */
-function escape(token: string): string {
+export function escapeToken(token: string): string {
   return token.replace(/~/g, '~0').replace(/\//g, '~1')
 }
 
@@ -49,12 +49,12 @@ export class Pointer {
   `path` *must* be a properly escaped string.
   */
   static fromJSON(path: string): Pointer {
-    const tokens = path.split('/').map(unescape)
+    const tokens = path.split('/').map(unescapeToken)
     if (tokens[0] !== '') throw new Error(`Invalid JSON Pointer: ${path}`)
     return new Pointer(tokens)
   }
   toString(): string {
-    return this.tokens.map(escape).join('/')
+    return this.tokens.map(escapeToken).join('/')
   }
   /**
   Returns an object with 'parent', 'key', and 'value' properties.
