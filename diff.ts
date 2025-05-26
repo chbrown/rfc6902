@@ -62,23 +62,17 @@ semantics, where JSON object serialization drops keys with undefined values.
 @returns Array of keys that are in `minuend` but not in `subtrahend`.
 */
 export function subtract(minuend: {[index: string]: any}, subtrahend: {[index: string]: any}): string[] {
-  // initialize empty object; we only care about the keys, the values can be anything
-  const obj: {[index: string]: number} = {}
-  // build up obj with all the properties of minuend
-  for (const add_key in minuend) {
-    if (hasOwnProperty.call(minuend, add_key) && minuend[add_key] !== undefined) {
-      obj[add_key] = 1
+  const keys: string[] = []
+  for (const key in minuend) {
+    if (
+      hasOwnProperty.call(minuend, key) &&
+      minuend[key] !== undefined &&
+      !(hasOwnProperty.call(subtrahend, key) && subtrahend[key] !== undefined)
+    ) {
+      keys.push(key)
     }
   }
-  // now delete all the properties of subtrahend from obj
-  // (deleting a missing key has no effect)
-  for (const del_key in subtrahend) {
-    if (hasOwnProperty.call(subtrahend, del_key) && subtrahend[del_key] !== undefined) {
-      delete obj[del_key]
-    }
-  }
-  // finally, extract whatever keys remain in obj
-  return Object.keys(obj)
+  return keys
 }
 
 /**
@@ -110,6 +104,30 @@ export function intersection(objects: ArrayLike<{[index: string]: any}>): string
   }
   // finally, extract whatever keys remain in the counter
   return Object.keys(counter)
+}
+
+/**
+List the keys that shared by all `a` and `b`.
+
+The semantics of what constitutes a "key" is described in {@link subtract}.
+
+@param a First object to compare
+@param b Second object to compare
+@returns Array of keys that are in ("own-properties" of) `a` and `b`.
+*/
+function intersection2(a: {[index: string]: any}, b: {[index: string]: any}): string[] {
+  const keys: string[] = []
+  for (const key in a) {
+    if (
+      hasOwnProperty.call(a, key) &&
+      a[key] !== undefined &&
+      hasOwnProperty.call(b, key) &&
+      b[key] !== undefined
+    ) {
+      keys.push(key)
+    }
+  }
+  return keys
 }
 
 interface ArrayAdd     { op: 'add',     index: number, value: any }
@@ -289,7 +307,7 @@ export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = 
     operations.push({op: 'add', path: ptr.add(key).toString(), value: output[key]})
   })
   // if a key is in both, diff it recursively
-  intersection([input, output]).forEach(key => {
+  intersection2(input, output).forEach(key => {
     operations.push(...diff(input[key], output[key], ptr.add(key)))
   })
   return operations
