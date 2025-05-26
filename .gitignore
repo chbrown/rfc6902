@@ -3,3 +3,5 @@
 coverage/
 package-lock.json
 !dist/*.js
+.nyc_output/
+node_modules/
