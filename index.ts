@@ -1,10 +1,10 @@
 import {Pointer} from './pointer'
 export {Pointer}
 
-import {apply} from './patch'
+import {apply, Options} from './patch'
 import {Operation, TestOperation, isDestructive, Diff, VoidableDiff, diffAny} from './diff'
 
-export {Operation, TestOperation}
+export {Operation, TestOperation, Options}
 export type Patch = Operation[]
 
 /**
@@ -19,12 +19,15 @@ Apply a 'application/json-patch+json'-type patch to an object.
 
 This method mutates the target object in-place.
 
+@param object The object to apply the patch to
+@param patch Array of operations to apply
+@param options Optional customization of patch application behavior
 @returns list of results, one for each operation: `null` indicated success,
          otherwise, the result will be an instance of one of the Error classes:
          MissingError, InvalidOperationError, or TestError.
 */
-export function applyPatch(object: any, patch: Operation[]) {
-  return patch.map(operation => apply(object, operation))
+export function applyPatch(object: any, patch: Operation[], options?: Options) {
+  return patch.map(operation => apply(object, operation, options))
 }
 
 function wrapVoidableDiff(diff: VoidableDiff): Diff {

@@ -20,6 +20,16 @@ test('Pointer.fromJSON invalid', t => {
   t.regex(error.message, /Invalid JSON Pointer/, 'thrown error should have descriptive message')
 })
 
+test('Pointer.parent', t => {
+  const pointer = Pointer.fromJSON('/abc/-')
+  const parent = pointer.parent()
+  t.deepEqual(parent.toString(), '/abc')
+  const grandParent = parent.parent()
+  t.deepEqual(grandParent.toString(), '')
+  const greatGrandParent = grandParent.parent()
+  t.deepEqual(greatGrandParent.toString(), '')
+})
+
 const example = {bool: false, arr: [10, 20, 30], obj: {a: 'A', b: 'B'}}
 
 test('Pointer#get bool', t => {

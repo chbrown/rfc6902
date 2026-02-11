@@ -1,5 +1,5 @@
 import {Pointer} from './pointer'
-import {clone} from './util'
+import {objectType, clone} from './util'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
@@ -8,6 +8,25 @@ import {AddOperation,
         TestOperation,
         Operation,
         diffAny} from './diff'
+
+export interface Options {
+  /**
+  When true, "add" operations with path ending in "/-" will implicitly
+  create an empty array where possible.
+
+  For example, with this option enabled, for the object `{live: true}`,
+  the operation `add "/tag/-" 123` will result in `{live: true, tag: [123]}`.
+  Subsequent operations behave normally: another `add "/tag/-" 456` will result
+  in `{live: true, tag: [123, 456]}`.
+
+  If the indicated array property already exists but is not an array, this will
+  produce an error.
+
+  Only the leaf array will be inferred; missing parent objects will still
+  produce errors.
+  */
+  implicitArrayCreation?: boolean
+}
 
 export class MissingError extends Error {
   constructor(public path: string) {
@@ -59,12 +78,31 @@ function _remove(object: any, key: string): void {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
-export function add(object: any, operation: AddOperation): MissingError | null {
-  const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+export function add(object: any, operation: AddOperation, options?: Options): MissingError | null {
+  const pointer = Pointer.fromJSON(operation.path)
+  // Handle implicit array creation for terminal "/-" paths
+  if (options?.implicitArrayCreation && pointer.tokens[pointer.tokens.length - 1] === '-') {
+    // Try to evaluate the parent (the array itself)
+    const parentEndpoint = pointer.parent().evaluate(object)
+    // If the array property doesn't exist but its parent does,
+    // and this parent is a plain object (not an array),
+    // create an (empty) array that we will add to below.
+    if (parentEndpoint.value === undefined && objectType(parentEndpoint.parent) === 'object') {
+      parentEndpoint.parent[parentEndpoint.key] = []
+    }
+  }
+
+  const endpoint = pointer.evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
   if (endpoint.parent === undefined) {
     return new MissingError(operation.path)
   }
+
+  // When using implicitArrayCreation, validate that "/-" targets are actually arrays
+  if (options?.implicitArrayCreation && endpoint.key === '-' && !Array.isArray(endpoint.parent)) {
+    return new MissingError(operation.path)
+  }
+
   _add(endpoint.parent, endpoint.key, clone(operation.value))
   return null
 }
@@ -73,7 +111,7 @@ export function add(object: any, operation: AddOperation): MissingError | null {
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
-export function remove(object: any, operation: RemoveOperation): MissingError | null {
+export function remove(object: any, operation: RemoveOperation, options?: Options): MissingError | null {
   // endpoint has parent, key, and value properties
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.value === undefined) {
@@ -96,7 +134,7 @@ export function remove(object: any, operation: RemoveOperation): MissingError | 
 
 Even more simply, it's like the add operation with an existence check.
 */
-export function replace(object: any, operation: ReplaceOperation): MissingError | null {
+export function replace(object: any, operation: ReplaceOperation, options?: Options): MissingError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.parent === null) {
     return new MissingError(operation.path)
@@ -129,7 +167,7 @@ export function replace(object: any, operation: ReplaceOperation): MissingError 
 
 TODO: throw if the check described in the previous paragraph fails.
 */
-export function move(object: any, operation: MoveOperation): MissingError | null {
+export function move(object: any, operation: MoveOperation, options?: Options): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) {
     return new MissingError(operation.from)
@@ -156,7 +194,7 @@ export function move(object: any, operation: MoveOperation): MissingError | null
 
 Alternatively, it's like 'move' without the 'remove'.
 */
-export function copy(object: any, operation: CopyOperation): MissingError | null {
+export function copy(object: any, operation: CopyOperation, options?: Options): MissingError | null {
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) {
     return new MissingError(operation.from)
@@ -177,7 +215,7 @@ export function copy(object: any, operation: CopyOperation): MissingError | null
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
-export function test(object: any, operation: TestOperation): TestError | null {
+export function test(object: any, operation: TestOperation, options?: Options): TestError | null {
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // TODO: this diffAny(...).length usage could/should be lazy
   if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
@@ -197,17 +235,17 @@ export class InvalidOperationError extends Error {
 Switch on `operation.op`, applying the corresponding patch function for each
 case to `object`.
 */
-export function apply(object: any, operation: Operation): MissingError | InvalidOperationError | TestError | null {
+export function apply(object: any, operation: Operation, options?: Options): MissingError | InvalidOperationError | TestError | null {
   // not sure why TypeScript can't infer typesafety of:
   //   {add, remove, replace, move, copy, test}[operation.op](object, operation)
   // (seems like a bug)
   switch (operation.op) {
-    case 'add':     return add(object, operation)
-    case 'remove':  return remove(object, operation)
-    case 'replace': return replace(object, operation)
-    case 'move':    return move(object, operation)
-    case 'copy':    return copy(object, operation)
-    case 'test':    return test(object, operation)
+    case 'add':     return add(object, operation, options)
+    case 'remove':  return remove(object, operation, options)
+    case 'replace': return replace(object, operation, options)
+    case 'move':    return move(object, operation, options)
+    case 'copy':    return copy(object, operation, options)
+    case 'test':    return test(object, operation, options)
   }
   return new InvalidOperationError(operation)
 }

@@ -99,4 +99,15 @@ export class Pointer {
     const tokens = this.tokens.concat(String(token))
     return new Pointer(tokens)
   }
+  /**
+  Create a new Pointer representing the parent of this one.
+
+  The parent of the empty pointer is the empty pointer.
+
+  immutable (shallowly)
+  */
+  parent(): Pointer {
+    const tokens = this.tokens.length > 1 ? this.tokens.slice(0, -1) : ['']
+    return new Pointer(tokens)
+  }
 }
