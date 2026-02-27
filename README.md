@@ -66,13 +66,25 @@ import {applyPatch, createPatch} from 'rfc6902'
 
 Using [TypeScript](https://www.typescriptlang.org/) annotations for clarity:
 
-### `applyPatch(object: any, patch: Operation[]): Array<Error | null>`
+### `applyPatch(object: any, patch: Operation[], options?: Options): Array<Error | null>`
 
 The operations in `patch` are applied to `object` in-place.
 Returns a list of results as long as the given `patch`.
 If all operations were successful, each item in the returned list will be `null`.
 If any of them failed, the corresponding item in the returned list will be an Error instance
 with descriptive `.name` and `.message` properties.
+
+<details>
+  <summary>Optional <code>options</code> argument</summary>
+
+The `options` argument triggers spec- non-compliant behavior.
+
+Currently, the only implemented option is `implicitArrayCreation: true` which
+will automatically create an array when adding values to paths that don't exist
+(which would otherwise throw `MissingError`),
+_iff_ the given path uses the special `.../-` JSON Pointer syntax.
+
+</details>
 
 ### `createPatch(input: any, output: any, diff?: VoidableDiff): Operation[]`
 
