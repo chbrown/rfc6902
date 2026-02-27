@@ -24,7 +24,7 @@
   I say "lower order" because '/' needs escaping due to the JSON Pointer serialization technique.
   Whereas, '~' is escaped because escaping '/' uses the '~' character.
   */
-  function unescape(token) {
+  function unescapeToken(token) {
       return token.replace(/~1/g, '/').replace(/~0/g, '~');
   }
   /** Escape token part of a JSON Pointer string
@@ -33,9 +33,9 @@
   > needs to be encoded as '~1' when these characters appear in a
   > reference token.
 
-  This is the exact inverse of `unescape()`, so the reverse replacements must take place in reverse order.
+  This is the exact inverse of `unescapeToken()`, so the reverse replacements must take place in reverse order.
   */
-  function escape(token) {
+  function escapeToken(token) {
       return token.replace(/~/g, '~0').replace(/\//g, '~1');
   }
   /**
@@ -49,13 +49,13 @@
       `path` *must* be a properly escaped string.
       */
       static fromJSON(path) {
-          const tokens = path.split('/').map(unescape);
+          const tokens = path.split('/').map(unescapeToken);
           if (tokens[0] !== '')
               throw new Error(`Invalid JSON Pointer: ${path}`);
           return new Pointer(tokens);
       }
       toString() {
-          return this.tokens.map(escape).join('/');
+          return this.tokens.map(escapeToken).join('/');
       }
       /**
       Returns an object with 'parent', 'key', and 'value' properties.
@@ -98,6 +98,17 @@
       */
       add(token) {
           const tokens = this.tokens.concat(String(token));
+          return new Pointer(tokens);
+      }
+      /**
+      Create a new Pointer representing the parent of this one.
+    
+      The parent of the empty pointer is the empty pointer.
+    
+      immutable (shallowly)
+      */
+      parent() {
+          const tokens = this.tokens.length > 1 ? this.tokens.slice(0, -1) : [''];
           return new Pointer(tokens);
       }
   }
@@ -176,53 +187,36 @@
   @returns Array of keys that are in `minuend` but not in `subtrahend`.
   */
   function subtract(minuend, subtrahend) {
-      // initialize empty object; we only care about the keys, the values can be anything
-      const obj = {};
-      // build up obj with all the properties of minuend
-      for (const add_key in minuend) {
-          if (hasOwnProperty.call(minuend, add_key) && minuend[add_key] !== undefined) {
-              obj[add_key] = 1;
+      const keys = [];
+      for (const key in minuend) {
+          if (hasOwnProperty.call(minuend, key) &&
+              minuend[key] !== undefined &&
+              !(hasOwnProperty.call(subtrahend, key) && subtrahend[key] !== undefined)) {
+              keys.push(key);
           }
       }
-      // now delete all the properties of subtrahend from obj
-      // (deleting a missing key has no effect)
-      for (const del_key in subtrahend) {
-          if (hasOwnProperty.call(subtrahend, del_key) && subtrahend[del_key] !== undefined) {
-              delete obj[del_key];
-          }
-      }
-      // finally, extract whatever keys remain in obj
-      return Object.keys(obj);
+      return keys;
   }
   /**
-  List the keys that shared by all `objects`.
+  List the keys that shared by all `a` and `b`.
 
   The semantics of what constitutes a "key" is described in {@link subtract}.
 
-  @param objects Array of objects to compare
-  @returns Array of keys that are in ("own-properties" of) every object in `objects`.
+  @param a First object to compare
+  @param b Second object to compare
+  @returns Array of keys that are in ("own-properties" of) `a` and `b`.
   */
-  function intersection(objects) {
-      const length = objects.length;
-      // prepare empty counter to keep track of how many objects each key occurred in
-      const counter = {};
-      // go through each object and increment the counter for each key in that object
-      for (let i = 0; i < length; i++) {
-          const object = objects[i];
-          for (const key in object) {
-              if (hasOwnProperty.call(object, key) && object[key] !== undefined) {
-                  counter[key] = (counter[key] || 0) + 1;
-              }
+  function intersection2(a, b) {
+      const keys = [];
+      for (const key in a) {
+          if (hasOwnProperty.call(a, key) &&
+              a[key] !== undefined &&
+              hasOwnProperty.call(b, key) &&
+              b[key] !== undefined) {
+              keys.push(key);
           }
       }
-      // now delete all keys from the counter that were not seen in every object
-      for (const key in counter) {
-          if (counter[key] < length) {
-              delete counter[key];
-          }
-      }
-      // finally, extract whatever keys remain in the counter
-      return Object.keys(counter);
+      return keys;
   }
   function isArrayAdd(array_operation) {
       return array_operation.op === 'add';
@@ -267,9 +261,8 @@
   */
   function diffArrays(input, output, ptr, diff = diffAny) {
       // set up cost matrix (very simple initialization: just a map)
-      const memo = {
-          '0,0': { operations: [], cost: 0 },
-      };
+      const max_length = Math.max(input.length, output.length);
+      const memo = new Map([[0, { operations: [], cost: 0 }]]);
       /**
       Calculate the cheapest sequence of operations required to get from
       input.slice(0, i) to output.slice(0, j).
@@ -282,8 +275,8 @@
       */
       function dist(i, j) {
           // memoized
-          const memo_key = `${i},${j}`;
-          let memoized = memo[memo_key];
+          const memo_key = i * max_length + j;
+          let memoized = memo.get(memo_key);
           if (memoized === undefined) {
               // TODO: this !diff(...).length usage could/should be lazy
               if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
@@ -333,7 +326,7 @@
                   const best = alternatives.sort((a, b) => a.cost - b.cost)[0];
                   memoized = best;
               }
-              memo[memo_key] = memoized;
+              memo.set(memo_key, memoized);
           }
           return memoized;
       }
@@ -381,7 +374,7 @@
           operations.push({ op: 'add', path: ptr.add(key).toString(), value: output[key] });
       });
       // if a key is in both, diff it recursively
-      intersection([input, output]).forEach(key => {
+      intersection2(input, output).forEach(key => {
           operations.push(...diff(input[key], output[key], ptr.add(key)));
       });
       return operations;
@@ -478,10 +471,26 @@
   >  o  If the target location specifies an object member that does exist,
   >     that member's value is replaced.
   */
-  function add(object, operation) {
-      const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+  function add(object, operation, options) {
+      const pointer = Pointer.fromJSON(operation.path);
+      // Handle implicit array creation for terminal "/-" paths
+      if ((options === null || options === void 0 ? void 0 : options.implicitArrayCreation) && pointer.tokens[pointer.tokens.length - 1] === '-') {
+          // Try to evaluate the parent (the array itself)
+          const parentEndpoint = pointer.parent().evaluate(object);
+          // If the array property doesn't exist but its parent does,
+          // and this parent is a plain object (not an array),
+          // create an (empty) array that we will add to below.
+          if (parentEndpoint.value === undefined && objectType(parentEndpoint.parent) === 'object') {
+              parentEndpoint.parent[parentEndpoint.key] = [];
+          }
+      }
+      const endpoint = pointer.evaluate(object);
       // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
       if (endpoint.parent === undefined) {
+          return new MissingError(operation.path);
+      }
+      // When using implicitArrayCreation, validate that "/-" targets are actually arrays
+      if ((options === null || options === void 0 ? void 0 : options.implicitArrayCreation) && endpoint.key === '-' && !Array.isArray(endpoint.parent)) {
           return new MissingError(operation.path);
       }
       _add(endpoint.parent, endpoint.key, clone(operation.value));
@@ -491,7 +500,7 @@
   > The "remove" operation removes the value at the target location.
   > The target location MUST exist for the operation to be successful.
   */
-  function remove(object, operation) {
+  function remove(object, operation, options) {
       // endpoint has parent, key, and value properties
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       if (endpoint.value === undefined) {
@@ -513,7 +522,7 @@
 
   Even more simply, it's like the add operation with an existence check.
   */
-  function replace(object, operation) {
+  function replace(object, operation, options) {
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       if (endpoint.parent === null) {
           return new MissingError(operation.path);
@@ -527,7 +536,7 @@
       else if (endpoint.value === undefined) {
           return new MissingError(operation.path);
       }
-      endpoint.parent[endpoint.key] = operation.value;
+      endpoint.parent[endpoint.key] = clone(operation.value);
       return null;
   }
   /**
@@ -545,7 +554,7 @@
 
   TODO: throw if the check described in the previous paragraph fails.
   */
-  function move(object, operation) {
+  function move(object, operation, options) {
       const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
       if (from_endpoint.value === undefined) {
           return new MissingError(operation.from);
@@ -571,7 +580,7 @@
 
   Alternatively, it's like 'move' without the 'remove'.
   */
-  function copy(object, operation) {
+  function copy(object, operation, options) {
       const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
       if (from_endpoint.value === undefined) {
           return new MissingError(operation.from);
@@ -591,7 +600,7 @@
   > The target location MUST be equal to the "value" value for the
   > operation to be considered successful.
   */
-  function test(object, operation) {
+  function test(object, operation, options) {
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       // TODO: this diffAny(...).length usage could/should be lazy
       if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
@@ -610,12 +619,12 @@
   Switch on `operation.op`, applying the corresponding patch function for each
   case to `object`.
   */
-  function apply(object, operation) {
+  function apply(object, operation, options) {
       // not sure why TypeScript can't infer typesafety of:
       //   {add, remove, replace, move, copy, test}[operation.op](object, operation)
       // (seems like a bug)
       switch (operation.op) {
-          case 'add': return add(object, operation);
+          case 'add': return add(object, operation, options);
           case 'remove': return remove(object, operation);
           case 'replace': return replace(object, operation);
           case 'move': return move(object, operation);
@@ -637,12 +646,15 @@
 
   This method mutates the target object in-place.
 
+  @param object The object to apply the patch to
+  @param patch Array of operations to apply
+  @param options Optional customization of patch application behavior
   @returns list of results, one for each operation: `null` indicated success,
            otherwise, the result will be an instance of one of the Error classes:
            MissingError, InvalidOperationError, or TestError.
   */
-  function applyPatch(object, patch) {
-      return patch.map(operation => apply(object, operation));
+  function applyPatch(object, patch, options) {
+      return patch.map(operation => apply(object, operation, options));
   }
   function wrapVoidableDiff(diff) {
       function wrappedDiff(input, output, ptr) {
@@ -709,7 +721,5 @@
   exports.applyPatch = applyPatch;
   exports.createPatch = createPatch;
   exports.createTests = createTests;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
