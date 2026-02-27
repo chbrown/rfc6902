@@ -1,5 +1,6 @@
 *.js
 *.d.ts
+*.tsbuildinfo
 coverage/
 package-lock.json
 !dist/*.js
