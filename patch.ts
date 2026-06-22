@@ -94,7 +94,7 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
 
   const endpoint = pointer.evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
-  if (endpoint.parent === undefined) {
+  if (endpoint.parent === undefined || endpoint.parent === null) {
     return new MissingError(operation.path)
   }
 
@@ -114,10 +114,13 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
 export function remove(object: any, operation: RemoveOperation, options?: Options): MissingError | null {
   // endpoint has parent, key, and value properties
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
+  // the root pointer "" has no parent to remove from (mirrors `replace`)
+  if (endpoint.parent === null) {
+    return new MissingError(operation.path)
+  }
   if (endpoint.value === undefined) {
     return new MissingError(operation.path)
   }
-  // not sure what the proper behavior is when path = ''
   _remove(endpoint.parent, endpoint.key)
   return null
 }
@@ -173,7 +176,7 @@ export function move(object: any, operation: MoveOperation, options?: Options): 
     return new MissingError(operation.from)
   }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.parent === undefined) {
+  if (endpoint.parent === undefined || endpoint.parent === null) {
     return new MissingError(operation.path)
   }
   _remove(from_endpoint.parent, from_endpoint.key)
@@ -200,7 +203,7 @@ export function copy(object: any, operation: CopyOperation, options?: Options): 
     return new MissingError(operation.from)
   }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.parent === undefined) {
+  if (endpoint.parent === undefined || endpoint.parent === null) {
     return new MissingError(operation.path)
   }
   _add(endpoint.parent, endpoint.key, clone(from_endpoint.value))
