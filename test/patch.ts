@@ -13,6 +13,42 @@ test('broken add', t => {
   t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
 })
 
+test('add to the root pointer "" returns MissingError instead of throwing', t => {
+  const user = {a: 1}
+  const results = applyPatch(user, [
+    {op: 'add', path: '', value: {b: 2}},
+  ])
+  t.deepEqual(user, {a: 1}, 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
+test('remove at the root pointer "" returns MissingError instead of throwing', t => {
+  const user = {a: 1}
+  const results = applyPatch(user, [
+    {op: 'remove', path: ''},
+  ])
+  t.deepEqual(user, {a: 1}, 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
+test('move to the root pointer "" returns MissingError instead of throwing', t => {
+  const user = {a: 1}
+  const results = applyPatch(user, [
+    {op: 'move', from: '/a', path: ''},
+  ])
+  t.deepEqual(user, {a: 1}, 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
+test('copy to the root pointer "" returns MissingError instead of throwing', t => {
+  const user = {a: 1}
+  const results = applyPatch(user, [
+    {op: 'copy', from: '/a', path: ''},
+  ])
+  t.deepEqual(user, {a: 1}, 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
 test('broken add (array does not exist)', t => {
   const user = {id: 'chbrown'}
   const results = applyPatch(user, [
