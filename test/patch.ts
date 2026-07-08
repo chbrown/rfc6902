@@ -122,6 +122,17 @@ test('broken move (path)', t => {
   t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
 })
 
+test('move into own child returns MissingError instead of destroying data', t => {
+  // RFC 6902 4.4: "The 'from' location MUST NOT be a proper prefix of the
+  // 'path' location; i.e., a location cannot be moved into one of its children."
+  const doc = {a: {b: {}}}
+  const results = applyPatch(doc, [
+    {op: 'move', from: '/a', path: '/a/b/c'},
+  ])
+  t.deepEqual(doc, {a: {b: {}}}, 'should change nothing')
+  t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+})
+
 test('broken copy (from)', t => {
   const user = {id: 'chbrown'}
   const results = applyPatch(user, [
