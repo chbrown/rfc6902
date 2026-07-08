@@ -267,3 +267,16 @@ test('issues/97', t => {
   t.deepEqual(user, {firstName: 'Chris', commits: ['5d565c8']}, 'should alter user correctly')
   t.is(commits.length, 0, 'original array should not be modified')
 })
+
+test('minimal array diff', t => {
+  // diffArrays is documented to compute the shortest sequence of operations,
+  // but a colliding memoization key made it return a sub-optimal patch here:
+  // removing the leading 'A' and appending 'C' is two operations, not three.
+  const input = ['A', 'B', 'A']
+  const output = ['B', 'A', 'C']
+  const expected_patch: Operation[] = [
+    {op: 'remove', path: '/0'},
+    {op: 'add', path: '/-', value: 'C'},
+  ]
+  checkRoundtrip(t, input, output, expected_patch)
+})

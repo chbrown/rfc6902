@@ -206,7 +206,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   */
   function dist(i: number, j: number): DynamicAlternative {
     // memoized
-    const memo_key = i * max_length + j;
+    const memo_key = i * (max_length + 1) + j;
     let memoized = memo.get(memo_key)
     if (memoized === undefined) {
       // TODO: this !diff(...).length usage could/should be lazy
