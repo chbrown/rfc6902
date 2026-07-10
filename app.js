@@ -52,7 +52,7 @@ angular.module('app', [
     }
   };
 })
-.controller('demoCtrl', ($scope, $localStorage) => {
+.controller('demoCtrl', ['$scope', '$localStorage', ($scope, $localStorage) => {
   $scope.$storage = $localStorage.$default({
     createPatch: {
       input: {"name": "Chris Brown", "repositories": ["amulet", "flickr-with-uploads"]},
@@ -84,4 +84,4 @@ angular.module('app', [
     $scope.$storage.applyPatch.original = $scope.$storage.createPatch.input;
     $scope.$storage.applyPatch.patch = $scope.createPatch.patch;
   };
-});
+}]);
