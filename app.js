@@ -1,7 +1,6 @@
-/*jslint browser: true, esnext: true */
+import './site.less';
 import {applyPatch, createPatch} from 'rfc6902';
-// angular annotation doesn't work with `import ...` syntax
-var angular = require('angular');
+import angular from 'angular';
 import 'ngstorage';
 import 'flow-copy';
 
