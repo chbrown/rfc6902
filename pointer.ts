@@ -72,8 +72,10 @@ export class Pointer {
       if (key == '__proto__' || key == 'constructor' || key == 'prototype') {
         continue
       }
-      // not sure if this the best way to handle non-existant paths...
-      value = (parent || {})[key]
+      value = undefined
+      if (parent && Object.prototype.hasOwnProperty.call(parent, key)) {
+        value = parent[key]
+      }
     }
     return {parent, key, value}
   }
