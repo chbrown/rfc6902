@@ -2,7 +2,6 @@
 
 [![latest version published to npm](https://badge.fury.io/js/rfc6902.svg)](https://www.npmjs.com/package/rfc6902)
 [![monthly downloads from npm](https://img.shields.io/npm/dm/rfc6902.svg?style=flat)](https://www.npmjs.com/package/rfc6902)
-[![Travis CI build status](https://travis-ci.org/chbrown/rfc6902.svg?branch=master)](https://travis-ci.org/chbrown/rfc6902)
 [![Coverage status on Coveralls](https://coveralls.io/repos/github/chbrown/rfc6902/badge.svg?branch=master)](https://coveralls.io/github/chbrown/rfc6902?branch=master)
 
 Complete implementation of [RFC6902](http://tools.ietf.org/html/rfc6902) "JavaScript Object Notation (JSON) Patch"
