@@ -275,7 +275,7 @@
       */
       function dist(i, j) {
           // memoized
-          const memo_key = i * max_length + j;
+          const memo_key = i * (max_length + 1) + j;
           let memoized = memo.get(memo_key);
           if (memoized === undefined) {
               // TODO: this !diff(...).length usage could/should be lazy
@@ -486,7 +486,7 @@
       }
       const endpoint = pointer.evaluate(object);
       // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
-      if (endpoint.parent === undefined) {
+      if (endpoint.parent === undefined || endpoint.parent === null) {
           return new MissingError(operation.path);
       }
       // When using implicitArrayCreation, validate that "/-" targets are actually arrays
@@ -503,10 +503,13 @@
   function remove(object, operation, options) {
       // endpoint has parent, key, and value properties
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+      // the root pointer "" has no parent to remove from (mirrors `replace`)
+      if (endpoint.parent === null) {
+          return new MissingError(operation.path);
+      }
       if (endpoint.value === undefined) {
           return new MissingError(operation.path);
       }
-      // not sure what the proper behavior is when path = ''
       _remove(endpoint.parent, endpoint.key);
       return null;
   }
@@ -551,16 +554,22 @@
 
   > The "from" location MUST NOT be a proper prefix of the "path"
   > location; i.e., a location cannot be moved into one of its children.
-
-  TODO: throw if the check described in the previous paragraph fails.
   */
   function move(object, operation, options) {
-      const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
+      const from_pointer = Pointer.fromJSON(operation.from);
+      const from_endpoint = from_pointer.evaluate(object);
       if (from_endpoint.value === undefined) {
           return new MissingError(operation.from);
       }
-      const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-      if (endpoint.parent === undefined) {
+      const pointer = Pointer.fromJSON(operation.path);
+      // a location cannot be moved into one of its own children; doing so would
+      // detach the destination along with the value and silently lose data
+      if (from_pointer.tokens.length < pointer.tokens.length &&
+          from_pointer.tokens.every((token, index) => token === pointer.tokens[index])) {
+          return new MissingError(operation.path);
+      }
+      const endpoint = pointer.evaluate(object);
+      if (endpoint.parent === undefined || endpoint.parent === null) {
           return new MissingError(operation.path);
       }
       _remove(from_endpoint.parent, from_endpoint.key);
@@ -586,7 +595,7 @@
           return new MissingError(operation.from);
       }
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
-      if (endpoint.parent === undefined) {
+      if (endpoint.parent === undefined || endpoint.parent === null) {
           return new MissingError(operation.path);
       }
       _add(endpoint.parent, endpoint.key, clone(from_endpoint.value));
