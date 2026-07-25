@@ -103,6 +103,19 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
     return new MissingError(operation.path)
   }
 
+  // For arrays, check that the key strictly follows RFC 6901:
+  // only digits (no leading 0's, sign, decimal point, or exponent).
+  // Also check that the index does not exceed the array's length
+  // (`key == endpoint.parent.length` is the valid append case).
+  if (Array.isArray(endpoint.parent) && endpoint.key !== '-') {
+    if (!/^(0|[1-9][0-9]*)$/.test(endpoint.key)) {
+      return new MissingError(operation.path)
+    }
+    if (Number(endpoint.key) > endpoint.parent.length) {
+      return new MissingError(operation.path)
+    }
+  }
+
   _add(endpoint.parent, endpoint.key, clone(operation.value))
   return null
 }
