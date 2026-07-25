@@ -1,5 +1,5 @@
 import {Pointer} from './pointer'
-import {objectType, clone} from './util'
+import {objectType, clone, hasOwnProperty} from './util'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
@@ -78,7 +78,14 @@ function _remove(object: any, key: string): void {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
-export function add(object: any, operation: AddOperation, options?: Options): MissingError | null {
+export function add(object: any, operation: AddOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // Verify RFC 6902 compliance; `undefined` is a legitimate value here,
+  // so check own-property membership, not `operation.value === undefined`
+  // (and not `in`, which would also see a polluted Object.prototype).
+  if (!hasOwnProperty.call(operation, 'value')) {
+    return new InvalidOperationError(operation)
+  }
+
   const pointer = Pointer.fromJSON(operation.path)
   // Handle implicit array creation for terminal "/-" paths
   if (options?.implicitArrayCreation && pointer.tokens[pointer.tokens.length - 1] === '-') {
@@ -150,7 +157,13 @@ export function remove(object: any, operation: RemoveOperation, options?: Option
 
 Even more simply, it's like the add operation with an existence check.
 */
-export function replace(object: any, operation: ReplaceOperation, options?: Options): MissingError | null {
+export function replace(object: any, operation: ReplaceOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // Verify RFC 6902 compliance; `undefined` is a legitimate value here.
+  // See comment in `add` above.
+  if (!hasOwnProperty.call(operation, 'value')) {
+    return new InvalidOperationError(operation)
+  }
+
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.parent === null) {
     return new MissingError(operation.path)
