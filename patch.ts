@@ -79,6 +79,12 @@ function _remove(object: any, key: string): void {
 >     that member's value is replaced.
 */
 export function add(object: any, operation: AddOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // RFC 6902 §4: every operation object MUST contain a "path" member.
+  // Pointer.fromJSON enforces the string/syntax contract itself (and throws on violation);
+  // this only guards the missing/null case.
+  if (operation.path == null) {
+    return new InvalidOperationError(operation)
+  }
   // Verify RFC 6902 compliance; `undefined` is a legitimate value here,
   // so check own-property membership, not `operation.value === undefined`
   // (and not `in`, which would also see a polluted Object.prototype).
@@ -131,7 +137,11 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
-export function remove(object: any, operation: RemoveOperation, options?: Options): MissingError | null {
+export function remove(object: any, operation: RemoveOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // RFC 6902 §4: every operation object MUST contain a "path" member.
+  if (operation.path == null) {
+    return new InvalidOperationError(operation)
+  }
   // endpoint has parent, key, and value properties
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // the root pointer "" has no parent to remove from (mirrors `replace`)
@@ -158,6 +168,10 @@ export function remove(object: any, operation: RemoveOperation, options?: Option
 Even more simply, it's like the add operation with an existence check.
 */
 export function replace(object: any, operation: ReplaceOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // RFC 6902 §4: every operation object MUST contain a "path" member.
+  if (operation.path == null) {
+    return new InvalidOperationError(operation)
+  }
   // Verify RFC 6902 compliance; `undefined` is a legitimate value here.
   // See comment in `add` above.
   if (!hasOwnProperty.call(operation, 'value')) {
@@ -194,7 +208,11 @@ export function replace(object: any, operation: ReplaceOperation, options?: Opti
 > The "from" location MUST NOT be a proper prefix of the "path"
 > location; i.e., a location cannot be moved into one of its children.
 */
-export function move(object: any, operation: MoveOperation, options?: Options): MissingError | null {
+export function move(object: any, operation: MoveOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // RFC 6902 §4.4: the operation object MUST contain "path" and "from" members.
+  if (operation.path == null || operation.from == null) {
+    return new InvalidOperationError(operation)
+  }
   const from_pointer = Pointer.fromJSON(operation.from)
   const from_endpoint = from_pointer.evaluate(object)
   if (from_endpoint.value === undefined) {
@@ -229,7 +247,13 @@ export function move(object: any, operation: MoveOperation, options?: Options): 
 
 Alternatively, it's like 'move' without the 'remove'.
 */
-export function copy(object: any, operation: CopyOperation, options?: Options): MissingError | null {
+export function copy(object: any, operation: CopyOperation, options?: Options): MissingError | InvalidOperationError | null {
+  // RFC 6902 §4.5: the operation object MUST contain "path" and "from" members.
+  // Pointer.fromJSON enforces the string/syntax contract itself (and throws
+  // on violation); this only guards the missing/null case.
+  if (operation.path == null || operation.from == null) {
+    return new InvalidOperationError(operation)
+  }
   const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object)
   if (from_endpoint.value === undefined) {
     return new MissingError(operation.from)
@@ -250,7 +274,11 @@ export function copy(object: any, operation: CopyOperation, options?: Options): 
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
-export function test(object: any, operation: TestOperation, options?: Options): TestError | null {
+export function test(object: any, operation: TestOperation, options?: Options): TestError | InvalidOperationError | null {
+  // RFC 6902 §4: every operation object MUST contain a "path" member.
+  if (operation.path == null) {
+    return new InvalidOperationError(operation)
+  }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   // TODO: this diffAny(...).length usage could/should be lazy
   if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
