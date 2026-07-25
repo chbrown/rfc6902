@@ -19,16 +19,17 @@ interface TestCase {
   disabled?: boolean
 }
 
-/**
-Replacing the root document's type (e.g., object -> array) is infeasible for
-this library, since applyPatch mutates the given object in place rather than
-returning a new one; a mutated object can't change its own type.
-*/
 const skipComments = new Set([
+  // Replacing the root document's type (e.g., object -> array) is infeasible for this library,
+  // since applyPatch mutates the given object in place rather than returning a new one;
+  // a mutated object can't change its own type.
   'replace object document with array document?',
   'replace array document with object document?',
   'replace whole document',
   'replacing the root of the document is possible with add',
+  // v5 (and previous) behavior is to throw an exception on invalid JSON pointer paths.
+  // This should maybe be changed, but that would merit a major version bump.
+  'invalid JSON Pointer token',
 ])
 
 function run(suiteName: string, cases: TestCase[]) {
