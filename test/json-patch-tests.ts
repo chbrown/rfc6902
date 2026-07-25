@@ -1,0 +1,42 @@
+import test from 'ava'
+
+import {applyPatch} from '../index'
+import {Operation} from '../diff'
+import {clone} from '../util'
+
+import * as tests from 'json-patch-test-suite/tests.json'
+import * as spec_tests from 'json-patch-test-suite/spec_tests.json'
+
+/**
+See https://github.com/json-patch/json-patch-tests#test-format
+*/
+interface TestCase {
+  comment?: string
+  doc: any
+  patch: Operation[]
+  expected?: any
+  error?: string
+  disabled?: boolean
+}
+
+function run(suiteName: string, cases: TestCase[]) {
+  cases.forEach((testCase, index) => {
+    if (testCase.disabled) {
+      return
+    }
+    const title = `${suiteName}[${index}]: ${testCase.comment || JSON.stringify(testCase.patch)}`
+    test(title, t => {
+      const actual = clone(testCase.doc)
+      const results = applyPatch(actual, testCase.patch)
+      if (testCase.error !== undefined) {
+        t.true(results.some(result => result !== null), `should produce an error: ${testCase.error}`)
+      }
+      else {
+        t.deepEqual(actual, testCase.expected, 'should equal expected output after applying patches')
+      }
+    })
+  })
+}
+
+run('tests', tests as unknown as TestCase[])
+run('spec_tests', spec_tests as unknown as TestCase[])

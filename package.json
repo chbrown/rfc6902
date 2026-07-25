@@ -21,6 +21,7 @@
     "ava": "^6.4.1",
     "coveralls": "^3.1.1",
     "js-yaml": "4.2.0",
+    "json-patch-test-suite": "github:json-patch/json-patch-tests#2a928f9044aad35c74e2788d498bcf2c6b91adea",
     "nyc": "^18.0.0",
     "rollup": "^4.59.0",
     "typescript": "^5.9.3"
