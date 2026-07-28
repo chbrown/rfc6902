@@ -236,3 +236,78 @@ test('fails on non-terminal /-', t => {
   ], {implicitArrayCreation: true})
   t.deepEqual(results.map(resultName), ['MissingError'])
 })
+
+const invalidArrayIndexTokens = ['-1', '-2', '00', '01', '1.5', '1e0', '+1', ' 1', 'bar']
+
+invalidArrayIndexTokens.forEach(token => {
+  test(`replace fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2]}
+    const results = applyPatch(object, [
+      {op: 'replace', path: `/bar/${token}`, value: 'X'},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+  })
+
+  test(`copy fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2], src: 'S'}
+    const results = applyPatch(object, [
+      {op: 'copy', from: '/src', path: `/bar/${token}`},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2], src: 'S'}, 'should change nothing')
+  })
+
+  test(`move fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2], src: 'S'}
+    const results = applyPatch(object, [
+      {op: 'move', from: '/src', path: `/bar/${token}`},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2], src: 'S'}, 'should change nothing')
+  })
+})
+
+test('replace fails on out-of-bounds array index', t => {
+  const object = {bar: [1, 2]}
+  const results = applyPatch(object, [
+    {op: 'replace', path: '/bar/2', value: 'X'},
+  ])
+  t.deepEqual(results.map(resultName), ['MissingError'])
+  t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+})
+
+test('copy fails beyond the append position', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'copy', from: '/src', path: '/bar/3'},
+  ])
+  t.deepEqual(results.map(resultName), ['MissingError'])
+})
+
+test('replace succeeds on a valid array index', t => {
+  const object = {bar: [1, 2]}
+  const results = applyPatch(object, [
+    {op: 'replace', path: '/bar/1', value: 'X'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 'X']})
+})
+
+test('copy succeeds at the append position', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'copy', from: '/src', path: '/bar/2'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 2, 'S'], src: 'S'})
+})
+
+test('move succeeds at the terminal dash', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'move', from: '/src', path: '/bar/-'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 2, 'S']})
+})
