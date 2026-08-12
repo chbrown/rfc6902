@@ -1,15 +1,14 @@
 import test from 'ava'
 
-import {join} from 'path'
-import {readFileSync} from 'fs'
-import * as yaml from 'js-yaml'
-
 import {applyPatch, createPatch} from '../index'
 import {Operation} from '../diff'
 import {Pointer} from '../pointer'
 import {clone} from '../util'
 
+import * as spec_data_json from './spec.json'
+
 interface Spec {
+  comment?: string
   name: string
   input: any
   patch: Operation[]
@@ -18,8 +17,7 @@ interface Spec {
   diffable: boolean
 }
 
-const spec_data = yaml.load(readFileSync(join(__dirname, 'spec.yaml'),
-                                         {encoding: 'utf8'})) as Spec[]
+const spec_data = spec_data_json as unknown as Spec[]
 
 test('JSON Pointer - rfc-examples', t => {
   // > For example, given the JSON document
@@ -104,7 +102,9 @@ test('Specification format', t => {
   // use sorted values and sort() to emulate set equality
   const props = ['diffable', 'input', 'name', 'output', 'patch', 'results']
   spec_data.forEach(spec => {
-    t.deepEqual(Object.keys(spec).sort(), props, `"${spec.name}" should have items with specific properties`)
+    // 'comment' is optional documentation carried over from the old YAML fixture; ignore it here
+    const keys = Object.keys(spec).filter(key => key !== 'comment').sort()
+    t.deepEqual(keys, props, `"${spec.name}" should have items with specific properties`)
   })
 })
 
