@@ -280,3 +280,12 @@ test('minimal array diff', t => {
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
+
+test('issues/2ndopp', t => {
+  t.true(({} as any).polluted === undefined, 'toString function should not be polluted')
+  const value = {}
+  applyPatch(value, [
+    {op: 'add', path: '/toString/polluted', value: 'Hello!'}
+  ])
+  t.true(({} as any).toString.polluted === undefined, 'toString function should still not be polluted')
+})
