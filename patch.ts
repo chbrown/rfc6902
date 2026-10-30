@@ -42,6 +42,16 @@ export class TestError extends Error {
   }
 }
 
+const arrayIndexToken = /^(0|[1-9][0-9]*)$/
+
+function isValidArrayInsertionToken(array: any[], key: string): boolean {
+  return key === '-' || (arrayIndexToken.test(key) && Number(key) <= array.length)
+}
+
+function isValidArrayMemberToken(array: any[], key: string): boolean {
+  return arrayIndexToken.test(key) && Number(key) < array.length
+}
+
 function _add(object: any, key: string, value: any): void {
   if (Array.isArray(object)) {
     // `key` must be an index
@@ -116,17 +126,8 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
     return new MissingError(operation.path)
   }
 
-  // For arrays, check that the key strictly follows RFC 6901:
-  // only digits (no leading 0's, sign, decimal point, or exponent).
-  // Also check that the index does not exceed the array's length
-  // (`key == endpoint.parent.length` is the valid append case).
-  if (Array.isArray(endpoint.parent) && endpoint.key !== '-') {
-    if (!/^(0|[1-9][0-9]*)$/.test(endpoint.key)) {
-      return new MissingError(operation.path)
-    }
-    if (Number(endpoint.key) > endpoint.parent.length) {
-      return new MissingError(operation.path)
-    }
+  if (Array.isArray(endpoint.parent) && !isValidArrayInsertionToken(endpoint.parent, endpoint.key)) {
+    return new MissingError(operation.path)
   }
 
   _add(endpoint.parent, endpoint.key, clone(operation.value))
@@ -184,7 +185,7 @@ export function replace(object: any, operation: ReplaceOperation, options?: Opti
   }
   // this existence check treats arrays as a special case
   if (Array.isArray(endpoint.parent)) {
-    if (parseInt(endpoint.key, 10) >= endpoint.parent.length) {
+    if (!isValidArrayMemberToken(endpoint.parent, endpoint.key)) {
       return new MissingError(operation.path)
     }
   }
@@ -229,6 +230,9 @@ export function move(object: any, operation: MoveOperation, options?: Options): 
   if (endpoint.parent === undefined || endpoint.parent === null) {
     return new MissingError(operation.path)
   }
+  if (Array.isArray(endpoint.parent) && !isValidArrayInsertionToken(endpoint.parent, endpoint.key)) {
+    return new MissingError(operation.path)
+  }
   _remove(from_endpoint.parent, from_endpoint.key)
   _add(endpoint.parent, endpoint.key, from_endpoint.value)
   return null
@@ -260,6 +264,9 @@ export function copy(object: any, operation: CopyOperation, options?: Options): 
   }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
   if (endpoint.parent === undefined || endpoint.parent === null) {
+    return new MissingError(operation.path)
+  }
+  if (Array.isArray(endpoint.parent) && !isValidArrayInsertionToken(endpoint.parent, endpoint.key)) {
     return new MissingError(operation.path)
   }
   _add(endpoint.parent, endpoint.key, clone(from_endpoint.value))
