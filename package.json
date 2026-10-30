@@ -16,12 +16,12 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^25.3.2",
-    "ava": "^6.4.1",
+    "@types/node": "^26.6.6",
+    "ava": "^8.2.0",
     "json-patch-test-suite": "github:json-patch/json-patch-tests#2a928f9044aad35c74e2788d498bcf2c6b91adea",
     "nyc": "^18.0.0",
-    "rollup": "^4.59.0",
-    "typescript": "^5.9.3"
+    "rollup": "^4.66.0",
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "prepare": "tsc",
