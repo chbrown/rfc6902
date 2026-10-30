@@ -290,3 +290,46 @@ test('clone prototype pollution', t => {
   t.is(result.name, 'Chris', 'other keys should still be cloned')
   t.is(({} as any).polluted, undefined, 'Object prototype should not be polluted')
 })
+
+test('applyPatch prototype pollution via terminal unsafe token', t => {
+  // a path ending in '__proto__' must not replace the target's prototype
+  for (const op of ['add', 'replace'] as const) {
+    const value: any = {}
+    const results = applyPatch(value, [{op, path: '/__proto__', value: {polluted: 'yes'}}])
+    t.is(results[0] && results[0].name, 'MissingError', `${op} to /__proto__ should fail`)
+    t.is(Object.getPrototypeOf(value), Object.prototype, `${op} should not replace prototype`)
+    t.is(value.polluted, undefined, `${op} should not inherit attacker-controlled properties`)
+  }
+  const value: any = {a: {polluted: 'yes'}}
+  for (const op of ['copy', 'move'] as const) {
+    const results = applyPatch(value, [{op, from: '/a', path: '/__proto__'}])
+    t.is(results[0] && results[0].name, 'MissingError', `${op} to /__proto__ should fail`)
+    t.is(Object.getPrototypeOf(value), Object.prototype, `${op} should not replace prototype`)
+  }
+  t.deepEqual(value, {a: {polluted: 'yes'}}, 'failed operations should not modify the document')
+})
+
+test('applyPatch rejects unsafe tokens anywhere in the path', t => {
+  const paths = ['/__proto__/polluted', '/constructor/prototype/polluted', '/constructor', '/a/prototype']
+  for (const path of paths) {
+    const value: any = {a: {}}
+    const results = applyPatch(value, [{op: 'add', path, value: 'yes'}])
+    t.is(results[0] && results[0].name, 'MissingError', `add to ${path} should fail`)
+    t.deepEqual(value, {a: {}}, `add to ${path} should not modify the document`)
+  }
+  // reading inherited members (e.g. Object itself) via 'from' must fail too
+  const value: any = {}
+  const results = applyPatch(value, [{op: 'copy', from: '/constructor', path: '/ctor'}])
+  t.is(results[0] && results[0].name, 'MissingError', 'copy from /constructor should fail')
+  t.deepEqual(value, {}, 'copy from /constructor should not modify the document')
+  t.is(({} as any).polluted, undefined, 'Object prototype should not be polluted')
+})
+
+test('createPatch/applyPatch roundtrip with __proto__ key', t => {
+  // diffing untrusted JSON must not yield a patch that swaps the target's prototype
+  const output = JSON.parse('{"__proto__":{"polluted":"yes"}}')
+  const value: any = {}
+  applyPatch(value, createPatch({}, output))
+  t.is(Object.getPrototypeOf(value), Object.prototype, 'prototype should not be replaced')
+  t.is(value.polluted, undefined, 'should not inherit attacker-controlled properties')
+})

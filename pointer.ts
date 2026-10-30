@@ -61,6 +61,8 @@ export class Pointer {
   In the special case that this Pointer's path == "",
   this object will be {parent: null, key: '', value: object}.
   Otherwise, parent and key will have the property such that parent[key] == value.
+  If any token is '__proto__', 'constructor', or 'prototype', the path is treated
+  as unresolvable: {parent: undefined, key, value: undefined}.
   */
   evaluate(object: any): PointerEvaluation {
     let parent: any = null
@@ -69,8 +71,9 @@ export class Pointer {
     for (let i = 1, l = this.tokens.length; i < l; i++) {
       parent = value
       key = this.tokens[i]
+      // traversing or assigning these could reach/replace a prototype (prototype pollution)
       if (key == '__proto__' || key == 'constructor' || key == 'prototype') {
-        continue
+        return {parent: undefined, key, value: undefined}
       }
       // not sure if this the best way to handle non-existant paths...
       value = (parent || {})[key]
