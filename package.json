@@ -18,7 +18,6 @@
   "devDependencies": {
     "@types/node": "^25.3.2",
     "ava": "^6.4.1",
-    "coveralls": "^3.1.1",
     "json-patch-test-suite": "github:json-patch/json-patch-tests#2a928f9044aad35c74e2788d498bcf2c6b91adea",
     "nyc": "^18.0.0",
     "rollup": "^4.59.0",
@@ -28,7 +27,6 @@
     "prepare": "tsc",
     "pretest": "tsc -b . test -f",
     "test": "nyc ava",
-    "posttest": "nyc report --reporter=text-lcov | coveralls || true",
     "dist": "tsc -t ES2015 -m es2015 --types ' ' && rollup index.js --output.format umd --name rfc6902 --output.file dist/rfc6902.js && closure-compiler dist/rfc6902.js > dist/rfc6902.min.js",
     "clean": "tsc -b . test --clean"
   }
