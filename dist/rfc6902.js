@@ -165,7 +165,8 @@
       for (const key in source) {
           // hasOwnProperty costs a bit of performance, but it's semantically necessary
           // using a global helper is MUCH faster than calling source.hasOwnProperty(key)
-          if (hasOwnProperty.call(source, key)) {
+          // assigning to '__proto__' would replace objectTarget's prototype (prototype pollution)
+          if (hasOwnProperty.call(source, key) && key != '__proto__') {
               objectTarget[key] = clone(source[key]);
           }
       }
@@ -472,6 +473,18 @@
   >     that member's value is replaced.
   */
   function add(object, operation, options) {
+      // RFC 6902 §4: every operation object MUST contain a "path" member.
+      // Pointer.fromJSON enforces the string/syntax contract itself (and throws on violation);
+      // this only guards the missing/null case.
+      if (operation.path == null) {
+          return new InvalidOperationError(operation);
+      }
+      // Verify RFC 6902 compliance; `undefined` is a legitimate value here,
+      // so check own-property membership, not `operation.value === undefined`
+      // (and not `in`, which would also see a polluted Object.prototype).
+      if (!hasOwnProperty.call(operation, 'value')) {
+          return new InvalidOperationError(operation);
+      }
       const pointer = Pointer.fromJSON(operation.path);
       // Handle implicit array creation for terminal "/-" paths
       if ((options === null || options === void 0 ? void 0 : options.implicitArrayCreation) && pointer.tokens[pointer.tokens.length - 1] === '-') {
@@ -493,6 +506,18 @@
       if ((options === null || options === void 0 ? void 0 : options.implicitArrayCreation) && endpoint.key === '-' && !Array.isArray(endpoint.parent)) {
           return new MissingError(operation.path);
       }
+      // For arrays, check that the key strictly follows RFC 6901:
+      // only digits (no leading 0's, sign, decimal point, or exponent).
+      // Also check that the index does not exceed the array's length
+      // (`key == endpoint.parent.length` is the valid append case).
+      if (Array.isArray(endpoint.parent) && endpoint.key !== '-') {
+          if (!/^(0|[1-9][0-9]*)$/.test(endpoint.key)) {
+              return new MissingError(operation.path);
+          }
+          if (Number(endpoint.key) > endpoint.parent.length) {
+              return new MissingError(operation.path);
+          }
+      }
       _add(endpoint.parent, endpoint.key, clone(operation.value));
       return null;
   }
@@ -501,6 +526,10 @@
   > The target location MUST exist for the operation to be successful.
   */
   function remove(object, operation, options) {
+      // RFC 6902 §4: every operation object MUST contain a "path" member.
+      if (operation.path == null) {
+          return new InvalidOperationError(operation);
+      }
       // endpoint has parent, key, and value properties
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       // the root pointer "" has no parent to remove from (mirrors `replace`)
@@ -526,6 +555,15 @@
   Even more simply, it's like the add operation with an existence check.
   */
   function replace(object, operation, options) {
+      // RFC 6902 §4: every operation object MUST contain a "path" member.
+      if (operation.path == null) {
+          return new InvalidOperationError(operation);
+      }
+      // Verify RFC 6902 compliance; `undefined` is a legitimate value here.
+      // See comment in `add` above.
+      if (!hasOwnProperty.call(operation, 'value')) {
+          return new InvalidOperationError(operation);
+      }
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       if (endpoint.parent === null) {
           return new MissingError(operation.path);
@@ -556,6 +594,10 @@
   > location; i.e., a location cannot be moved into one of its children.
   */
   function move(object, operation, options) {
+      // RFC 6902 §4.4: the operation object MUST contain "path" and "from" members.
+      if (operation.path == null || operation.from == null) {
+          return new InvalidOperationError(operation);
+      }
       const from_pointer = Pointer.fromJSON(operation.from);
       const from_endpoint = from_pointer.evaluate(object);
       if (from_endpoint.value === undefined) {
@@ -590,6 +632,12 @@
   Alternatively, it's like 'move' without the 'remove'.
   */
   function copy(object, operation, options) {
+      // RFC 6902 §4.5: the operation object MUST contain "path" and "from" members.
+      // Pointer.fromJSON enforces the string/syntax contract itself (and throws
+      // on violation); this only guards the missing/null case.
+      if (operation.path == null || operation.from == null) {
+          return new InvalidOperationError(operation);
+      }
       const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
       if (from_endpoint.value === undefined) {
           return new MissingError(operation.from);
@@ -610,6 +658,10 @@
   > operation to be considered successful.
   */
   function test(object, operation, options) {
+      // RFC 6902 §4: every operation object MUST contain a "path" member.
+      if (operation.path == null) {
+          return new InvalidOperationError(operation);
+      }
       const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
       // TODO: this diffAny(...).length usage could/should be lazy
       if (diffAny(endpoint.value, operation.value, new Pointer()).length) {
