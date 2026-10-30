@@ -53,7 +53,8 @@ export function clone<T extends any>(source: T): T {
   for (const key in source) {
     // hasOwnProperty costs a bit of performance, but it's semantically necessary
     // using a global helper is MUCH faster than calling source.hasOwnProperty(key)
-    if (hasOwnProperty.call(source, key)) {
+    // assigning to '__proto__' would replace objectTarget's prototype (prototype pollution)
+    if (hasOwnProperty.call(source, key) && key != '__proto__') {
       objectTarget[key] = clone(source[key])
     }
   }

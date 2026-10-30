@@ -280,3 +280,13 @@ test('minimal array diff', t => {
   ]
   checkRoundtrip(t, input, output, expected_patch)
 })
+
+test('clone prototype pollution', t => {
+  // a JSON-parsed own '__proto__' key must not replace the clone's prototype
+  const source = JSON.parse('{"__proto__":{"polluted":"yes"},"name":"Chris"}')
+  const result: any = clone(source)
+  t.is(Object.getPrototypeOf(result), Object.prototype, 'clone prototype should not be replaced')
+  t.is(result.polluted, undefined, 'clone should not inherit attacker-controlled properties')
+  t.is(result.name, 'Chris', 'other keys should still be cloned')
+  t.is(({} as any).polluted, undefined, 'Object prototype should not be polluted')
+})
