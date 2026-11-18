@@ -366,6 +366,23 @@ test('replace fails on out-of-bounds array index', t => {
   t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
 })
 
+test('replace fails on terminal /-', t => {
+  const object = {bar: [1, 2]}
+  const results = applyPatch(object, [
+    {op: 'replace', path: '/bar/-', value: 'X'},
+  ])
+  t.deepEqual(results.map(resultName), ['MissingError'])
+  t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+})
+
+test('copy fails beyond the append position', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'copy', from: '/src', path: '/bar/3'},
+  ])
+  t.deepEqual(results.map(resultName), ['MissingError'])
+})
+
 test('replace succeeds on a valid array index', t => {
   const object = {bar: [1, 2]}
   const results = applyPatch(object, [

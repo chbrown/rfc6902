@@ -1,4 +1,4 @@
-import {Pointer} from './pointer'
+import {Pointer, PointerEvaluation} from './pointer'
 import {objectType, clone, hasOwnProperty} from './util'
 import {AddOperation,
         RemoveOperation,
@@ -40,6 +40,23 @@ export class TestError extends Error {
     super(`Test failed: ${actual} != ${expected}`)
     this.name = 'TestError'
   }
+}
+
+/**
+Whether `endpoint` is a location that a value can be added at: it must have a parent,
+and, if that parent is an Array, the key must be "-" or an index <= the Array's length
+(`key == length` is the valid append case).
+
+Pointer#evaluate has already checked that Array keys are syntactically valid.
+*/
+function isAddable(endpoint: PointerEvaluation): boolean {
+  if (endpoint.parent === undefined || endpoint.parent === null) {
+    return false
+  }
+  if (Array.isArray(endpoint.parent)) {
+    return endpoint.key === '-' || Number(endpoint.key) <= endpoint.parent.length
+  }
+  return true
 }
 
 function _add(object: any, key: string, value: any): void {
@@ -107,26 +124,13 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
 
   const endpoint = pointer.evaluate(object)
   // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
-  if (endpoint.parent === undefined || endpoint.parent === null) {
+  if (!isAddable(endpoint)) {
     return new MissingError(operation.path)
   }
 
   // When using implicitArrayCreation, validate that "/-" targets are actually arrays
   if (options?.implicitArrayCreation && endpoint.key === '-' && !Array.isArray(endpoint.parent)) {
     return new MissingError(operation.path)
-  }
-
-  // For arrays, check that the key strictly follows RFC 6901:
-  // only digits (no leading 0's, sign, decimal point, or exponent).
-  // Also check that the index does not exceed the array's length
-  // (`key == endpoint.parent.length` is the valid append case).
-  if (Array.isArray(endpoint.parent) && endpoint.key !== '-') {
-    if (!/^(0|[1-9][0-9]*)$/.test(endpoint.key)) {
-      return new MissingError(operation.path)
-    }
-    if (Number(endpoint.key) > endpoint.parent.length) {
-      return new MissingError(operation.path)
-    }
   }
 
   _add(endpoint.parent, endpoint.key, clone(operation.value))
@@ -184,7 +188,7 @@ export function replace(object: any, operation: ReplaceOperation, options?: Opti
   }
   // this existence check treats arrays as a special case
   if (Array.isArray(endpoint.parent)) {
-    if (parseInt(endpoint.key, 10) >= endpoint.parent.length) {
+    if (endpoint.key === '-' || Number(endpoint.key) >= endpoint.parent.length) {
       return new MissingError(operation.path)
     }
   }
@@ -226,7 +230,7 @@ export function move(object: any, operation: MoveOperation, options?: Options): 
     return new MissingError(operation.path)
   }
   const endpoint = pointer.evaluate(object)
-  if (endpoint.parent === undefined || endpoint.parent === null) {
+  if (!isAddable(endpoint)) {
     return new MissingError(operation.path)
   }
   _remove(from_endpoint.parent, from_endpoint.key)
@@ -259,7 +263,7 @@ export function copy(object: any, operation: CopyOperation, options?: Options): 
     return new MissingError(operation.from)
   }
   const endpoint = Pointer.fromJSON(operation.path).evaluate(object)
-  if (endpoint.parent === undefined || endpoint.parent === null) {
+  if (!isAddable(endpoint)) {
     return new MissingError(operation.path)
   }
   _add(endpoint.parent, endpoint.key, clone(from_endpoint.value))
