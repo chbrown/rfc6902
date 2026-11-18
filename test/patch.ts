@@ -133,6 +133,67 @@ test('move into own child returns MissingError instead of destroying data', t =>
   t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
 })
 
+// JSON strings, numbers, booleans, and null have no members, so a path cannot descend into them
+const memberlessValues = ['chbrown@example.com', 100, true, null]
+
+memberlessValues.forEach(value => {
+  const name = JSON.stringify(value)
+
+  test(`add under ${name} returns MissingError instead of throwing`, t => {
+    const user = {id: value}
+    const results = applyPatch(user, [
+      {op: 'add', path: '/id/domain', value: 'example.com'},
+    ])
+    t.deepEqual(user, {id: value}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+
+  test(`replace under ${name} returns MissingError instead of throwing`, t => {
+    const user = {id: value}
+    const results = applyPatch(user, [
+      {op: 'replace', path: '/id/length', value: 1},
+    ])
+    t.deepEqual(user, {id: value}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+
+  test(`remove under ${name} returns MissingError instead of throwing`, t => {
+    const user = {id: value}
+    const results = applyPatch(user, [
+      {op: 'remove', path: '/id/0'},
+    ])
+    t.deepEqual(user, {id: value}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+
+  test(`copy under ${name} returns MissingError instead of throwing`, t => {
+    const user = {id: value, name: 'Chris'}
+    const results = applyPatch(user, [
+      {op: 'copy', from: '/name', path: '/id/domain'},
+    ])
+    t.deepEqual(user, {id: value, name: 'Chris'}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+
+  test(`move under ${name} returns MissingError instead of losing the source`, t => {
+    const user = {id: value, name: 'Chris'}
+    const results = applyPatch(user, [
+      {op: 'move', from: '/name', path: '/id/domain'},
+    ])
+    t.deepEqual(user, {id: value, name: 'Chris'}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+
+  test(`copy from under ${name} returns MissingError`, t => {
+    const user = {id: value}
+    const results = applyPatch(user, [
+      {op: 'copy', from: '/id/length', path: '/length'},
+    ])
+    t.deepEqual(user, {id: value}, 'should change nothing')
+    t.deepEqual(results.map(resultName), ['MissingError'], 'should result in MissingError')
+  })
+})
+
 test('broken copy (from)', t => {
   const user = {id: 'chbrown'}
   const results = applyPatch(user, [
@@ -235,4 +296,99 @@ test('fails on non-terminal /-', t => {
     {op: 'add', path: '/list/-/name', value: 'x'},
   ], {implicitArrayCreation: true})
   t.deepEqual(results.map(resultName), ['MissingError'])
+})
+
+// adapted from #114 (https://github.com/chbrown/rfc6902/pull/114) by @MildlyMeticulous
+const invalidArrayIndexTokens = ['-1', '-2', '00', '01', '1.5', '1e0', '+1', ' 1', 'bar', 'length', 'push']
+
+invalidArrayIndexTokens.forEach(token => {
+  test(`add fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2]}
+    const results = applyPatch(object, [
+      {op: 'add', path: `/bar/${token}`, value: 'X'},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+  })
+
+  test(`replace fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2]}
+    const results = applyPatch(object, [
+      {op: 'replace', path: `/bar/${token}`, value: 'X'},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+  })
+
+  test(`copy fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2], src: 'S'}
+    const results = applyPatch(object, [
+      {op: 'copy', from: '/src', path: `/bar/${token}`},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2], src: 'S'}, 'should change nothing')
+  })
+
+  test(`move fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2], src: 'S'}
+    const results = applyPatch(object, [
+      {op: 'move', from: '/src', path: `/bar/${token}`},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2], src: 'S'}, 'should change nothing')
+  })
+
+  test(`remove fails on invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [1, 2]}
+    const results = applyPatch(object, [
+      {op: 'remove', path: `/bar/${token}`},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+  })
+
+  test(`traversal fails through invalid array index token ${JSON.stringify(token)}`, t => {
+    const object = {bar: [{}, {}]}
+    const results = applyPatch(object, [
+      {op: 'add', path: `/bar/${token}/x`, value: 'X'},
+    ])
+    t.deepEqual(results.map(resultName), ['MissingError'])
+    t.deepEqual(object, {bar: [{}, {}]}, 'should change nothing')
+  })
+})
+
+test('replace fails on out-of-bounds array index', t => {
+  const object = {bar: [1, 2]}
+  const results = applyPatch(object, [
+    {op: 'replace', path: '/bar/2', value: 'X'},
+  ])
+  t.deepEqual(results.map(resultName), ['MissingError'])
+  t.deepEqual(object, {bar: [1, 2]}, 'should change nothing')
+})
+
+test('replace succeeds on a valid array index', t => {
+  const object = {bar: [1, 2]}
+  const results = applyPatch(object, [
+    {op: 'replace', path: '/bar/1', value: 'X'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 'X']})
+})
+
+test('copy succeeds at the append position', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'copy', from: '/src', path: '/bar/2'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 2, 'S'], src: 'S'})
+})
+
+test('move succeeds at the terminal dash', t => {
+  const object = {bar: [1, 2], src: 'S'}
+  const results = applyPatch(object, [
+    {op: 'move', from: '/src', path: '/bar/-'},
+  ])
+  t.deepEqual(results, [null])
+  t.deepEqual(object, {bar: [1, 2, 'S']})
 })

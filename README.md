@@ -129,10 +129,22 @@ see [JSON Patch (RFC6902)](#json-patch-rfc6902) below.
 
 ## Changelog
 
-I'm not going to copy & paste my relatively descriptive commit messages into groups here;
-rather, these are just the changes that merited major version bumps:
+Notable releases:
 
-### `4.x.x` → `5.0.0` (2021-12-15)
+### `5.5.0` (2026-11-18)
+
+* JSON pointer traversal no longer short-circuits; now we resolve only a document's _own_ members,
+  so inherited properties (e.g., `/toString`) are treated as missing,
+  and `__proto__` is rejected outright:
+  operations on paths like `/a/__proto__/b` return a `MissingError` instead of acting on `/a/b`.
+* Own properties named `constructor` or `prototype` are ordinary members again.
+  This breaks patching anything that isn't plain data:
+  class instances that expose fields through getters/setters on their prototype
+  (or objects layered with `Object.create(...)`) can no longer be patched at those fields,
+  paths cannot descend into strings, numbers, booleans, or functions,
+  and array tokens must be `-` or a valid RFC 6901 index, so `/list/length` no longer resolves.
+
+### `5.0.0` (2021-12-15)
 
 * Short-circuits JSON pointer traversal over the prototype-polluting tokens `__proto__`, `constructor`, and `prototype`. I.e., `/a/__proto__/b` and `/a/b` evaluate to the same thing.
 This is in violation of the spec,
@@ -141,7 +153,7 @@ but AFAIK there's no way to strictly comply with the spec in JavaScript.
 It would probably be more correct to throw an error in those cases,
 but this 'solution' feels less disruptive / more in line with workarounds implemented by other libraries.
 
-### `3.x.x` → `4.0.0` (2020-07-27)
+### `4.0.0` (2020-07-27)
 
 * Potential performance regression due to consolidating separate `compare(a, b): boolean` and `diff(a, b): Operation[]` logic into basically defining `compare(a, b)` as `!diff(a, b).length` (i.e., `diff(a, b)` returns empty array).
 This simplifies the codebase and ensures underlying semantics do not diverge,
@@ -150,7 +162,7 @@ It also facilitates the user completely specifying custom diff functionality wit
 as opposed to a `diff` and corresponding `compare`
 (and avoids the headache of having to propagate both of those around internally).
 
-### `2.x.x` → `3.0.0` (2018-09-17)
+### `3.0.0` (2018-09-17)
 
 * Corrects improper behavior in a few buggy edge cases,
 which might conceivably break consumers relying on incorrect behavior.

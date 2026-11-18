@@ -309,20 +309,60 @@ test('applyPatch prototype pollution via terminal unsafe token', t => {
   t.deepEqual(value, {a: {polluted: 'yes'}}, 'failed operations should not modify the document')
 })
 
-test('applyPatch rejects unsafe tokens anywhere in the path', t => {
-  const paths = ['/__proto__/polluted', '/constructor/prototype/polluted', '/constructor', '/a/prototype']
-  for (const path of paths) {
+test('applyPatch rejects __proto__ anywhere in the path', t => {
+  for (const path of ['/__proto__/polluted', '/a/__proto__', '/a/__proto__/polluted']) {
     const value: any = {a: {}}
     const results = applyPatch(value, [{op: 'add', path, value: 'yes'}])
     t.is(results[0] && results[0].name, 'MissingError', `add to ${path} should fail`)
     t.deepEqual(value, {a: {}}, `add to ${path} should not modify the document`)
   }
-  // reading inherited members (e.g. Object itself) via 'from' must fail too
-  const value: any = {}
-  const results = applyPatch(value, [{op: 'copy', from: '/constructor', path: '/ctor'}])
-  t.is(results[0] && results[0].name, 'MissingError', 'copy from /constructor should fail')
-  t.deepEqual(value, {}, 'copy from /constructor should not modify the document')
   t.is(({} as any).polluted, undefined, 'Object prototype should not be polluted')
+})
+
+test('applyPatch does not traverse inherited members (#111)', t => {
+  const paths = [
+    '/toString/polluted',
+    '/hasOwnProperty/polluted',
+    '/constructor/prototype/polluted',
+    '/a/push/polluted',
+    '/a/length',
+    '/s/length',
+    '/s/0',
+  ]
+  for (const path of paths) {
+    const value: any = {a: [], s: 'abc'}
+    const results = applyPatch(value, [{op: 'add', path, value: 'yes'}])
+    t.is(results[0] && results[0].name, 'MissingError', `add to ${path} should fail`)
+    t.deepEqual(value, {a: [], s: 'abc'}, `add to ${path} should not modify the document`)
+  }
+  t.is(({} as any).toString.polluted, undefined, 'Object.prototype.toString should not be polluted')
+  t.is(({} as any).hasOwnProperty.polluted, undefined, 'Object.prototype.hasOwnProperty should not be polluted')
+  t.is(({} as any).polluted, undefined, 'Object.prototype should not be polluted')
+  t.is(([] as any).push.polluted, undefined, 'Array.prototype.push should not be polluted')
+  // inherited members don't exist as far as 'from', 'remove', and 'test' are concerned
+  const value: any = {}
+  const results = applyPatch(value, [
+    {op: 'copy', from: '/constructor', path: '/ctor'},
+    {op: 'move', from: '/toString', path: '/str'},
+    {op: 'remove', path: '/hasOwnProperty'},
+    {op: 'replace', path: '/valueOf', value: 1},
+    {op: 'test', path: '/toString', value: {}},
+  ])
+  t.deepEqual(results.map(result => result && result.name),
+    ['MissingError', 'MissingError', 'MissingError', 'MissingError', 'TestError'])
+  t.deepEqual(value, {}, 'failed operations should not modify the document')
+})
+
+test('applyPatch handles own "constructor" and "prototype" keys as plain data', t => {
+  const value: any = JSON.parse('{"constructor":{"prototype":{"name":"A"}}}')
+  const results = applyPatch(value, [
+    {op: 'replace', path: '/constructor/prototype/name', value: 'B'},
+    {op: 'add', path: '/prototype', value: 'C'},
+  ])
+  t.deepEqual(results, [null, null])
+  t.deepEqual(value, {constructor: {prototype: {name: 'B'}}, prototype: 'C'})
+  t.is(Object.getPrototypeOf(value), Object.prototype, 'prototype should not be replaced')
+  t.is(({} as any).name, undefined, 'Object prototype should not be polluted')
 })
 
 test('createPatch/applyPatch roundtrip with __proto__ key', t => {

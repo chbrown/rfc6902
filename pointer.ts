@@ -1,3 +1,5 @@
+import {hasOwnProperty} from './util'
+
 /**
 Unescape token part of a JSON Pointer string
 
@@ -61,8 +63,17 @@ export class Pointer {
   In the special case that this Pointer's path == "",
   this object will be {parent: null, key: '', value: object}.
   Otherwise, parent and key will have the property such that parent[key] == value.
-  If any token is '__proto__', 'constructor', or 'prototype', the path is treated
-  as unresolvable: {parent: undefined, key, value: undefined}.
+
+  Only the document's own members are resolved: value is undefined for inherited
+  properties (e.g., "toString") and for in-range-but-absent array indices
+  (e.g., "-" or an index >= length).
+
+  If any token cannot address a member of its parent, the path is unresolvable and
+  this returns {parent: undefined, key, value: undefined}. That happens when:
+  - the parent is not an Object or Array (e.g., missing, a string, or a function)
+  - the parent is an Array and the token is neither "-" nor an RFC 6901 array index
+  - the parent is an Object and the token is "__proto__", since assigning to it
+    would replace the parent's prototype
   */
   evaluate(object: any): PointerEvaluation {
     let parent: any = null
@@ -71,12 +82,27 @@ export class Pointer {
     for (let i = 1, l = this.tokens.length; i < l; i++) {
       parent = value
       key = this.tokens[i]
-      // traversing or assigning these could reach/replace a prototype (prototype pollution)
-      if (key == '__proto__' || key == 'constructor' || key == 'prototype') {
+      if (parent == null || typeof parent != 'object') {
         return {parent: undefined, key, value: undefined}
       }
-      // not sure if this the best way to handle non-existant paths...
-      value = (parent || {})[key]
+      if (Array.isArray(parent)) {
+        if (key == '-') {
+          value = undefined
+          continue
+        }
+        // RFC 6901 §4: only digits, without leading 0's, sign, decimal point, or exponent
+        if (!/^(0|[1-9][0-9]*)$/.test(key)) {
+          return {parent: undefined, key, value: undefined}
+        }
+        value = Number(key) < parent.length ? parent[Number(key)] : undefined
+      }
+      else {
+        if (key == '__proto__') {
+          return {parent: undefined, key, value: undefined}
+        }
+        // never resolve inherited members, which could be shared globals (prototype pollution)
+        value = hasOwnProperty.call(parent, key) ? parent[key] : undefined
+      }
     }
     return {parent, key, value}
   }
