@@ -5,7 +5,7 @@ import {Operation} from '../diff'
 import {Pointer} from '../pointer'
 import {clone} from '../util'
 
-import * as spec_data_json from './spec.json'
+import spec_data_json from './spec.json'
 
 interface Spec {
   comment?: string

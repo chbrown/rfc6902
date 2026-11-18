@@ -125,7 +125,7 @@ test('issues/29', t => {
     {op: 'replace', path: '/stop_recursing', value: ['a']},
   ]
   const actual_patch = createPatch(input, output, customDiff)
-  checkRoundtrip(t, input, output, expected_patch, null, actual_patch)
+  checkRoundtrip(t, input, output, expected_patch, undefined, actual_patch)
 
   const nested_input = {root: input}
   const nested_output = {root: output}
@@ -134,7 +134,7 @@ test('issues/29', t => {
     {op: 'replace', path: '/root/stop_recursing', value: ['a']},
   ]
   const nested_actual_patch = createPatch(nested_input, nested_output, customDiff)
-  checkRoundtrip(t, nested_input, nested_output, nested_expected_patch, null, nested_actual_patch)
+  checkRoundtrip(t, nested_input, nested_output, nested_expected_patch, undefined, nested_actual_patch)
 })
 
 test('issues/32', t => {
@@ -248,7 +248,7 @@ test('issues/76', t => {
 })
 
 test('issues/78', t => {
-  const user = {firstName: 'Chris'}
+  const user: any = {firstName: 'Chris'}
   const patch_results = applyPatch(user, [
     {op: 'add', path: '/createdAt', value: new Date('2010-08-10T22:10:48Z')},
   ])
@@ -257,7 +257,7 @@ test('issues/78', t => {
 })
 
 test('issues/97', t => {
-  const commits = []
+  const commits: any[] = []
   const user = {firstName: 'Chris', commits: ['80f1243']}
   const patch_results = applyPatch(user, [
     {op: 'replace', path: '/commits', value: commits},

@@ -4,8 +4,8 @@ import {applyPatch} from '../index'
 import {Operation} from '../diff'
 import {clone} from '../util'
 
-import * as tests from 'json-patch-test-suite/tests.json'
-import * as spec_tests from 'json-patch-test-suite/spec_tests.json'
+import tests from 'json-patch-test-suite/tests.json'
+import spec_tests from 'json-patch-test-suite/spec_tests.json'
 
 /**
 See https://github.com/json-patch/json-patch-tests#test-format
