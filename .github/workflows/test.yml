@@ -1,0 +1,28 @@
+name: test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # weekly, Mondays at 09:17 UTC, to catch breakage from new dev dep releases
+    - cron: '17 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test
