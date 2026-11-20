@@ -267,33 +267,37 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
   const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
   const array_operations = dist(input_length, output_length).operations
-  const [padded_operations] = array_operations.reduce<[Operation[], number]>(([operations, padding], array_operation) => {
+  // convert array_operations into proper Operations, keeping track of how much
+  // earlier adds and removes have shifted the indices of later elements
+  const operations: Operation[] = []
+  let padding = 0
+  for (const array_operation of array_operations) {
     if (isArrayAdd(array_operation)) {
       const padded_index = array_operation.index + 1 + padding
       const index_token = padded_index < (input_length + padding) ? String(padded_index) : '-'
-      const operation = {
+      operations.push({
         op: array_operation.op,
         path: ptr.add(index_token).toString(),
         value: array_operation.value,
-      }
-      // padding++ // maybe only if array_operation.index > -1 ?
-      return [operations.concat(operation), padding + 1]
+      })
+      padding++
     }
     else if (isArrayRemove(array_operation)) {
-      const operation = {
+      operations.push({
         op: array_operation.op,
         path: ptr.add(String(array_operation.index + padding)).toString(),
-      }
-      // padding--
-      return [operations.concat(operation), padding - 1]
+      })
+      padding--
     }
     else { // replace
       const replace_ptr = ptr.add(String(array_operation.index + padding))
-      const replace_operations = diff(array_operation.original, array_operation.value, replace_ptr)
-      return [operations.concat(...replace_operations), padding]
+      // push one at a time, since spreading a huge sub-diff could exceed the maximum number of arguments
+      for (const operation of diff(array_operation.original, array_operation.value, replace_ptr)) {
+        operations.push(operation)
+      }
     }
-  }, [[], 0])
-  return padded_operations
+  }
+  return operations
 }
 
 export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
