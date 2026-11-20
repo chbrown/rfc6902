@@ -182,6 +182,11 @@ array of 'add' operations.
 If the `output` (target) is empty, everything will be in the left column,
 resulting in an array of 'remove' operations.
 
+The common prefix and suffix of `input` and `output` are skipped before filling
+in the cost matrix. Keeping equal elements is always optimal, so this doesn't
+change the cost, only (potentially) which of several equally cheap sequences of
+operations is returned; e.g., [A, A] -> [A] removes the second A, not the first.
+
 @returns A list of add/remove/replace operations.
 */
 export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff = diffAny): Operation[] {
@@ -189,17 +194,36 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   // properties by using 0 for everything but positive numbers
   const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
   const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
-  // position (i, j) in the cost matrix (see layout above) is stored at index i * width + j
-  const width = output_length + 1
+  function equal(input_index: number, output_index: number): boolean {
+    // TODO: this !diff(...).length usage could/should be lazy
+    return !diff(input[input_index], output[output_index], ptr.add(String(input_index))).length
+  }
+  // skip the common prefix and suffix
+  let start = 0
+  while (start < input_length && start < output_length && equal(start, start)) {
+    start++
+  }
+  let input_end = input_length
+  let output_end = output_length
+  while (input_end > start && output_end > start && equal(input_end - 1, output_end - 1)) {
+    input_end--
+    output_end--
+  }
+  // the cost matrix (see layout above) only covers input.slice(start, input_end)
+  // and output.slice(start, output_end)
+  const rows = input_end - start
+  const columns = output_end - start
+  // position (i, j) in the cost matrix is stored at index i * width + j
+  const width = columns + 1
   // costs[i * width + j] is the total cost of the cheapest path to (i, j), or -1 if not yet computed
-  const costs = new Int32Array((input_length + 1) * width).fill(-1)
+  const costs = new Int32Array((rows + 1) * width).fill(-1)
   // moves[i * width + j] is the last move on that cheapest path
-  const moves = new Uint8Array((input_length + 1) * width)
+  const moves = new Uint8Array((rows + 1) * width)
   costs[0] = 0
   /**
   Calculate the cost of the cheapest sequence of operations required to get
-  from input.slice(0, i) to output.slice(0, j), recording the last move of that
-  sequence in `moves`.
+  from input.slice(start, start + i) to output.slice(start, start + j),
+  recording the last move of that sequence in `moves`.
   There may be other valid sequences with the same cost, but none cheaper.
 
   @param i The row in the layout above
@@ -210,8 +234,7 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     // memoized
     const k = i * width + j
     if (costs[k] === -1) {
-      // TODO: this !diff(...).length usage could/should be lazy
-      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
+      if (i > 0 && j > 0 && equal(start + i - 1, start + j - 1)) {
         // equal (no operations => no cost)
         costs[k] = dist(i - 1, j - 1)
         moves[k] = Move.Keep
@@ -252,25 +275,27 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     }
     return costs[k]
   }
-  dist(input_length, output_length)
+  dist(rows, columns)
   // trace back from the bottom-right corner to collect the operations
   const array_operations: ArrayOperation[] = []
-  for (let i = input_length, j = output_length; i > 0 || j > 0;) {
+  for (let i = rows, j = columns; i > 0 || j > 0;) {
+    // the index in `input` of the element at row i
+    const index = start + i - 1
     switch (moves[i * width + j]) {
       case Move.Keep:
         i--
         j--
         break
       case Move.Remove:
-        array_operations.push({op: 'remove', index: i - 1})
+        array_operations.push({op: 'remove', index})
         i--
         break
       case Move.Add:
-        array_operations.push({op: 'add', index: i - 1, value: output[j - 1]})
+        array_operations.push({op: 'add', index, value: output[start + j - 1]})
         j--
         break
       case Move.Replace:
-        array_operations.push({op: 'replace', index: i - 1, original: input[i - 1], value: output[j - 1]})
+        array_operations.push({op: 'replace', index, original: input[index], value: output[start + j - 1]})
         i--
         j--
         break

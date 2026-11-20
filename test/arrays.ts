@@ -47,3 +47,9 @@ pairs.forEach(([input, output]) => {
     t.deepEqual(actual_output, output, 'should apply produced patch to arrive at output')
   })
 })
+
+test('diff of equally cheap alternatives: [A,A] => [A] removes the second A', t => {
+  // skipping the common prefix and suffix means ties are broken toward keeping
+  // leading elements, so the last of several equal elements gets removed
+  t.deepEqual(createPatch(['A', 'A'], ['A']), [{op: 'remove', path: '/1'}])
+})
