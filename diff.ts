@@ -215,67 +215,56 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   const columns = output_end - start
   // position (i, j) in the cost matrix is stored at index i * width + j
   const width = columns + 1
-  // costs[i * width + j] is the total cost of the cheapest path to (i, j), or -1 if not yet computed
-  const costs = new Int32Array((rows + 1) * width).fill(-1)
-  // moves[i * width + j] is the last move on that cheapest path
+  // moves[i * width + j] is the last move on the cheapest path to (i, j),
+  // i.e., the cheapest way to get from input.slice(start, start + i) to
+  // output.slice(start, start + j)
+  // (there may be other ways that are just as cheap)
   const moves = new Uint8Array((rows + 1) * width)
-  costs[0] = 0
-  /**
-  Calculate the cost of the cheapest sequence of operations required to get
-  from input.slice(start, start + i) to output.slice(start, start + j),
-  recording the last move of that sequence in `moves`.
-  There may be other valid sequences with the same cost, but none cheaper.
-
-  @param i The row in the layout above
-  @param j The column in the layout above
-  @returns The total cost of the operations (+1 for each add/remove/replace)
-  */
-  function dist(i: number, j: number): number {
-    // memoized
-    const k = i * width + j
-    if (costs[k] === -1) {
-      if (i > 0 && j > 0 && equal(start + i - 1, start + j - 1)) {
+  // the total cost of that path (+1 for each add/remove/replace) for each
+  // position in the current row; we only need the previous row to compute it
+  let previous_costs = new Uint32Array(width)
+  let current_costs = new Uint32Array(width)
+  // topmost row: add everything
+  for (let j = 1; j <= columns; j++) {
+    previous_costs[j] = j
+    moves[j] = Move.Add
+  }
+  for (let i = 1; i <= rows; i++) {
+    // leftmost column: remove everything
+    current_costs[0] = i
+    moves[i * width] = Move.Remove
+    for (let j = 1; j <= columns; j++) {
+      if (equal(start + i - 1, start + j - 1)) {
         // equal (no operations => no cost)
-        costs[k] = dist(i - 1, j - 1)
-        moves[k] = Move.Keep
+        current_costs[j] = previous_costs[j - 1]
+        moves[i * width + j] = Move.Keep
       }
       else {
         // the meat of the algorithm: take the cheapest alternative, where ties
         // go to (in order of preference) remove, add, replace
-        // (the only other case, i === 0 && j === 0, has already been memoized)
-        let cost = Infinity
-        let move = Move.Keep
-        if (i > 0) {
-          // NOT topmost row
-          cost = dist(i - 1, j) + 1
-          move = Move.Remove
+        let cost = previous_costs[j] + 1
+        let move = Move.Remove
+        const add_cost = current_costs[j - 1] + 1
+        if (add_cost < cost) {
+          cost = add_cost
+          move = Move.Add
         }
-        if (j > 0) {
-          // NOT leftmost column
-          const add_cost = dist(i, j - 1) + 1
-          if (add_cost < cost) {
-            cost = add_cost
-            move = Move.Add
-          }
+        // the general plan is to replace it, but we can be smarter, recursing
+        // into the structure and replacing only part of it if possible
+        // (which is handled when converting to proper Operations below)
+        const replace_cost = previous_costs[j - 1] + 1
+        if (replace_cost < cost) {
+          cost = replace_cost
+          move = Move.Replace
         }
-        if (i > 0 && j > 0) {
-          // TABLE MIDDLE
-          // the general plan is to replace it, but we can be smarter, recursing
-          // into the structure and replacing only part of it if possible
-          // (which is handled when converting to proper Operations below)
-          const replace_cost = dist(i - 1, j - 1) + 1
-          if (replace_cost < cost) {
-            cost = replace_cost
-            move = Move.Replace
-          }
-        }
-        costs[k] = cost
-        moves[k] = move
+        current_costs[j] = cost
+        moves[i * width + j] = move
       }
     }
-    return costs[k]
+    // this row becomes the previous row for the next one, and we reuse the old
+    // previous row's buffer for the next row (every cell gets overwritten)
+    [previous_costs, current_costs] = [current_costs, previous_costs]
   }
-  dist(rows, columns)
   // trace back from the bottom-right corner to collect the operations
   const array_operations: ArrayOperation[] = []
   for (let i = rows, j = columns; i > 0 || j > 0;) {
