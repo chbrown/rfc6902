@@ -1,5 +1,5 @@
 import {Pointer} from './pointer' // we only need this for type inference
-import {hasOwnProperty, isNonPrimitive} from './util'
+import {hasOwnProperty, isNonPrimitive, isPlainObject} from './util'
 
 /**
 All diff* functions should return a list of operations, often empty.
@@ -314,6 +314,59 @@ export function diffObjects(input: any, output: any, ptr: Pointer, diff: Diff = 
 }
 
 /**
+Compare two non-plain objects (see {@link isPlainObject}) as atomic values,
+which are either equal or must be replaced wholesale.
+
+`Date`s are equal if they represent the same time, and `Map`s and `Set`s are
+equal if their entries are (as determined by `diff`). Any other non-plain
+objects (e.g., `RegExp`s or typed arrays) are only equal if they're identical,
+which has already been ruled out by the time this is called.
+*/
+function equalAtomic(input: object, output: object, ptr: Pointer, diff: Diff): boolean {
+  if (input instanceof Date && output instanceof Date) {
+    // Object.is treats two invalid dates (NaN) as equal
+    return Object.is(input.getTime(), output.getTime())
+  }
+  if (input instanceof Map && output instanceof Map) {
+    if (input.size !== output.size) {
+      return false
+    }
+    for (const [key, value] of input) {
+      if (!output.has(key) || diff(value, output.get(key), ptr).length) {
+        return false
+      }
+    }
+    return true
+  }
+  if (input instanceof Set && output instanceof Set) {
+    if (input.size !== output.size) {
+      return false
+    }
+    // match each input element to a distinct output element, trying identity first
+    const unmatched = new Set(output)
+    for (const value of input) {
+      if (unmatched.has(value)) {
+        unmatched.delete(value)
+        continue
+      }
+      let match_found = false
+      for (const candidate of unmatched) {
+        if (!diff(value, candidate, ptr).length) {
+          unmatched.delete(candidate)
+          match_found = true
+          break
+        }
+      }
+      if (!match_found) {
+        return false
+      }
+    }
+    return true
+  }
+  return false
+}
+
+/**
 `diffAny()` returns an empty array if `input` and `output` are materially equal
 (i.e., would produce equivalent JSON); otherwise it produces an array of patches
 that would transform `input` into `output`.
@@ -344,12 +397,16 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   if (Array.isArray(input) && Array.isArray(output)) {
     return diffArrays(input, output, ptr, diff)
   }
-  if (isNonPrimitive(input) && isNonPrimitive(output) && !Array.isArray(input) && !Array.isArray(output)) {
+  if (isPlainObject(input) && isPlainObject(output)) {
     return diffObjects(input, output, ptr, diff)
+  }
+  if (isNonPrimitive(input) && isNonPrimitive(output) && equalAtomic(input, output, ptr, diff)) {
+    return []
   }
   // at this point we know that input and output are materially different;
   // could be array -> object, object -> array, boolean -> undefined,
-  // number -> string, or some other combination, but nothing that can be split
-  // up into multiple patches: so `output` must replace `input` wholesale.
+  // number -> string, Date -> Date, or some other combination,
+  // but nothing that can be split up into multiple patches:
+  // so `output` must replace `input` wholesale.
   return [{op: 'replace', path: ptr.toString(), value: output}]
 }

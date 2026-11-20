@@ -99,6 +99,81 @@ test('issues/15/array', t => {
   checkRoundtrip(t, input, output, expected_patch, customDiff)
 })
 
+test('issues/15/no-custom-diff', t => {
+  checkRoundtrip(t, {date: new Date(0)}, {date: new Date(1)}, [
+    {op: 'replace', path: '/date', value: new Date(1)},
+  ])
+  checkRoundtrip(t, [new Date(0)], [new Date(1)], [
+    {op: 'replace', path: '/0', value: new Date(1)},
+  ])
+  checkRoundtrip(t, {date: new Date(0)}, {date: new Date(0)}, [])
+  checkRoundtrip(t, {date: new Date(NaN)}, {date: new Date(NaN)}, [])
+  checkRoundtrip(t, {date: new Date(0)}, {date: {}}, [
+    {op: 'replace', path: '/date', value: {}},
+  ])
+  checkRoundtrip(t, [new Date(0), new Date(1)], [new Date(1)], [
+    {op: 'remove', path: '/0'},
+  ])
+})
+
+test('Map values are compared by contents', t => {
+  checkRoundtrip(t, {m: new Map([['a', {x: 1}]])}, {m: new Map([['a', {x: 1}]])}, [])
+  checkRoundtrip(t, {m: new Map([['a', {x: 1}]])}, {m: new Map([['a', {x: 2}]])}, [
+    {op: 'replace', path: '/m', value: new Map([['a', {x: 2}]])},
+  ])
+  checkRoundtrip(t, {m: new Map([['a', 1]])}, {m: new Map([['b', 1]])}, [
+    {op: 'replace', path: '/m', value: new Map([['b', 1]])},
+  ])
+  checkRoundtrip(t, {m: new Map()}, {m: new Set()}, [
+    {op: 'replace', path: '/m', value: new Set()},
+  ])
+})
+
+test('Set values are compared by contents', t => {
+  // (not checkRoundtrip, since t.deepEqual considers Set order)
+  t.deepEqual(createPatch({s: new Set([1, 2])}, {s: new Set([2, 1])}), [])
+  checkRoundtrip(t, {s: new Set([{x: 1}])}, {s: new Set([{x: 1}])}, [])
+  checkRoundtrip(t, {s: new Set([1, 2])}, {s: new Set([1, 3])}, [
+    {op: 'replace', path: '/s', value: new Set([1, 3])},
+  ])
+  // each element needs a distinct match
+  checkRoundtrip(t, {s: new Set([{x: 1}, {x: 1}])}, {s: new Set([{x: 1}, {y: 1}])}, [
+    {op: 'replace', path: '/s', value: new Set([{x: 1}, {y: 1}])},
+  ])
+  checkRoundtrip(t, {s: new Set()}, {s: {}}, [
+    {op: 'replace', path: '/s', value: {}},
+  ])
+})
+
+test('class instances are still diffed field by field', t => {
+  class Point {
+    constructor(public x: number, public y: number) {}
+  }
+  t.deepEqual(createPatch({p: new Point(1, 2)}, {p: new Point(1, 3)}), [
+    {op: 'replace', path: '/p/y', value: 3},
+  ])
+})
+
+test('other built-ins are atomic', t => {
+  t.deepEqual(createPatch({r: /a/}, {r: /b/}), [
+    {op: 'replace', path: '/r', value: /b/},
+  ])
+  const bytes = new Uint8Array([1, 2])
+  t.deepEqual(createPatch({b: bytes}, {b: bytes}), [])
+  t.deepEqual(createPatch({b: new Uint8Array([1, 2])}, {b: new Uint8Array([1, 3])}), [
+    {op: 'replace', path: '/b', value: new Uint8Array([1, 3])},
+  ])
+})
+
+test('test operation compares Dates by value', t => {
+  const results = applyPatch({date: new Date(0)}, [
+    {op: 'test', path: '/date', value: new Date(0)},
+    {op: 'test', path: '/date', value: new Date(1)},
+  ])
+  t.is(results[0], null)
+  t.truthy(results[1], 'test against a different Date should fail')
+})
+
 test('issues/29', t => {
   /**
   Custom diff function that short-circuits recursion when the last token

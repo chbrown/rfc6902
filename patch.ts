@@ -1,5 +1,5 @@
 import {Pointer, PointerEvaluation} from './pointer'
-import {isNonPrimitive, clone, hasOwnProperty} from './util'
+import {isPlainObject, clone, hasOwnProperty} from './util'
 import {AddOperation,
         RemoveOperation,
         ReplaceOperation,
@@ -117,7 +117,7 @@ export function add(object: any, operation: AddOperation, options?: Options): Mi
     // If the array property doesn't exist but its parent does,
     // and this parent is a plain object (not an array),
     // create an (empty) array that we will add to below.
-    if (parentEndpoint.value === undefined && isNonPrimitive(parentEndpoint.parent) && !Array.isArray(parentEndpoint.parent)) {
+    if (parentEndpoint.value === undefined && isPlainObject(parentEndpoint.parent)) {
       parentEndpoint.parent[parentEndpoint.key] = []
     }
   }

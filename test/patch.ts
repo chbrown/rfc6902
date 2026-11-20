@@ -274,6 +274,25 @@ test('fails when parent is not object (null)', t => {
   t.deepEqual(results.map(resultName), ['MissingError'])
 })
 
+test('fails when parent is not object (Map)', t => {
+  const object = {meta: new Map()}
+  const results = applyPatch(object, [
+    {op: 'add', path: '/meta/tag/-', value: 'x'},
+  ], {implicitArrayCreation: true})
+  t.deepEqual(results.map(resultName), ['MissingError'])
+  t.false('tag' in object.meta)
+})
+
+test('creates missing array on class instance', t => {
+  class Meta {}
+  const object = {meta: new Meta()}
+  const results = applyPatch(object, [
+    {op: 'add', path: '/meta/tag/-', value: 'x'},
+  ], {implicitArrayCreation: true})
+  t.deepEqual(results, [null])
+  t.deepEqual((object.meta as any).tag, ['x'])
+})
+
 test('fails on existing non-array property (value)', t => {
   const object = {a: 1}
   const results = applyPatch(object, [
