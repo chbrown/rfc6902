@@ -209,8 +209,13 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
     const memo_key = i * (max_length + 1) + j;
     let memoized = memo.get(memo_key)
     if (memoized === undefined) {
-      // TODO: this !diff(...).length usage could/should be lazy
-      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
+      // with the default diff, compare the items directly instead of building
+      // their whole diff only to check that it is empty; a custom diff may have
+      // its own idea of equality, so it is still asked
+      const equal = i > 0 && j > 0 && (diff === diffAny
+        ? equalAny(input[i - 1], output[j - 1])
+        : !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length)
+      if (equal) {
         // equal (no operations => no cost)
         memoized = dist(i - 1, j - 1)
       }
@@ -354,4 +359,59 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   // number -> string, or some other combination, but nothing that can be split
   // up into multiple patches: so `output` must replace `input` wholesale.
   return [{op: 'replace', path: ptr.toString(), value: output}]
+}
+
+/**
+Same result as `!diffAny(input, output, ptr).length`, without building the
+operations, and stopping at the first difference.
+*/
+function equalAny(input: any, output: any): boolean {
+  // same as diffAny: strict equality handles literals, numbers and strings
+  if (input === output) {
+    return true
+  }
+  const input_type = objectType(input)
+  const output_type = objectType(output)
+  if (input_type == 'array' && output_type == 'array') {
+    // diffArrays is empty only when every item is kept: same length...
+    if (input.length !== output.length) {
+      return false
+    }
+    // ...and equal items at the same positions
+    for (let i = 0; i < input.length; i++) {
+      if (!equalAny(input[i], output[i])) {
+        return false
+      }
+    }
+    return true
+  }
+  if (input_type == 'object' && output_type == 'object') {
+    // diffObjects is empty when no key is removed, added or changed;
+    // keys are filtered like in subtract(): own properties, not undefined
+    let input_keys = 0
+    for (const key in input) {
+      if (hasOwnProperty.call(input, key) && input[key] !== undefined) {
+        // removed key: missing from output
+        if (!hasOwnProperty.call(output, key) || output[key] === undefined) {
+          return false
+        }
+        // changed key
+        if (!equalAny(input[key], output[key])) {
+          return false
+        }
+        input_keys++
+      }
+    }
+    // every input key is in output, so output has extra (added) keys
+    // exactly when it has more keys
+    let output_keys = 0
+    for (const key in output) {
+      if (hasOwnProperty.call(output, key) && output[key] !== undefined) {
+        output_keys++
+      }
+    }
+    return input_keys === output_keys
+  }
+  // same as diffAny: anything else (e.g. different types) is a replace
+  return false
 }
