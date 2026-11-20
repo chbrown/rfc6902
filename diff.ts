@@ -1,5 +1,5 @@
 import {Pointer} from './pointer' // we only need this for type inference
-import {hasOwnProperty, objectType} from './util'
+import {hasOwnProperty, isNonPrimitive} from './util'
 
 /**
 All diff* functions should return a list of operations, often empty.
@@ -341,12 +341,10 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   if (input === output) {
     return []
   }
-  const input_type = objectType(input)
-  const output_type = objectType(output)
-  if (input_type == 'array' && output_type == 'array') {
+  if (Array.isArray(input) && Array.isArray(output)) {
     return diffArrays(input, output, ptr, diff)
   }
-  if (input_type == 'object' && output_type == 'object') {
+  if (isNonPrimitive(input) && isNonPrimitive(output) && !Array.isArray(input) && !Array.isArray(output)) {
     return diffObjects(input, output, ptr, diff)
   }
   // at this point we know that input and output are materially different;
