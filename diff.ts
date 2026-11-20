@@ -144,20 +144,16 @@ function isArrayRemove(array_operation: ArrayOperation): array_operation is Arra
   return array_operation.op === 'remove'
 }
 
-interface DynamicAlternative {
-  operations: ArrayOperation[]
-  /**
-  cost indicates the total cost of getting to this position.
-  */
-  cost: number
-}
-
-function appendArrayOperation(base: DynamicAlternative, operation: ArrayOperation): DynamicAlternative {
-  return {
-    // the new operation must be pushed on the end
-    operations: base.operations.concat(operation),
-    cost: base.cost + 1,
-  }
+/**
+The last move on the cheapest path to a given position in the cost matrix.
+These are stored in a Uint8Array, so they must be (small) numbers; as a const
+enum, they're compiled to plain number literals.
+*/
+const enum Move {
+  Keep,
+  Remove,
+  Add,
+  Replace,
 }
 
 /**
@@ -189,84 +185,98 @@ resulting in an array of 'remove' operations.
 @returns A list of add/remove/replace operations.
 */
 export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff = diffAny): Operation[] {
-  // set up cost matrix (very simple initialization: just a map)
-  const max_length = Math.max(input.length, output.length)
-  const memo = new Map<number, DynamicAlternative>(
-    [[0, {operations: [], cost: 0}]],
-  );
-  /**
-  Calculate the cheapest sequence of operations required to get from
-  input.slice(0, i) to output.slice(0, j).
-  There may be other valid sequences with the same cost, but none cheaper.
-
-  @param i The row in the layout above
-  @param j The column in the layout above
-  @returns An object containing a list of operations, along with the total cost
-           of applying them (+1 for each add/remove/replace operation)
-  */
-  function dist(i: number, j: number): DynamicAlternative {
-    // memoized
-    const memo_key = i * (max_length + 1) + j;
-    let memoized = memo.get(memo_key)
-    if (memoized === undefined) {
-      // TODO: this !diff(...).length usage could/should be lazy
-      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
-        // equal (no operations => no cost)
-        memoized = dist(i - 1, j - 1)
-      }
-      else {
-        const alternatives: DynamicAlternative[] = []
-        if (i > 0) {
-          // NOT topmost row
-          const remove_base = dist(i - 1, j)
-          const remove_operation: ArrayRemove = {
-            op: 'remove',
-            index: i - 1,
-          }
-          alternatives.push(appendArrayOperation(remove_base, remove_operation))
-        }
-        if (j > 0) {
-          // NOT leftmost column
-          const add_base = dist(i, j - 1)
-          const add_operation: ArrayAdd = {
-            op: 'add',
-            index: i - 1,
-            value: output[j - 1],
-          }
-          alternatives.push(appendArrayOperation(add_base, add_operation))
-        }
-        if (i > 0 && j > 0) {
-          // TABLE MIDDLE
-          // supposing we replaced it, compute the rest of the costs:
-          const replace_base = dist(i - 1, j - 1)
-          // okay, the general plan is to replace it, but we can be smarter,
-          // recursing into the structure and replacing only part of it if
-          // possible, but to do so we'll need the original value
-          const replace_operation: ArrayReplace = {
-            op: 'replace',
-            index: i - 1,
-            original: input[i - 1],
-            value: output[j - 1],
-          }
-          alternatives.push(appendArrayOperation(replace_base, replace_operation))
-        }
-        // the only other case, i === 0 && j === 0, has already been memoized
-
-        // the meat of the algorithm:
-        // sort by cost to find the lowest one (might be several ties for lowest)
-        // [4, 6, 7, 1, 2].sort((a, b) => a - b) -> [ 1, 2, 4, 6, 7 ]
-        const best = alternatives.sort((a, b) => a.cost - b.cost)[0]
-        memoized = best
-      }
-      memo.set(memo_key, memoized)
-    }
-    return memoized
-  }
   // handle weird objects masquerading as Arrays that don't have proper length
   // properties by using 0 for everything but positive numbers
   const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
   const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
-  const array_operations = dist(input_length, output_length).operations
+  // position (i, j) in the cost matrix (see layout above) is stored at index i * width + j
+  const width = output_length + 1
+  // costs[i * width + j] is the total cost of the cheapest path to (i, j), or -1 if not yet computed
+  const costs = new Int32Array((input_length + 1) * width).fill(-1)
+  // moves[i * width + j] is the last move on that cheapest path
+  const moves = new Uint8Array((input_length + 1) * width)
+  costs[0] = 0
+  /**
+  Calculate the cost of the cheapest sequence of operations required to get
+  from input.slice(0, i) to output.slice(0, j), recording the last move of that
+  sequence in `moves`.
+  There may be other valid sequences with the same cost, but none cheaper.
+
+  @param i The row in the layout above
+  @param j The column in the layout above
+  @returns The total cost of the operations (+1 for each add/remove/replace)
+  */
+  function dist(i: number, j: number): number {
+    // memoized
+    const k = i * width + j
+    if (costs[k] === -1) {
+      // TODO: this !diff(...).length usage could/should be lazy
+      if (i > 0 && j > 0 && !diff(input[i - 1], output[j - 1], ptr.add(String(i - 1))).length) {
+        // equal (no operations => no cost)
+        costs[k] = dist(i - 1, j - 1)
+        moves[k] = Move.Keep
+      }
+      else {
+        // the meat of the algorithm: take the cheapest alternative, where ties
+        // go to (in order of preference) remove, add, replace
+        // (the only other case, i === 0 && j === 0, has already been memoized)
+        let cost = Infinity
+        let move = Move.Keep
+        if (i > 0) {
+          // NOT topmost row
+          cost = dist(i - 1, j) + 1
+          move = Move.Remove
+        }
+        if (j > 0) {
+          // NOT leftmost column
+          const add_cost = dist(i, j - 1) + 1
+          if (add_cost < cost) {
+            cost = add_cost
+            move = Move.Add
+          }
+        }
+        if (i > 0 && j > 0) {
+          // TABLE MIDDLE
+          // the general plan is to replace it, but we can be smarter, recursing
+          // into the structure and replacing only part of it if possible
+          // (which is handled when converting to proper Operations below)
+          const replace_cost = dist(i - 1, j - 1) + 1
+          if (replace_cost < cost) {
+            cost = replace_cost
+            move = Move.Replace
+          }
+        }
+        costs[k] = cost
+        moves[k] = move
+      }
+    }
+    return costs[k]
+  }
+  dist(input_length, output_length)
+  // trace back from the bottom-right corner to collect the operations
+  const array_operations: ArrayOperation[] = []
+  for (let i = input_length, j = output_length; i > 0 || j > 0;) {
+    switch (moves[i * width + j]) {
+      case Move.Keep:
+        i--
+        j--
+        break
+      case Move.Remove:
+        array_operations.push({op: 'remove', index: i - 1})
+        i--
+        break
+      case Move.Add:
+        array_operations.push({op: 'add', index: i - 1, value: output[j - 1]})
+        j--
+        break
+      case Move.Replace:
+        array_operations.push({op: 'replace', index: i - 1, original: input[i - 1], value: output[j - 1]})
+        i--
+        j--
+        break
+    }
+  }
+  array_operations.reverse()
   // convert array_operations into proper Operations, keeping track of how much
   // earlier adds and removes have shifted the indices of later elements
   const operations: Operation[] = []
