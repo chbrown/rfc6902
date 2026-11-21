@@ -194,10 +194,12 @@ export function diffArrays<T>(input: T[], output: T[], ptr: Pointer, diff: Diff 
   // properties by using 0 for everything but positive numbers
   const input_length = (isNaN(input.length) || input.length <= 0) ? 0 : input.length
   const output_length = (isNaN(output.length) || output.length <= 0) ? 0 : output.length
-  function equal(input_index: number, output_index: number): boolean {
-    // TODO: this !diff(...).length usage could/should be lazy
-    return !diff(input[input_index], output[output_index], ptr.add(String(input_index))).length
-  }
+  // we only need to know whether two elements are equal, so for the default
+  // diff, use the equivalent but much cheaper isEqual (a custom diff might
+  // consider elements equal that isEqual wouldn't, so it has to be called)
+  const equal = diff === diffAny ?
+    (input_index: number, output_index: number) => isEqual(input[input_index], output[output_index]) :
+    (input_index: number, output_index: number) => !diff(input[input_index], output[output_index], ptr.add(String(input_index))).length
   // skip the common prefix and suffix
   let start = 0
   while (start < input_length && start < output_length && equal(start, start)) {
@@ -346,11 +348,11 @@ Compare two non-plain objects (see {@link isPlainObject}) as atomic values,
 which are either equal or must be replaced wholesale.
 
 `Date`s are equal if they represent the same time, and `Map`s and `Set`s are
-equal if their entries are (as determined by `diff`). Any other non-plain
+equal if their entries are (as determined by `equal`). Any other non-plain
 objects (e.g., `RegExp`s or typed arrays) are only equal if they're identical,
 which has already been ruled out by the time this is called.
 */
-function equalAtomic(input: object, output: object, ptr: Pointer, diff: Diff): boolean {
+function equalAtomic(input: object, output: object, equal: (input: any, output: any) => boolean): boolean {
   if (input instanceof Date && output instanceof Date) {
     // Object.is treats two invalid dates (NaN) as equal
     return Object.is(input.getTime(), output.getTime())
@@ -360,7 +362,7 @@ function equalAtomic(input: object, output: object, ptr: Pointer, diff: Diff): b
       return false
     }
     for (const [key, value] of input) {
-      if (!output.has(key) || diff(value, output.get(key), ptr).length) {
+      if (!output.has(key) || !equal(value, output.get(key))) {
         return false
       }
     }
@@ -379,7 +381,7 @@ function equalAtomic(input: object, output: object, ptr: Pointer, diff: Diff): b
       }
       let match_found = false
       for (const candidate of unmatched) {
-        if (!diff(value, candidate, ptr).length) {
+        if (equal(value, candidate)) {
           unmatched.delete(candidate)
           match_found = true
           break
@@ -391,6 +393,50 @@ function equalAtomic(input: object, output: object, ptr: Pointer, diff: Diff): b
     }
     return true
   }
+  return false
+}
+
+/**
+Determine whether `input` and `output` are equal by the same standard as
+{@link diffAny}, i.e., whether `diffAny(input, output, ptr)` would return an
+empty array, but without building any operations (or pointers) along the way.
+*/
+export function isEqual(input: any, output: any): boolean {
+  if (input === output) {
+    return true
+  }
+  if (Array.isArray(input) && Array.isArray(output)) {
+    if (input.length !== output.length) {
+      return false
+    }
+    for (let i = 0; i < input.length; i++) {
+      if (!isEqual(input[i], output[i])) {
+        return false
+      }
+    }
+    return true
+  }
+  if (isPlainObject(input) && isPlainObject(output)) {
+    // keys are own properties whose values are not undefined, as in subtract / intersection2
+    for (const key in input) {
+      if (hasOwnProperty.call(input, key) && input[key] !== undefined) {
+        if (!(hasOwnProperty.call(output, key) && output[key] !== undefined) || !isEqual(input[key], output[key])) {
+          return false
+        }
+      }
+    }
+    for (const key in output) {
+      if (hasOwnProperty.call(output, key) && output[key] !== undefined &&
+          !(hasOwnProperty.call(input, key) && input[key] !== undefined)) {
+        return false
+      }
+    }
+    return true
+  }
+  if (isNonPrimitive(input) && isNonPrimitive(output)) {
+    return equalAtomic(input, output, isEqual)
+  }
+  // diffAny would replace `input` with `output` wholesale
   return false
 }
 
@@ -428,7 +474,7 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   if (isPlainObject(input) && isPlainObject(output)) {
     return diffObjects(input, output, ptr, diff)
   }
-  if (isNonPrimitive(input) && isNonPrimitive(output) && equalAtomic(input, output, ptr, diff)) {
+  if (isNonPrimitive(input) && isNonPrimitive(output) && equalAtomic(input, output, (a, b) => !diff(a, b, ptr).length)) {
     return []
   }
   // at this point we know that input and output are materially different;

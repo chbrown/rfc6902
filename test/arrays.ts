@@ -53,3 +53,15 @@ test('diff of equally cheap alternatives: [A,A] => [A] removes the second A', t 
   // leading elements, so the last of several equal elements gets removed
   t.deepEqual(createPatch(['A', 'A'], ['A']), [{op: 'remove', path: '/1'}])
 })
+
+test('diff of arrays uses a custom diff to line up elements', t => {
+  // elements with the same id are considered equal, whatever their other fields
+  const diff = (input: any, output: any) => {
+    if (input?.id !== undefined && input.id === output?.id) {
+      return []
+    }
+  }
+  const input = [{id: 1}, {id: 2, x: 1}, {id: 3}]
+  const output = [{id: 2, x: 9}, {id: 3}]
+  t.deepEqual(createPatch(input, output, diff), [{op: 'remove', path: '/0'}])
+})
