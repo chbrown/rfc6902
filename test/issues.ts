@@ -313,6 +313,27 @@ test('issues/44', t => {
   t.deepEqual(author, {firstName: 'Chris'}, 'patch reference should not be changed')
 })
 
+test('issues/72', t => {
+  // adapted from PR #88: large arrays used to overflow the stack (or run out of
+  // memory), since diffArrays recursed through the whole cost matrix
+  const input: any[] = []
+  for (let i = 0; i < 2000; i++) {
+    input.push([i, i * 2])
+  }
+  checkRoundtrip(t, input, clone(input), [])
+  const output = clone(input)
+  output.splice(100, 1, [100, 101, 102])
+  output.splice(200, 0, 'insert to the middle')
+  output.push('push to the end')
+  const expected_patch: Operation[] = [
+    {op: 'replace', path: '/100/1', value: 101},
+    {op: 'add', path: '/100/-', value: 102},
+    {op: 'add', path: '/200', value: 'insert to the middle'},
+    {op: 'add', path: '/-', value: 'push to the end'},
+  ]
+  checkRoundtrip(t, input, output, expected_patch)
+})
+
 test('issues/76', t => {
   t.true(({} as any).polluted === undefined, 'Object prototype should not be polluted')
   const value = {}
