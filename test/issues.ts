@@ -172,6 +172,8 @@ test('test operation compares Dates by value', t => {
   ])
   t.is(results[0], null)
   t.truthy(results[1], 'test against a different Date should fail')
+  t.is(results[1]?.message, 'Test failed: 1970-01-01T00:00:00.000Z != 1970-01-01T00:00:00.001Z',
+       'error message should show the Dates down to the millisecond')
 })
 
 test('issues/29', t => {

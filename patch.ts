@@ -35,9 +35,14 @@ export class MissingError extends Error {
   }
 }
 
+// Date's default string drops milliseconds (and toISOString throws on invalid Dates)
+function formatTestValue(value: any): string {
+  return value instanceof Date && !isNaN(value.getTime()) ? value.toISOString() : String(value)
+}
+
 export class TestError extends Error {
   constructor(public actual: any, public expected: any) {
-    super(`Test failed: ${actual} != ${expected}`)
+    super(`Test failed: ${formatTestValue(actual)} != ${formatTestValue(expected)}`)
     this.name = 'TestError'
   }
 }
